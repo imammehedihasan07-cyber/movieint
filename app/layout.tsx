@@ -18,10 +18,6 @@ export const metadata: Metadata = {
   metadataBase: new URL(
     process.env.NEXT_PUBLIC_SITE_URL || "https://movieint.vercel.app"
   ),
-
-verification: {
-    google: "HfvzuzUidPVymGZ1FiWVjpx8DwsctgAXUB-YsFBMFJQo",
-  },
   
   title: {
     default: "MOVIEINT — Cinematic Intelligence & Narrative DNA Engine",

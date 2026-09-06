@@ -281,7 +281,7 @@ export default function VibeMatch({
                   <MoviePoster
                     src={
                       item.poster_path
-                        ? `https://image.tmdb.org/t/p/w200${item.poster_path}`
+                        ? `https://image.tmdb.org/t/p/w500${item.poster_path}`
                         : null
                     }
                     alt={item.title}

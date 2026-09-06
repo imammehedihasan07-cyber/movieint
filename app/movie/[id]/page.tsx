@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowLeft, Star, Clock, Calendar, Film, Tv } from "lucide-react";
+import { ArrowLeft, Star, Clock, Calendar, Film, Tv, Clapperboard } from "lucide-react";
 import MovieDNA from "@/components/MovieDNA";
 import WatchlistButton from "@/components/WatchlistButton";
 import TrailerModal from "@/components/TrailerModal";
@@ -137,8 +137,13 @@ export default async function MediaDetailPage({ params }: MovieDetailProps) {
   const isTv = media.media_type === "tv";
   const genreList = media.genres?.map((g: { name: string }) => g.name).join(", ") || "Cinema";
 
-  const cast = media.credits?.cast?.slice(0, 6) || [];
-  const similarMedia = media.similar?.results?.slice(0, 5) || [];
+  const cast = (media.credits?.cast || [])
+    .filter((actor: any) => actor && actor.name && actor.profile_path)
+    .slice(0, 6);
+
+  const similarMedia = (media.similar?.results || [])
+    .filter((sim: any) => sim && sim.poster_path && sim.vote_average > 0)
+    .slice(0, 5);
 
   const trailer = media.videos?.results?.find(
     (v: any) => v.site === "YouTube" && (v.type === "Trailer" || v.type === "Teaser")
@@ -192,14 +197,17 @@ export default async function MediaDetailPage({ params }: MovieDetailProps) {
             {media.poster_path ? (
               <Image
                 src={`https://image.tmdb.org/t/p/w500${media.poster_path}`}
-                alt={title}
+                alt={`${title} (${year}) official poster`}
                 fill
                 priority
                 sizes="(max-width: 768px) 100vw, 33vw"
                 className="object-cover"
               />
             ) : (
-              <div className="flex items-center justify-center h-full text-slate-600 text-xs">No Visual Available</div>
+              <div className="flex flex-col items-center justify-center h-full text-slate-600 text-xs gap-2">
+                <Clapperboard className="w-8 h-8 text-slate-700" />
+                <span>No Visual Record</span>
+              </div>
             )}
           </div>
 
@@ -291,17 +299,13 @@ export default async function MediaDetailPage({ params }: MovieDetailProps) {
               {cast.map((actor: any) => (
                 <div key={actor.id} className="bg-[#090d15] border border-white/[0.06] rounded-2xl p-3 text-center">
                   <div className="w-16 h-16 relative mx-auto mb-2 rounded-full overflow-hidden bg-slate-900 border border-white/5">
-                    {actor.profile_path ? (
-                      <Image
-                        src={`https://image.tmdb.org/t/p/w185${actor.profile_path}`}
-                        alt={actor.name}
-                        fill
-                        sizes="64px"
-                        className="object-cover"
-                      />
-                    ) : (
-                      <div className="flex items-center justify-center h-full text-[10px] text-slate-600">No Photo</div>
-                    )}
+                    <Image
+                      src={`https://image.tmdb.org/t/p/w185${actor.profile_path}`}
+                      alt={`${actor.name} as ${actor.character || "Cast"} in ${title}`}
+                      fill
+                      sizes="64px"
+                      className="object-cover"
+                    />
                   </div>
                   <h4 className="text-xs font-bold text-slate-200 truncate">{actor.name}</h4>
                   <p className="text-[10px] text-slate-500 truncate">{actor.character}</p>
@@ -313,9 +317,17 @@ export default async function MediaDetailPage({ params }: MovieDetailProps) {
 
         {similarMedia.length > 0 && (
           <section className="mb-14 text-left">
-            <h3 className="text-xs font-mono uppercase tracking-[0.2em] text-slate-400 mb-4 font-bold">
-              Thematic Neighbours
-            </h3>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xs font-mono uppercase tracking-[0.2em] text-slate-400 font-bold">
+                Thematic Neighbours
+              </h3>
+              <Link
+                href={`/movies-like/${id}`}
+                className="text-xs text-indigo-400 hover:text-indigo-300 transition font-mono"
+              >
+                View Full Affinity Index →
+              </Link>
+            </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
               {similarMedia.map((sim: any) => {
                 const simTitle = sim.title || sim.name;
@@ -326,24 +338,20 @@ export default async function MediaDetailPage({ params }: MovieDetailProps) {
                     className="group bg-[#090d15] border border-white/[0.06] rounded-2xl overflow-hidden hover:border-indigo-500/50 transition duration-300 flex flex-col"
                   >
                     <div className="aspect-[2/3] relative w-full bg-slate-950">
-                      {sim.poster_path ? (
-                        <Image
-                          src={`https://image.tmdb.org/t/p/w500${sim.poster_path}`}
-                          alt={simTitle}
-                          fill
-                          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
-                          className="object-cover group-hover:scale-105 transition duration-300"
-                        />
-                      ) : (
-                        <div className="flex items-center justify-center h-full text-xs text-slate-600">No Image</div>
-                      )}
+                      <Image
+                        src={`https://image.tmdb.org/t/p/w500${sim.poster_path}`}
+                        alt={`${simTitle} poster`}
+                        fill
+                        sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
+                        className="object-cover group-hover:scale-105 transition duration-300"
+                      />
                     </div>
                     <div className="p-3">
                       <h4 className="text-xs font-bold text-slate-200 truncate group-hover:text-indigo-400 transition">
                         {simTitle}
                       </h4>
                       <p className="text-[11px] text-slate-500 mt-1">
-                        ★ {sim.vote_average?.toFixed(1) || "N/A"}
+                        ★ {sim.vote_average?.toFixed(1)}
                       </p>
                     </div>
                   </Link>

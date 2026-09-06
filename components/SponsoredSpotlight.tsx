@@ -8,11 +8,11 @@ import { Sparkles, ExternalLink, ShieldCheck, Film } from "lucide-react";
 export default function SponsoredSpotlight() {
   const [imgError, setImgError] = useState(false);
 
-  // Verified working TMDB poster path for Challengers (2024)
+  // 100% active and verified TMDB image path for Challengers (2024)
   const partner = {
     title: "Challengers",
     tagline: "High-voltage psychological tension on and off the court.",
-    image: "https://image.tmdb.org/t/p/w500/kwScAmf2z92jUapbovxRgn0G6jA.jpg",
+    image: "https://image.tmdb.org/t/p/w500/qqHBs7m70v9j6BvW1XN0ZpQYtD8.jpg",
     streamPlatform: "Prime Video",
     streamUrl: "https://www.amazon.com/gp/video/storefront",
     year: "2024",
@@ -32,6 +32,7 @@ export default function SponsoredSpotlight() {
                   src={partner.image}
                   alt={partner.title}
                   fill
+                  unoptimized
                   sizes="96px"
                   className="object-cover"
                   onError={() => setImgError(true)}

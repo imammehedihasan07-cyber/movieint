@@ -1,14 +1,14 @@
 import { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
-import { ArrowLeft, Star, Clock, Calendar, Sparkles, Layers, Compass } from "lucide-react";
+import { ArrowLeft, Star, Sparkles, Layers, Compass } from "lucide-react";
+import MoviePoster from "@/components/MoviePoster";
 
 interface PageProps {
   params: Promise<{ id: string }>;
 }
 
 async function getSimilarCollection(id: string) {
-  const apiKey = process.env.TMDB_API_KEY;
+  const apiKey = process.env.TMDB_API_KEY || "b6b9f5e3a64b6ef32e0b8fade33cfe5a";
 
   try {
     const [targetRes, similarRes] = await Promise.all([
@@ -36,9 +36,13 @@ async function getSimilarCollection(id: string) {
       }
     }
 
+    const filteredSimilar = (similarData.results || []).filter(
+      (m: any) => m && m.poster_path && m.vote_average > 0
+    );
+
     return {
       target: targetMovie,
-      similar: similarData.results || [],
+      similar: filteredSimilar,
     };
   } catch (error) {
     console.error("Failed to fetch similar movies:", error);
@@ -135,7 +139,7 @@ export default async function MoviesLikePage({ params }: PageProps) {
       <div className="max-w-5xl w-full z-10">
         <Link
           href={`/movie/${id}`}
-          className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-400 hover:text-slate-200 mb-8 transition"
+          className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-400 hover:text-slate-200 mb-8 transition font-mono"
         >
           <ArrowLeft className="w-3.5 h-3.5" /> Back to {target.title} Intelligence
         </Link>
@@ -143,21 +147,21 @@ export default async function MoviesLikePage({ params }: PageProps) {
         {/* Benchmark Reference Banner */}
         <section className="bg-[#090d15] border border-white/[0.08] rounded-3xl p-6 sm:p-8 mb-12 shadow-2xl relative overflow-hidden flex flex-col sm:flex-row gap-6 items-center">
           <div className="w-24 sm:w-28 aspect-[2/3] relative rounded-xl overflow-hidden bg-slate-900 border border-white/10 shrink-0 shadow-lg">
-            {target.poster_path ? (
-              <Image
-                src={`https://image.tmdb.org/t/p/w300${target.poster_path}`}
-                alt={target.title}
-                fill
-                sizes="112px"
-                className="object-cover"
-              />
-            ) : null}
+            <MoviePoster
+              src={target.poster_path ? `https://image.tmdb.org/t/p/w300${target.poster_path}` : null}
+              alt={target.title}
+              fallbackTitle={target.title}
+              fill
+              sizes="112px"
+              priority
+              className="object-cover"
+            />
           </div>
           <div className="flex-grow text-center sm:text-left">
             <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-[10px] font-mono uppercase mb-2">
-              <Sparkles className="w-3 h-3" /> Benchmark Anchor
+              <Sparkles className="w-3.5 h-3.5" /> Benchmark Anchor
             </span>
-            <h1 className="text-2xl sm:text-4xl font-black text-white mb-2">
+            <h1 className="text-2xl sm:text-4xl font-black text-white mb-2 tracking-tight">
               Best Movies Like {target.title}
             </h1>
             <p className="text-xs sm:text-sm text-slate-300 leading-relaxed max-w-2xl">
@@ -181,21 +185,18 @@ export default async function MoviesLikePage({ params }: PageProps) {
               <Link
                 key={movie.id}
                 href={`/movie/${movie.id}`}
-                className="group bg-[#090d15] border border-white/[0.06] rounded-2xl overflow-hidden hover:border-indigo-500/50 transition duration-300 flex flex-col"
+                className="group bg-[#090d15] border border-white/[0.06] rounded-2xl overflow-hidden hover:border-indigo-500/50 transition duration-300 flex flex-col shadow-xl"
               >
-                <div className="aspect-[2/3] relative w-full bg-slate-950">
-                  {movie.poster_path ? (
-                    <Image
-                      src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
-                      alt={movie.title}
-                      fill
-                      sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
-                      className="object-cover group-hover:scale-105 transition duration-300"
-                    />
-                  ) : (
-                    <div className="flex items-center justify-center h-full text-xs text-slate-600">No Poster</div>
-                  )}
-                  <div className="absolute top-2 right-2 bg-black/70 backdrop-blur-md px-2 py-0.5 rounded-md text-[10px] font-bold text-amber-400 flex items-center gap-1 border border-white/10">
+                <div className="aspect-[2/3] relative w-full bg-slate-950 overflow-hidden">
+                  <MoviePoster
+                    src={movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : null}
+                    alt={movie.title}
+                    fallbackTitle={movie.title}
+                    fill
+                    sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
+                    className="object-cover group-hover:scale-105 transition duration-300"
+                  />
+                  <div className="absolute top-2 right-2 bg-black/70 backdrop-blur-md px-2 py-0.5 rounded-md text-[10px] font-mono font-bold text-amber-400 flex items-center gap-1 border border-white/10">
                     <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
                     {movie.vote_average?.toFixed(1) || "N/A"}
                   </div>
@@ -205,7 +206,7 @@ export default async function MoviesLikePage({ params }: PageProps) {
                     <h3 className="text-xs font-bold text-slate-200 group-hover:text-indigo-400 transition truncate">
                       {movie.title}
                     </h3>
-                    <p className="text-[10px] text-slate-500 mt-0.5">
+                    <p className="text-[10px] text-slate-500 mt-0.5 font-mono">
                       {movie.release_date?.split("-")[0] || "TBA"}
                     </p>
                   </div>

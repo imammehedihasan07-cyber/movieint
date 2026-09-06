@@ -30,7 +30,7 @@ export default function TermsPage() {
         <h1 className="text-3xl sm:text-4xl font-black text-white mb-2">
           Terms of Service & Copyright
         </h1>
-        <p className="text-xs text-slate-400 mb-8">Effective Date: January 2026</p>
+        <p className="text-xs text-slate-400 mb-8">Effective Date: September 2026</p>
 
         <div className="space-y-6 text-xs sm:text-sm text-slate-300 leading-relaxed">
           <section className="bg-slate-900/40 border border-slate-800/80 p-5 rounded-2xl">

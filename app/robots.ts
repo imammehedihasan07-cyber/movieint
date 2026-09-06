@@ -7,22 +7,26 @@ export default function robots(): MetadataRoute.Robots {
     rules: [
       {
         userAgent: "*",
-        allow: "/",
+        allow: [
+          "/",
+          "/search$", // Allows the clean /search discovery landing page
+        ],
         disallow: [
           "/api/",
-          "/search*",
-          "/watchlist*",
-          "/_next/",
-          "/static/",
+          "/search?*", // Blocks infinite query URLs from consuming crawl budget
+          "/watchlist",
         ],
       },
       {
         userAgent: "Googlebot",
-        allow: "/",
+        allow: [
+          "/",
+          "/search$",
+        ],
         disallow: [
           "/api/",
-          "/search*",
-          "/watchlist*",
+          "/search?*",
+          "/watchlist",
         ],
       },
     ],

@@ -16,7 +16,6 @@ import {
   Search,
   Loader2,
   Star,
-  Film,
 } from "lucide-react";
 import MoviePoster from "@/components/MoviePoster";
 
@@ -38,7 +37,7 @@ export default function Navbar() {
   const searchContainerRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
-  // Instant Debounced TMDB Live Search
+  // Instant Debounced TMDB Live Search with Strict Data Hygiene
   useEffect(() => {
     if (!searchQuery.trim() || searchQuery.length < 2) {
       setSearchResults([]);
@@ -56,15 +55,25 @@ export default function Navbar() {
         );
         const data = await res.json();
         if (data.results) {
-          setSearchResults(data.results.slice(0, 5));
-          setIsDropdownOpen(true);
+          const cleanMatches = (data.results || [])
+            .filter(
+              (m: any) =>
+                m &&
+                m.poster_path &&
+                m.vote_average > 0 &&
+                (m.vote_count ?? 0) >= 3
+            )
+            .slice(0, 5);
+
+          setSearchResults(cleanMatches);
+          setIsDropdownOpen(cleanMatches.length > 0);
         }
       } catch (err) {
         console.error("Search fetch error:", err);
       } finally {
         setIsSearching(false);
       }
-    }, 300);
+    }, 280);
 
     return () => clearTimeout(timer);
   }, [searchQuery]);
@@ -87,7 +96,7 @@ export default function Navbar() {
     setIsDropdownOpen(false);
     setSearchQuery("");
     setMobileMenuOpen(false);
-    router.push(`/movie/${id}`);
+    window.location.href = `/movie/${id}`;
   };
 
   return (
@@ -147,33 +156,29 @@ export default function Navbar() {
                   className="flex items-center gap-3 p-2.5 hover:bg-white/[0.05] cursor-pointer transition text-left group"
                 >
                   <div className="w-8 h-11 relative bg-slate-900 rounded-lg overflow-hidden shrink-0 border border-white/5">
-                    {m.poster_path ? (
-                      <MoviePoster
-                        src={`https://image.tmdb.org/t/p/w92${m.poster_path}`}
-                        alt={m.title}
-                        fallbackTitle={m.title}
-                        fill
-                        sizes="32px"
-                        className="object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-slate-700">
-                        <Film className="w-3.5 h-3.5" />
-                      </div>
-                    )}
+                    <MoviePoster
+                      src={
+                        m.poster_path
+                          ? `https://image.tmdb.org/t/p/w200${m.poster_path}`
+                          : null
+                      }
+                      alt={m.title}
+                      fallbackTitle={m.title}
+                      fill
+                      sizes="32px"
+                      className="object-cover"
+                    />
                   </div>
                   <div className="flex-grow truncate">
                     <h4 className="font-bold text-xs text-white group-hover:text-indigo-400 transition truncate">
                       {m.title}
                     </h4>
                     <div className="flex items-center gap-2 text-[10px] font-mono text-slate-400 mt-0.5">
-                      <span>{m.release_date?.split("-")[0] || "TBA"}</span>
-                      {m.vote_average ? (
-                        <span className="flex items-center gap-0.5 text-amber-400">
-                          <Star className="w-2.5 h-2.5 fill-amber-400" />
-                          {m.vote_average.toFixed(1)}
-                        </span>
-                      ) : null}
+                      <span>{m.release_date?.split("-")[0] || "Cinema"}</span>
+                      <span className="flex items-center gap-0.5 text-amber-400">
+                        <Star className="w-2.5 h-2.5 fill-amber-400" />
+                        {m.vote_average.toFixed(1)}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -284,12 +289,29 @@ export default function Navbar() {
                   <div
                     key={m.id}
                     onClick={() => handleSelectMovie(m.id)}
-                    className="flex items-center gap-2.5 p-2 text-xs text-white"
+                    className="flex items-center gap-3 p-2.5 hover:bg-white/[0.04] cursor-pointer transition text-xs text-white"
                   >
-                    <span className="truncate flex-1 font-bold">{m.title}</span>
-                    <span className="text-[10px] font-mono text-slate-400">
-                      {m.release_date?.split("-")[0] || "TBA"}
-                    </span>
+                    <div className="w-7 h-10 relative bg-slate-900 rounded overflow-hidden shrink-0 border border-white/5">
+                      <MoviePoster
+                        src={
+                          m.poster_path
+                            ? `https://image.tmdb.org/t/p/w92${m.poster_path}`
+                            : null
+                        }
+                        alt={m.title}
+                        fallbackTitle={m.title}
+                        fill
+                        sizes="28px"
+                        className="object-cover"
+                      />
+                    </div>
+                    <div className="flex-1 truncate">
+                      <span className="truncate block font-bold">{m.title}</span>
+                      <div className="flex items-center gap-2 text-[10px] font-mono text-slate-400">
+                        <span>{m.release_date?.split("-")[0] || "Cinema"}</span>
+                        <span className="text-amber-400">★ {m.vote_average.toFixed(1)}</span>
+                      </div>
+                    </div>
                   </div>
                 ))}
               </div>

@@ -27,17 +27,27 @@ async function getInitialRankings() {
       `https://api.themoviedb.org/3/discover/movie?api_key=${apiKey}&sort_by=vote_average.desc&vote_count.gte=1000&page=1`,
       { next: { revalidate: 86400 } }
     );
-    if (!res.ok) {
-      // Fallback to top_rated if discover fails
+
+    let rawList: any[] = [];
+
+    if (res.ok) {
+      const data = await res.json();
+      rawList = data.results || [];
+    } else {
       const fallbackRes = await fetch(
         `https://api.themoviedb.org/3/movie/top_rated?api_key=${apiKey}&page=1`,
         { next: { revalidate: 86400 } }
       );
-      const fallbackData = await fallbackRes.json();
-      return fallbackData.results || [];
+      if (fallbackRes.ok) {
+        const fallbackData = await fallbackRes.json();
+        rawList = fallbackData.results || [];
+      }
     }
-    const data = await res.json();
-    return data.results || [];
+
+    // Strict Data Hygiene: Must have valid poster and active score
+    return rawList.filter(
+      (m: any) => m && m.id && m.poster_path && m.vote_average > 0 && (m.vote_count ?? 0) >= 300
+    );
   } catch (error) {
     console.error("Failed to fetch initial rankings:", error);
     return [];
@@ -60,7 +70,13 @@ export default async function RankingsPage() {
         "@type": "Movie",
         name: movie.title,
         url: `https://www.movieint.com/movie/${movie.id}`,
-        image: movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : undefined,
+        image: `https://image.tmdb.org/t/p/w500${movie.poster_path}`,
+        aggregateRating: {
+          "@type": "AggregateRating",
+          ratingValue: movie.vote_average?.toFixed(1),
+          bestRating: "10",
+          ratingCount: movie.vote_count,
+        },
       },
     })),
   };
@@ -97,7 +113,7 @@ export default async function RankingsPage() {
                 Weighted Bayesian Evaluation Active
               </p>
               <p className="text-[11px] text-slate-400 mt-0.5">
-                Ranks filter anomalies by enforcing a minimum baseline ($v \ge 1,000$ votes) to preserve historical integrity.
+                Ranks filter anomalies by enforcing a minimum baseline (minimum 1,000 votes) to preserve historical integrity.
               </p>
             </div>
           </div>
@@ -114,7 +130,7 @@ export default async function RankingsPage() {
         <RankingsClient initialMovies={initialMovies} />
       </div>
 
-      {/* Editorial & Methodology Section for High SEO / AdSense Value */}
+      {/* Editorial & Methodology Section */}
       <section className="max-w-6xl mx-auto relative z-10 border-t border-white/[0.08] pt-12 space-y-10 text-left">
         <div className="bg-[#090d15] border border-white/[0.08] rounded-3xl p-6 sm:p-8">
           <div className="flex items-center gap-2 text-indigo-400 text-xs font-mono uppercase tracking-widest mb-3">

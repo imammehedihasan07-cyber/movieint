@@ -138,7 +138,7 @@ export default async function MediaDetailPage({ params }: MovieDetailProps) {
   const genreList = media.genres?.map((g: { name: string }) => g.name).join(", ") || "Cinema";
 
   const cast = (media.credits?.cast || [])
-    .filter((actor: any) => actor && actor.name && actor.profile_path)
+    .filter((actor: any) => actor && actor.id && actor.name && actor.profile_path)
     .slice(0, 6);
 
   const similarMedia = (media.similar?.results || [])
@@ -297,19 +297,25 @@ export default async function MediaDetailPage({ params }: MovieDetailProps) {
             </h3>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
               {cast.map((actor: any) => (
-                <div key={actor.id} className="bg-[#090d15] border border-white/[0.06] rounded-2xl p-3 text-center">
+                <Link
+                  key={actor.id}
+                  href={`/person/${actor.id}`}
+                  className="group bg-[#090d15] border border-white/[0.06] rounded-2xl p-3 text-center hover:border-indigo-500/50 transition block"
+                >
                   <div className="w-16 h-16 relative mx-auto mb-2 rounded-full overflow-hidden bg-slate-900 border border-white/5">
                     <Image
                       src={`https://image.tmdb.org/t/p/w185${actor.profile_path}`}
                       alt={`${actor.name} as ${actor.character || "Cast"} in ${title}`}
                       fill
                       sizes="64px"
-                      className="object-cover"
+                      className="object-cover group-hover:scale-105 transition"
                     />
                   </div>
-                  <h4 className="text-xs font-bold text-slate-200 truncate">{actor.name}</h4>
+                  <h4 className="text-xs font-bold text-slate-200 truncate group-hover:text-indigo-400 transition">
+                    {actor.name}
+                  </h4>
                   <p className="text-[10px] text-slate-500 truncate">{actor.character}</p>
-                </div>
+                </Link>
               ))}
             </div>
           </section>

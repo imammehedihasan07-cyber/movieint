@@ -1,5 +1,4 @@
 import { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, Star, Clock, Calendar, Film, Tv, Clapperboard } from "lucide-react";
 import MovieDNA from "@/components/MovieDNA";
@@ -11,6 +10,7 @@ import ClimaxIndex from "@/components/ClimaxIndex";
 import StreamingAffiliateBox from "@/components/StreamingAffiliateBox";
 import MovieFAQ from "@/components/MovieFAQ";
 import SpoilerVault from "@/components/SpoilerVault";
+import MoviePoster from "@/components/MoviePoster";
 
 interface MovieDetailProps {
   params: Promise<{ id: string }>;
@@ -138,11 +138,11 @@ export default async function MediaDetailPage({ params }: MovieDetailProps) {
   const genreList = media.genres?.map((g: { name: string }) => g.name).join(", ") || "Cinema";
 
   const cast = (media.credits?.cast || [])
-    .filter((actor: any) => actor && actor.id && actor.name && actor.profile_path)
+    .filter((actor: any) => actor && actor.id && actor.name)
     .slice(0, 6);
 
   const similarMedia = (media.similar?.results || [])
-    .filter((sim: any) => sim && sim.poster_path && sim.vote_average > 0)
+    .filter((sim: any) => sim && sim.vote_average > 0)
     .slice(0, 5);
 
   const trailer = media.videos?.results?.find(
@@ -195,9 +195,10 @@ export default async function MediaDetailPage({ params }: MovieDetailProps) {
 
           <div className="aspect-[2/3] relative rounded-2xl overflow-hidden shadow-2xl bg-slate-950 border border-white/10 z-10">
             {media.poster_path ? (
-              <Image
+              <MoviePoster
                 src={`https://image.tmdb.org/t/p/w500${media.poster_path}`}
                 alt={`${title} (${year}) official poster`}
+                fallbackTitle={title}
                 fill
                 priority
                 sizes="(max-width: 768px) 100vw, 33vw"
@@ -303,18 +304,23 @@ export default async function MediaDetailPage({ params }: MovieDetailProps) {
                   className="group bg-[#090d15] border border-white/[0.06] rounded-2xl p-3 text-center hover:border-indigo-500/50 transition block"
                 >
                   <div className="w-16 h-16 relative mx-auto mb-2 rounded-full overflow-hidden bg-slate-900 border border-white/5">
-                    <Image
-                      src={`https://image.tmdb.org/t/p/w185${actor.profile_path}`}
-                      alt={`${actor.name} as ${actor.character || "Cast"} in ${title}`}
-                      fill
-                      sizes="64px"
-                      className="object-cover group-hover:scale-105 transition"
-                    />
+                    {actor.profile_path ? (
+                      <MoviePoster
+                        src={`https://image.tmdb.org/t/p/w185${actor.profile_path}`}
+                        alt={`${actor.name} as ${actor.character || "Cast"} in ${title}`}
+                        fallbackTitle={actor.name}
+                        fill
+                        sizes="64px"
+                        className="object-cover group-hover:scale-105 transition"
+                      />
+                    ) : (
+                      <div className="flex items-center justify-center h-full text-[10px] text-slate-600">No Visual</div>
+                    )}
                   </div>
                   <h4 className="text-xs font-bold text-slate-200 truncate group-hover:text-indigo-400 transition">
                     {actor.name}
                   </h4>
-                  <p className="text-[10px] text-slate-500 truncate">{actor.character}</p>
+                  <p className="text-[10px] text-slate-500 truncate">{actor.character || "Cast"}</p>
                 </Link>
               ))}
             </div>
@@ -344,20 +350,25 @@ export default async function MediaDetailPage({ params }: MovieDetailProps) {
                     className="group bg-[#090d15] border border-white/[0.06] rounded-2xl overflow-hidden hover:border-indigo-500/50 transition duration-300 flex flex-col"
                   >
                     <div className="aspect-[2/3] relative w-full bg-slate-950">
-                      <Image
-                        src={`https://image.tmdb.org/t/p/w500${sim.poster_path}`}
-                        alt={`${simTitle} poster`}
-                        fill
-                        sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
-                        className="object-cover group-hover:scale-105 transition duration-300"
-                      />
+                      {sim.poster_path ? (
+                        <MoviePoster
+                          src={`https://image.tmdb.org/t/p/w500${sim.poster_path}`}
+                          alt={`${simTitle} poster`}
+                          fallbackTitle={simTitle}
+                          fill
+                          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
+                          className="object-cover group-hover:scale-105 transition duration-300"
+                        />
+                      ) : (
+                        <div className="flex items-center justify-center h-full text-xs text-slate-600">No Image</div>
+                      )}
                     </div>
                     <div className="p-3">
                       <h4 className="text-xs font-bold text-slate-200 truncate group-hover:text-indigo-400 transition">
                         {simTitle}
                       </h4>
                       <p className="text-[11px] text-slate-500 mt-1">
-                        ★ {sim.vote_average?.toFixed(1)}
+                        ★ {sim.vote_average?.toFixed(1) || "N/A"}
                       </p>
                     </div>
                   </Link>

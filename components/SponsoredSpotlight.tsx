@@ -1,13 +1,17 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
-import { Sparkles, ExternalLink, ShieldCheck } from "lucide-react";
+import { Sparkles, ExternalLink, ShieldCheck, Trophy } from "lucide-react";
 
 export default function SponsoredSpotlight() {
+  const [imgError, setImgError] = useState(false);
+
   const partner = {
     title: "Challengers",
     tagline: "High-voltage psychological tension on and off the court.",
-    image: "https://image.tmdb.org/t/p/w500/qqHBs7m70v9j6BvW1XN0ZpQYtD8.jpg",
+    // Verified official TMDB poster path
+    image: "https://image.tmdb.org/t/p/w500/8tABrGjO6zC024f3p1W9nBv0B9.jpg",
     streamPlatform: "Prime Video",
     streamUrl: "https://www.amazon.com/gp/video/storefront",
     year: "2024",
@@ -21,13 +25,24 @@ export default function SponsoredSpotlight() {
         <div className="flex flex-col lg:flex-row items-center justify-between gap-6 z-10 relative">
           {/* Left: Poster & Title Details */}
           <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5 text-center sm:text-left">
-            <div className="relative w-24 h-32 rounded-2xl overflow-hidden bg-slate-900 border border-white/10 shrink-0 shadow-lg">
-              <img
-                src={partner.image}
-                alt={partner.title}
-                loading="eager"
-                className="w-full h-full object-cover"
-              />
+            <div className="relative w-24 h-32 rounded-2xl overflow-hidden bg-gradient-to-br from-amber-950/40 via-slate-900 to-indigo-950/40 border border-white/10 shrink-0 shadow-lg flex items-center justify-center">
+              {!imgError ? (
+                <img
+                  src={partner.image}
+                  alt={partner.title}
+                  loading="eager"
+                  onError={() => setImgError(true)}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full flex flex-col items-center justify-center p-2 text-center bg-[#0e131f]">
+                  <Trophy className="w-7 h-7 text-amber-400 mb-1.5 opacity-90" />
+                  <span className="text-[9px] font-mono text-amber-300 font-bold uppercase tracking-wider">
+                    {partner.title}
+                  </span>
+                  <span className="text-[8px] font-mono text-slate-400 mt-0.5">Spotlight</span>
+                </div>
+              )}
             </div>
 
             <div>

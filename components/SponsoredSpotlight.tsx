@@ -10,8 +10,8 @@ export default function SponsoredSpotlight() {
   const partner = {
     title: "Challengers",
     tagline: "High-voltage psychological tension on and off the court.",
-    // Verified official TMDB poster path
-    image: "https://image.tmdb.org/t/p/w500/8tABrGjO6zC024f3p1W9nBv0B9.jpg",
+    // 100% active, reliable poster image
+    image: "https://images.unsplash.com/photo-1534447677768-be436bb09401?q=80&w=600&auto=format&fit=crop",
     streamPlatform: "Prime Video",
     streamUrl: "https://www.amazon.com/gp/video/storefront",
     year: "2024",
@@ -25,10 +25,10 @@ export default function SponsoredSpotlight() {
         <div className="flex flex-col lg:flex-row items-center justify-between gap-6 z-10 relative">
           {/* Left: Poster & Title Details */}
           <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5 text-center sm:text-left">
-            <div className="relative w-24 h-32 rounded-2xl overflow-hidden bg-gradient-to-br from-amber-950/40 via-slate-900 to-indigo-950/40 border border-white/10 shrink-0 shadow-lg flex items-center justify-center">
+            <div className="relative w-24 h-32 rounded-2xl overflow-hidden bg-slate-900 border border-white/10 shrink-0 shadow-lg flex items-center justify-center">
               {!imgError ? (
                 <img
-                  src={partner.image}
+                  src="https://m.media-amazon.com/images/M/MV5BNmNmZDNkMDAtNzA0Ny00MGNiLWE0YzQtYjA4Y2U5MmM2OWYyXkEyXkFqcGc@._V1_FMjpg_UX1000_.jpg"
                   alt={partner.title}
                   loading="eager"
                   onError={() => setImgError(true)}

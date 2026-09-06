@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import {
   Swords,
@@ -11,10 +11,8 @@ import {
   RotateCcw,
   Zap,
   Activity,
-  Layers,
   Scale,
   ShieldCheck,
-  Brain,
 } from "lucide-react";
 import MoviePoster from "@/components/MoviePoster";
 
@@ -25,6 +23,7 @@ interface MovieSummary {
   vote_average: number;
   release_date: string;
   overview: string;
+  vote_count?: number;
 }
 
 export default function VsModePage() {
@@ -38,7 +37,24 @@ export default function VsModePage() {
   const [results2, setResults2] = useState<MovieSummary[]>([]);
   const [movie2, setMovie2] = useState<MovieSummary | null>(null);
 
-  // Search Debouncing for Slot 1
+  const containerRef1 = useRef<HTMLDivElement>(null);
+  const containerRef2 = useRef<HTMLDivElement>(null);
+
+  // Click outside to dismiss search results
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (containerRef1.current && !containerRef1.current.contains(e.target as Node)) {
+        setResults1([]);
+      }
+      if (containerRef2.current && !containerRef2.current.contains(e.target as Node)) {
+        setResults2([]);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Search Debouncing for Slot 1 with Data Hygiene
   useEffect(() => {
     if (!query1.trim() || query1.length < 2) {
       setResults1([]);
@@ -52,15 +68,18 @@ export default function VsModePage() {
           )}`
         );
         const data = await res.json();
-        setResults1((data.results || []).slice(0, 5));
+        const clean = (data.results || []).filter(
+          (m: any) => m && m.poster_path && m.vote_average > 0 && (m.vote_count ?? 0) >= 3
+        );
+        setResults1(clean.slice(0, 5));
       } catch (e) {
-        console.error(e);
+        console.error("VS Slot 1 fetch error:", e);
       }
-    }, 400);
+    }, 300);
     return () => clearTimeout(timer);
   }, [query1]);
 
-  // Search Debouncing for Slot 2
+  // Search Debouncing for Slot 2 with Data Hygiene
   useEffect(() => {
     if (!query2.trim() || query2.length < 2) {
       setResults2([]);
@@ -74,15 +93,17 @@ export default function VsModePage() {
           )}`
         );
         const data = await res.json();
-        setResults2((data.results || []).slice(0, 5));
+        const clean = (data.results || []).filter(
+          (m: any) => m && m.poster_path && m.vote_average > 0 && (m.vote_count ?? 0) >= 3
+        );
+        setResults2(clean.slice(0, 5));
       } catch (e) {
-        console.error(e);
+        console.error("VS Slot 2 fetch error:", e);
       }
-    }, 400);
+    }, 300);
     return () => clearTimeout(timer);
   }, [query2]);
 
-  // Telemetry metric calculators
   const getPacingScore = (m: MovieSummary) => {
     const len = m.overview?.length || 100;
     return Math.min(95, Math.max(60, Math.round(55 + (len % 40))));
@@ -104,11 +125,9 @@ export default function VsModePage() {
 
   return (
     <main className="min-h-screen bg-[#05070b] text-slate-100 px-4 sm:px-8 py-12 flex flex-col items-center selection:bg-indigo-600 selection:text-white relative overflow-hidden pb-24">
-      {/* Background Ambience */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-6xl h-[450px] bg-gradient-to-b from-rose-600/10 via-indigo-900/10 to-transparent pointer-events-none -z-0" />
 
       <div className="max-w-5xl w-full z-10 text-center">
-        {/* Badge Header */}
         <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#0a0d14] border border-white/[0.08] text-rose-300 text-[10px] font-mono uppercase tracking-[0.2em] mb-4">
           <Swords className="w-3.5 h-3.5 text-rose-400" />
           <span>Cinematic Dual Arbitrage</span>
@@ -124,7 +143,7 @@ export default function VsModePage() {
         {/* Duel Selection Hub */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12 text-left">
           {/* Movie 1 Slot */}
-          <div className="bg-[#090d15] border border-white/[0.08] rounded-3xl p-5 sm:p-6 relative shadow-2xl">
+          <div ref={containerRef1} className="bg-[#090d15] border border-white/[0.08] rounded-3xl p-5 sm:p-6 relative shadow-2xl">
             <span className="text-[10px] font-mono uppercase tracking-widest text-indigo-400 block mb-2">
               Contender Alpha
             </span>
@@ -164,16 +183,16 @@ export default function VsModePage() {
                             alt={item.title}
                             fallbackTitle={item.title}
                             fill
+                            sizes="32px"
                             className="object-cover"
                           />
                         </div>
-                        <div className="overflow-hidden">
+                        <div className="overflow-hidden flex-1">
                           <p className="text-xs font-bold text-white truncate">{item.title}</p>
-                          <span className="text-[10px] font-mono text-slate-400">
-                            {item.release_date?.split("-")[0] || "TBA"} •{" "}
-                            {item.vote_average > 0
-                              ? `★ ${item.vote_average.toFixed(1)}`
-                              : "NR"}
+                          <span className="text-[10px] font-mono text-slate-400 flex items-center gap-1.5 mt-0.5">
+                            <span>{item.release_date?.split("-")[0] || "Cinema"}</span>
+                            <span>•</span>
+                            <span className="text-amber-400 font-bold">★ {item.vote_average.toFixed(1)}</span>
                           </span>
                         </div>
                       </button>
@@ -194,16 +213,15 @@ export default function VsModePage() {
                       alt={movie1.title}
                       fallbackTitle={movie1.title}
                       fill
+                      sizes="56px"
                       className="object-cover"
                     />
                   </div>
                   <div className="truncate">
                     <h3 className="text-sm font-black text-white truncate">{movie1.title}</h3>
                     <p className="text-[11px] font-mono text-slate-400 mt-0.5">
-                      {movie1.release_date?.split("-")[0] || "TBA"} •{" "}
-                      {movie1.vote_average > 0
-                        ? `★ ${movie1.vote_average.toFixed(1)}`
-                        : "NR"}
+                      {movie1.release_date?.split("-")[0] || "Cinema"} •{" "}
+                      <span className="text-amber-400 font-bold">★ {movie1.vote_average.toFixed(1)}</span>
                     </p>
                   </div>
                 </div>
@@ -218,7 +236,7 @@ export default function VsModePage() {
           </div>
 
           {/* Movie 2 Slot */}
-          <div className="bg-[#090d15] border border-white/[0.08] rounded-3xl p-5 sm:p-6 relative shadow-2xl">
+          <div ref={containerRef2} className="bg-[#090d15] border border-white/[0.08] rounded-3xl p-5 sm:p-6 relative shadow-2xl">
             <span className="text-[10px] font-mono uppercase tracking-widest text-rose-400 block mb-2">
               Contender Beta
             </span>
@@ -258,16 +276,16 @@ export default function VsModePage() {
                             alt={item.title}
                             fallbackTitle={item.title}
                             fill
+                            sizes="32px"
                             className="object-cover"
                           />
                         </div>
-                        <div className="overflow-hidden">
+                        <div className="overflow-hidden flex-1">
                           <p className="text-xs font-bold text-white truncate">{item.title}</p>
-                          <span className="text-[10px] font-mono text-slate-400">
-                            {item.release_date?.split("-")[0] || "TBA"} •{" "}
-                            {item.vote_average > 0
-                              ? `★ ${item.vote_average.toFixed(1)}`
-                              : "NR"}
+                          <span className="text-[10px] font-mono text-slate-400 flex items-center gap-1.5 mt-0.5">
+                            <span>{item.release_date?.split("-")[0] || "Cinema"}</span>
+                            <span>•</span>
+                            <span className="text-amber-400 font-bold">★ {item.vote_average.toFixed(1)}</span>
                           </span>
                         </div>
                       </button>
@@ -288,16 +306,15 @@ export default function VsModePage() {
                       alt={movie2.title}
                       fallbackTitle={movie2.title}
                       fill
+                      sizes="56px"
                       className="object-cover"
                     />
                   </div>
                   <div className="truncate">
                     <h3 className="text-sm font-black text-white truncate">{movie2.title}</h3>
                     <p className="text-[11px] font-mono text-slate-400 mt-0.5">
-                      {movie2.release_date?.split("-")[0] || "TBA"} •{" "}
-                      {movie2.vote_average > 0
-                        ? `★ ${movie2.vote_average.toFixed(1)}`
-                        : "NR"}
+                      {movie2.release_date?.split("-")[0] || "Cinema"} •{" "}
+                      <span className="text-amber-400 font-bold">★ {movie2.vote_average.toFixed(1)}</span>
                     </p>
                   </div>
                 </div>
@@ -315,7 +332,6 @@ export default function VsModePage() {
         {/* Show Comparison Matrix When Both Selected */}
         {movie1 && movie2 ? (
           <div className="space-y-8 animate-fadeIn text-left">
-            {/* Verdict Card */}
             <div className="bg-gradient-to-r from-indigo-950/40 via-[#0a0e17] to-rose-950/40 border border-white/10 rounded-3xl p-6 sm:p-8 shadow-2xl flex flex-col sm:flex-row items-center justify-between gap-6">
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 rounded-2xl bg-amber-400/10 border border-amber-400/20 flex items-center justify-center shrink-0">
@@ -357,14 +373,14 @@ export default function VsModePage() {
 
                 <h3 className="text-xl font-black text-white mb-2">{movie1.title}</h3>
                 <p className="text-xs text-slate-400 line-clamp-3 mb-6 leading-relaxed">
-                  {movie1.overview}
+                  {movie1.overview || "Narrative telemetry archived in deep database."}
                 </p>
 
                 <div className="space-y-4 font-mono text-xs">
                   <div>
                     <div className="flex justify-between text-slate-400 mb-1">
                       <span className="flex items-center gap-1.5"><Star className="w-3.5 h-3.5 text-amber-400" /> Consensus Rating</span>
-                      <span className="text-white font-bold">{movie1.vote_average > 0 ? `${movie1.vote_average.toFixed(1)} / 10` : "NR"}</span>
+                      <span className="text-white font-bold">{movie1.vote_average.toFixed(1)} / 10</span>
                     </div>
                     <div className="w-full h-1.5 bg-slate-950 rounded-full overflow-hidden">
                       <div
@@ -418,14 +434,14 @@ export default function VsModePage() {
 
                 <h3 className="text-xl font-black text-white mb-2">{movie2.title}</h3>
                 <p className="text-xs text-slate-400 line-clamp-3 mb-6 leading-relaxed">
-                  {movie2.overview}
+                  {movie2.overview || "Narrative telemetry archived in deep database."}
                 </p>
 
                 <div className="space-y-4 font-mono text-xs">
                   <div>
                     <div className="flex justify-between text-slate-400 mb-1">
                       <span className="flex items-center gap-1.5"><Star className="w-3.5 h-3.5 text-amber-400" /> Consensus Rating</span>
-                      <span className="text-white font-bold">{movie2.vote_average > 0 ? `${movie2.vote_average.toFixed(1)} / 10` : "NR"}</span>
+                      <span className="text-white font-bold">{movie2.vote_average.toFixed(1)} / 10</span>
                     </div>
                     <div className="w-full h-1.5 bg-slate-950 rounded-full overflow-hidden">
                       <div

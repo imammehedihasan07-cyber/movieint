@@ -22,18 +22,25 @@ interface MediaGridSectionProps {
   type: "movie" | "tv";
   badgeLabel: string;
   badgeBg: string;
-  accentColor: string;
+  accentColor: "indigo" | "rose" | "emerald";
 }
+
+// Explicit Tailwind mapping to prevent purge-loss during compilation
+const ACCENT_STYLES = {
+  indigo: "hover:border-indigo-500/50 hover:shadow-indigo-950/40",
+  rose: "hover:border-rose-500/50 hover:shadow-rose-950/40",
+  emerald: "hover:border-emerald-500/50 hover:shadow-emerald-950/40",
+};
 
 export default function MediaGridSection({
   initialItems,
   type,
   badgeLabel,
   badgeBg,
-  accentColor,
+  accentColor = "indigo",
 }: MediaGridSectionProps) {
   const [items, setItems] = useState<MediaItem[]>(() =>
-    initialItems.filter((i) => i && i.vote_average > 0)
+    initialItems.filter((i) => i && i.poster_path && i.vote_average > 0)
   );
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -54,7 +61,11 @@ export default function MediaGridSection({
       if (res.ok) {
         const data = await res.json();
         const rawResults: MediaItem[] = data.results || [];
-        const newResults = rawResults.filter((m) => m && m.vote_average > 0);
+        
+        // Strict Hygiene: Must have a valid poster and confirmed rating
+        const newResults = rawResults.filter(
+          (m) => m && m.poster_path && m.vote_average > 0 && (m.vote_count ?? 0) >= 5
+        );
 
         if (newResults.length === 0 || nextPage >= 5) {
           setHasMore(false);
@@ -72,6 +83,8 @@ export default function MediaGridSection({
     }
   }
 
+  const borderAccent = ACCENT_STYLES[accentColor] || ACCENT_STYLES.indigo;
+
   return (
     <div>
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-5">
@@ -84,7 +97,7 @@ export default function MediaGridSection({
             <Link
               key={`${item.id}-${idx}`}
               href={`/movie/${item.id}`}
-              className={`group relative bg-[#090d15] border border-white/[0.06] rounded-2xl overflow-hidden hover:border-${accentColor}-500/40 hover:shadow-2xl transition-all duration-300 flex flex-col`}
+              className={`group relative bg-[#090d15] border border-white/[0.06] rounded-2xl overflow-hidden ${borderAccent} hover:shadow-2xl transition-all duration-300 flex flex-col`}
             >
               <div className="aspect-[2/3] relative w-full bg-slate-950 overflow-hidden">
                 <MoviePoster

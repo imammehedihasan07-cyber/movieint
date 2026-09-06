@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { Sparkles, ArrowRight, Star, Link2 } from "lucide-react";
+import MoviePoster from "@/components/MoviePoster";
 
 interface VibeMovie {
   id?: number;
@@ -18,27 +18,33 @@ interface VibeMovie {
 function computeBaselineVibe(title: string, overview: string = ""): VibeMovie[] {
   const text = (title + " " + overview).toLowerCase();
 
-  if (text.includes("sci-fi") || text.includes("space") || text.includes("dimension") || text.includes("future")) {
+  if (text.includes("sci-fi") || text.includes("space") || text.includes("dimension") || text.includes("future") || text.includes("robot") || text.includes("transformer") || text.includes("beast")) {
     return [
       {
+        id: 335984,
         title: "Blade Runner 2049",
         year: "2017",
         coreLink: "Atmospheric World-Building",
         reason: "Shares deliberate speculative pacing, deep visual immersion, and existential philosophical themes.",
+        poster_path: "/gajva2L0rPYkEWjzgFlBXCAVBE5.jpg",
         vote_average: 8.0,
       },
       {
+        id: 329865,
         title: "Arrival",
         year: "2016",
         coreLink: "Linguistic & Temporal Structure",
         reason: "Parallels the high-concept intellectual dilemmas and emotionally anchored sci-fi climax.",
+        poster_path: "/x2OloKv2CcVeFFmfnvcBmEzRkeD.jpg",
         vote_average: 7.9,
       },
       {
+        id: 264660,
         title: "Ex Machina",
         year: "2014",
         coreLink: "Psychological Friction",
         reason: "Explores claustrophobic narrative tension and cerebral mind-games between calculated characters.",
+        poster_path: "/tlqWn7sD3vj3H7S5w0e1gYy367B.jpg",
         vote_average: 7.7,
       },
     ];
@@ -47,24 +53,30 @@ function computeBaselineVibe(title: string, overview: string = ""): VibeMovie[] 
   if (text.includes("crime") || text.includes("mafia") || text.includes("corrupt") || text.includes("police")) {
     return [
       {
+        id: 1422,
         title: "The Departed",
         year: "2006",
         coreLink: "High-Stakes Deception",
         reason: "Parallels tension-fueled cat-and-mouse friction with calculated structural momentum.",
+        poster_path: "/nT97ifL23DTIR5Q1j46QeG7yV6n.jpg",
         vote_average: 8.2,
       },
       {
+        id: 146233,
         title: "Prisoners",
         year: "2013",
         coreLink: "Grim Atmospheric Dread",
         reason: "Mirrors unrelenting moral dilemmas and layered investigative ambiguity.",
+        poster_path: "/uhviyknTT67v5k9m2e9uBq4g9rP.jpg",
         vote_average: 8.1,
       },
       {
+        id: 1949,
         title: "Zodiac",
         year: "2007",
         coreLink: "Methodical Obsession",
         reason: "Shares forensic narrative depth, procedural precision, and psychological endurance.",
+        poster_path: "/6Y0pSwhZ5P10w6gUo6eG1rN1g6E.jpg",
         vote_average: 7.7,
       },
     ];
@@ -72,24 +84,30 @@ function computeBaselineVibe(title: string, overview: string = ""): VibeMovie[] 
 
   return [
     {
+      id: 27205,
       title: "Inception",
       year: "2010",
       coreLink: "Layered Reality Architecture",
       reason: "Shares structured multi-tier stakes, cerebral narrative progression, and iconic rhythmic acceleration.",
+      poster_path: "/oYuLEt3zVCKq57qu2F8dT7NIa6f.jpg",
       vote_average: 8.4,
     },
     {
+      id: 242582,
       title: "Nightcrawler",
       year: "2014",
       coreLink: "Uncompromising Character Focus",
       reason: "Mirrors sharp modern cinematography, intense tension, and an unrelenting moral perspective.",
+      poster_path: "/8BgPdAeqP1V6N8UjT67uM3W0oU6.jpg",
       vote_average: 7.9,
     },
     {
+      id: 11324,
       title: "Shutter Island",
       year: "2010",
       coreLink: "Psychological Revelation",
       reason: "Parallels persistent paranoia, ambiguous narrative clues, and a piercing climax.",
+      poster_path: "/kve20tXwUZpu4GUX8l6X7Z14Z57.jpg",
       vote_average: 8.2,
     },
   ];
@@ -136,10 +154,10 @@ export default function VibeMatch({
   if (matches.length === 0) return null;
 
   return (
-    <section className="mb-12">
+    <section className="mb-14 text-left">
       <div className="flex items-center gap-2 mb-4">
-        <Sparkles className="w-5 h-5 text-rose-400" />
-        <h3 className="text-lg sm:text-xl font-bold text-white tracking-tight">
+        <Sparkles className="w-4 h-4 text-rose-400" />
+        <h3 className="text-xs font-mono uppercase tracking-[0.2em] text-slate-400 font-bold">
           If You Loved {movieTitle}, Watch These
         </h3>
       </div>
@@ -148,22 +166,19 @@ export default function VibeMatch({
         {matches.map((item, idx) => (
           <div
             key={idx}
-            className="bg-[#090d15] border border-white/[0.06] rounded-2xl p-4 flex flex-col justify-between hover:border-indigo-500/40 transition duration-200"
+            className="bg-[#090d15] border border-white/[0.06] rounded-2xl p-4 flex flex-col justify-between hover:border-indigo-500/40 transition duration-300"
           >
             <div>
               <div className="flex gap-3 mb-3">
                 <div className="w-16 aspect-[2/3] relative rounded-lg overflow-hidden bg-slate-900 shrink-0 border border-white/5">
-                  {item.poster_path ? (
-                    <Image
-                      src={`https://image.tmdb.org/t/p/w200${item.poster_path}`}
-                      alt={item.title}
-                      fill
-                      sizes="64px"
-                      className="object-cover"
-                    />
-                  ) : (
-                    <div className="flex items-center justify-center h-full text-[9px] text-slate-600">Cinematic Twin</div>
-                  )}
+                  <MoviePoster
+                    src={item.poster_path ? `https://image.tmdb.org/t/p/w200${item.poster_path}` : null}
+                    alt={item.title}
+                    fallbackTitle={item.title}
+                    fill
+                    sizes="64px"
+                    className="object-cover"
+                  />
                 </div>
 
                 <div className="truncate flex-grow">
@@ -173,7 +188,7 @@ export default function VibeMatch({
                   <h4 className="font-bold text-sm text-white truncate">{item.title}</h4>
                   <p className="text-[11px] text-slate-500 font-mono">{item.year}</p>
                   {item.vote_average ? (
-                    <div className="flex items-center gap-1 text-amber-400 text-xs mt-1">
+                    <div className="flex items-center gap-1 text-amber-400 text-xs mt-1 font-mono">
                       <Star className="w-3 h-3 fill-amber-400" />
                       <span>{item.vote_average.toFixed(1)}</span>
                     </div>
@@ -182,11 +197,11 @@ export default function VibeMatch({
               </div>
 
               <p className="text-xs text-slate-300 italic leading-relaxed border-t border-white/[0.04] pt-3">
-                "{item.reason}"
+                &quot;{item.reason}&quot;
               </p>
             </div>
 
-            {item.id && (
+            {item.id ? (
               <Link
                 href={`/movie/${item.id}`}
                 className="mt-4 inline-flex items-center justify-between text-xs font-semibold text-indigo-400 hover:text-indigo-300 transition pt-2 border-t border-white/[0.04]"
@@ -194,7 +209,7 @@ export default function VibeMatch({
                 <span>Analyze Telemetry</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </Link>
-            )}
+            ) : null}
           </div>
         ))}
       </div>

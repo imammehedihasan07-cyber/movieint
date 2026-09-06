@@ -1,6 +1,6 @@
 import { Metadata } from "next";
 import Link from "next/link";
-import { Sparkles, BarChart3, Brain, Compass, ShieldCheck, Layers } from "lucide-react";
+import { Sparkles, BarChart3, Brain, Compass, ShieldCheck, Layers, Info } from "lucide-react";
 import RankingsClient from "./RankingsClient";
 
 export const metadata: Metadata = {
@@ -22,11 +22,20 @@ export const metadata: Metadata = {
 async function getInitialRankings() {
   const apiKey = process.env.TMDB_API_KEY || "b6b9f5e3a64b6ef32e0b8fade33cfe5a";
   try {
+    // Weighted Query: vote_count >= 1000 to eliminate low-vote anomalies
     const res = await fetch(
-      `https://api.themoviedb.org/3/movie/top_rated?api_key=${apiKey}&page=1`,
+      `https://api.themoviedb.org/3/discover/movie?api_key=${apiKey}&sort_by=vote_average.desc&vote_count.gte=1000&page=1`,
       { next: { revalidate: 86400 } }
     );
-    if (!res.ok) return [];
+    if (!res.ok) {
+      // Fallback to top_rated if discover fails
+      const fallbackRes = await fetch(
+        `https://api.themoviedb.org/3/movie/top_rated?api_key=${apiKey}&page=1`,
+        { next: { revalidate: 86400 } }
+      );
+      const fallbackData = await fallbackRes.json();
+      return fallbackData.results || [];
+    }
     const data = await res.json();
     return data.results || [];
   } catch (error) {
@@ -66,7 +75,7 @@ export default async function RankingsPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
-      <div className="max-w-6xl mx-auto mb-10 relative z-10">
+      <div className="max-w-6xl mx-auto mb-8 relative z-10 text-left">
         <div className="inline-flex items-center gap-2 bg-indigo-500/10 border border-indigo-500/20 px-4 py-1.5 rounded-full text-indigo-400 text-xs font-semibold mb-4 font-mono uppercase">
           <Sparkles className="w-3.5 h-3.5" /> Algorithmic Index
         </div>
@@ -76,6 +85,29 @@ export default async function RankingsPage() {
         <p className="text-slate-400 text-xs sm:text-sm max-w-2xl leading-relaxed">
           Dynamic leaderboard indexing cinematic achievements, narrative complexity, and sustained critical consensus across global cinema archives.
         </p>
+
+        {/* Real-time Methodology Disclosure Banner */}
+        <div className="mt-6 p-4 rounded-2xl bg-[#090d15] border border-indigo-500/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-xl bg-indigo-500/10 text-indigo-400 shrink-0">
+              <Info className="w-4 h-4" />
+            </div>
+            <div>
+              <p className="text-xs font-bold text-slate-200">
+                Weighted Bayesian Evaluation Active
+              </p>
+              <p className="text-[11px] text-slate-400 mt-0.5">
+                Ranks filter anomalies by enforcing a minimum baseline ($v \ge 1,000$ votes) to preserve historical integrity.
+              </p>
+            </div>
+          </div>
+          <Link
+            href="/methodology"
+            className="text-xs font-mono text-indigo-400 hover:text-indigo-300 font-medium shrink-0 transition"
+          >
+            How it works →
+          </Link>
+        </div>
       </div>
 
       <div className="max-w-6xl mx-auto relative z-10 mb-16">

@@ -3,6 +3,17 @@ import { MetadataRoute } from "next";
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.movieint.com";
 
+  const genreSlugs = [
+    "thriller",
+    "sci-fi",
+    "action",
+    "drama",
+    "horror",
+    "mystery",
+    "crime",
+    "animation",
+  ];
+
   const staticRoutes: MetadataRoute.Sitemap = [
     { url: baseUrl, lastModified: new Date(), changeFrequency: "daily", priority: 1.0 },
     { url: `${baseUrl}/couch-mode`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.9 },
@@ -19,6 +30,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${baseUrl}/best/high-octane-action`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.8 },
     { url: `${baseUrl}/best/deep-concept-sci-fi`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.8 },
   ];
+
+  const genreRoutes: MetadataRoute.Sitemap = genreSlugs.map((slug) => ({
+    url: `${baseUrl}/genre/${slug}`,
+    lastModified: new Date(),
+    changeFrequency: "weekly",
+    priority: 0.8,
+  }));
 
   try {
     const apiKey = process.env.TMDB_API_KEY;
@@ -65,8 +83,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.7,
     }));
 
-    return [...staticRoutes, ...dynamicMediaRoutes, ...moviesLikeRoutes];
+    return [
+      ...staticRoutes,
+      ...genreRoutes,
+      ...dynamicMediaRoutes,
+      ...moviesLikeRoutes,
+    ];
   } catch {
-    return staticRoutes;
+    return [...staticRoutes, ...genreRoutes];
   }
 }

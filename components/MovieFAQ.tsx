@@ -1,36 +1,56 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDown, HelpCircle, Sparkles } from "lucide-react";
+import { ChevronDown, HelpCircle } from "lucide-react";
 
 interface FAQItem {
   question: string;
   answer: string;
 }
 
+interface MovieFAQProps {
+  title: string;
+  genres: string;
+  runtime?: number;
+  voteAverage?: number;
+  overview?: string;
+  tagline?: string;
+}
+
 export default function MovieFAQ({
   title,
   genres,
   runtime,
-}: {
-  title: string;
-  genres: string;
-  runtime?: number;
-}) {
+  voteAverage = 7.0,
+  overview,
+  tagline,
+}: MovieFAQProps) {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
+
+  const primaryGenre = genres ? genres.split(",")[0].trim() : "Cinema";
+  const ratingStr = voteAverage ? voteAverage.toFixed(1) : "N/A";
+  const runtimeDisplay = runtime ? `${runtime} minutes` : "standard feature length";
+
+  const customWorthWatchingAnswer = tagline
+    ? `Yes, especially if you appreciate ${primaryGenre.toLowerCase()} narratives. With the core premise exploring "${tagline}", ${title} holds an audience consensus rating of ${ratingStr}/10.`
+    : `Yes, particularly for fans of ${genres.toLowerCase() || "engaging cinema"}. Holding an audience reception score of ${ratingStr}/10, it offers a focused ${runtimeDisplay} experience with layered storytelling.`;
+
+  const customPacingAnswer = overview
+    ? `Running at ${runtimeDisplay}, ${title} develops its premise around key thematic stakes. Rather than relying purely on sudden twists, its progression builds focused dramatic momentum leading into the final act.`
+    : `${title} runs for ${runtimeDisplay}, balancing structured narrative buildup with calculated suspense designed for attentive viewers.`;
 
   const faqs: FAQItem[] = [
     {
       question: `Is ${title} worth watching?`,
-      answer: `${title} is a ${genres || "compelling"} production designed for audiences who appreciate meticulous narrative pacing, psychological depth, and visual craftsmanship. Vector telemetry indicates high thematic immersion.`,
+      answer: customWorthWatchingAnswer,
     },
     {
-      question: `Does ${title} contain a major plot twist or slow burn pacing?`,
-      answer: `The pacing runs at approximately ${runtime || 110} minutes with layered narrative progression. Without revealing spoilers, the final act delivers structural payoff that rewards focused viewing.`,
+      question: `What is the narrative structure and runtime of ${title}?`,
+      answer: customPacingAnswer,
     },
     {
-      question: `Where can I stream ${title} online?`,
-      answer: `Digital streaming rights for ${title} vary by region across platforms such as Netflix, Amazon Prime Video, Apple TV, and Disney+. Check our live streaming availability table above for current indices.`,
+      question: `Where is ${title} currently streaming?`,
+      answer: `Streaming availability for ${title} depends on regional licensing agreements across platforms including Netflix, Prime Video, Apple TV, and Disney+. Refer to the live catalog breakdown above for current regional providers.`,
     },
   ];
 

@@ -1,11 +1,11 @@
 import { Metadata } from "next";
 import Link from "next/link";
-import { ArrowLeft, Shield, Lock, EyeOff, Cookie, Mail } from "lucide-react";
+import { ArrowLeft, Shield, Lock, EyeOff, Cookie, Mail, Megaphone } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Privacy Policy | MOVIEINT",
   description:
-    "Learn how MOVIEINT protects user privacy, utilizes local browser storage, and manages third-party affiliate cookies.",
+    "Learn how MOVIEINT protects user privacy, utilizes local browser storage, and manages third-party advertising cookies and partner telemetry.",
   alternates: {
     canonical: "https://www.movieint.com/privacy-policy",
   },
@@ -30,7 +30,7 @@ export default function PrivacyPolicyPage() {
         <h1 className="text-3xl sm:text-4xl font-black text-white mb-2">
           Privacy Policy
         </h1>
-        <p className="text-xs text-slate-400 mb-8">Effective Date: January 2026</p>
+        <p className="text-xs text-slate-400 mb-8">Effective Date: September 2026</p>
 
         <div className="space-y-6 text-xs sm:text-sm text-slate-300 leading-relaxed">
           <section className="bg-slate-900/40 border border-slate-800/80 p-5 rounded-2xl">
@@ -59,19 +59,34 @@ export default function PrivacyPolicyPage() {
 
           <section className="bg-slate-900/40 border border-slate-800/80 p-5 rounded-2xl">
             <div className="flex items-center gap-2 mb-2">
+              <Megaphone className="w-4 h-4 text-emerald-400" />
+              <h2 className="text-white font-bold text-sm uppercase tracking-wide">
+                3. Third-Party Advertising & DART Cookies
+              </h2>
+            </div>
+            <p className="mb-3">
+              We partner with third-party vendors, including Google, to serve advertisements on MOVIEINT. Google&apos;s use of advertising cookies enables it and its partners to serve ads to users based on their visit to this platform and/or other sites on the Internet.
+            </p>
+            <p className="text-slate-400">
+              Users may opt out of personalized advertising by visiting Google Ads Settings (https://adssettings.google.com) or by accessing www.aboutads.info.
+            </p>
+          </section>
+
+          <section className="bg-slate-900/40 border border-slate-800/80 p-5 rounded-2xl">
+            <div className="flex items-center gap-2 mb-2">
               <Cookie className="w-4 h-4 text-amber-400" />
               <h2 className="text-white font-bold text-sm uppercase tracking-wide">
-                3. Cookies & Affiliate Tracking
+                4. Cookies & Affiliate Tracking
               </h2>
             </div>
             <p>
-              MOVIEINT does not use first-party tracking cookies for user surveillance. However, outbound links to licensed streaming providers or partner services (e.g., NordVPN) may pass anonymous referral tags or utilize third-party session cookies to validate qualifying conversions.
+              MOVIEINT does not use first-party tracking cookies for user surveillance. However, outbound links to licensed streaming providers or partner services may pass anonymous referral tags or utilize third-party session cookies to validate qualifying conversions.
             </p>
           </section>
 
           <section className="bg-slate-900/40 border border-slate-800/80 p-5 rounded-2xl">
             <h2 className="text-white font-bold text-sm uppercase tracking-wide mb-2">
-              4. Third-Party Integrations & APIs
+              5. Third-Party Integrations & APIs
             </h2>
             <p>
               Our application queries public media assets via The Movie Database (TMDB) API and Google Gemini language models to provide real-time cinema telemetry. When interacting with embedded trailers, third-party video players (such as YouTube) may process standard request metadata according to their respective privacy disclosures.
@@ -82,7 +97,7 @@ export default function PrivacyPolicyPage() {
             <div className="flex items-center gap-2 mb-2">
               <Mail className="w-4 h-4 text-rose-400" />
               <h2 className="text-white font-bold text-sm uppercase tracking-wide">
-                5. Privacy Inquiries
+                6. Privacy Inquiries
               </h2>
             </div>
             <p className="mb-3">

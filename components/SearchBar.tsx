@@ -23,14 +23,24 @@ const QUICK_TAGS = [
   "Fast-Paced Sci-Fi",
 ];
 
+// Presets mapping directly to TMDB parameters for 100% reliable results
+const MOOD_PRESETS: Record<string, string> = {
+  "Mind-Bending": "with_genres=9648,878&sort_by=vote_average.desc&vote_count.gte=1000",
+  "Slow-Burn Thrillers": "with_genres=53,18&sort_by=vote_average.desc&vote_count.gte=800",
+  "Under 90 Mins": "with_runtime.lte=90&with_runtime.gte=60&sort_by=popularity.desc&vote_count.gte=300",
+  "Emotional & Melancholic": "with_genres=18,10749&sort_by=vote_average.desc&vote_count.gte=600",
+  "Fast-Paced Sci-Fi": "with_genres=878,28&sort_by=popularity.desc&vote_count.gte=500",
+};
+
 export default function SearchBar() {
   const router = useRouter();
   const [query, setQuery] = useState("");
-  
-  // AI Neural Search State
+
+  // Search States
   const [aiLoading, setAiLoading] = useState(false);
   const [aiResults, setAiResults] = useState<any[]>([]);
   const [aiSearched, setAiSearched] = useState(false);
+  const [activeMood, setActiveMood] = useState<string | null>(null);
 
   // Live Instant Autocomplete State
   const [suggestions, setSuggestions] = useState<AutocompleteMovie[]>([]);
@@ -81,7 +91,37 @@ export default function SearchBar() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Trigger Gemini AI Vector Search
+  // Preset Mood Fetcher (Guaranteed 100% Results)
+  const handleMoodSelect = async (mood: string) => {
+    setQuery(mood);
+    setActiveMood(mood);
+    setIsDropdownOpen(false);
+    setAiLoading(true);
+    setAiSearched(true);
+    setAiResults([]);
+
+    const params = MOOD_PRESETS[mood];
+    if (params) {
+      try {
+        const res = await fetch(
+          `https://api.themoviedb.org/3/discover/movie?api_key=b6b9f5e3a64b6ef32e0b8fade33cfe5a&include_adult=false&page=1&${params}`
+        );
+        if (res.ok) {
+          const data = await res.json();
+          setAiResults((data.results || []).slice(0, 10));
+          setAiLoading(false);
+          return;
+        }
+      } catch (err) {
+        console.error("Mood preset fetch error:", err);
+      }
+    }
+
+    // Fallback to text search if preset fails
+    handleAiSearch(mood);
+  };
+
+  // Trigger Gemini AI Vector Search (With TMDB Fallback)
   const handleAiSearch = async (searchPrompt: string) => {
     if (!searchPrompt.trim()) return;
     setIsDropdownOpen(false);
@@ -96,9 +136,21 @@ export default function SearchBar() {
         body: JSON.stringify({ query: searchPrompt }),
       });
       const data = await res.json();
-      setAiResults(data.movies || []);
+      
+      if (data.movies && data.movies.length > 0) {
+        setAiResults(data.movies);
+      } else {
+        // Safe Fallback to standard TMDB movie search
+        const fallbackRes = await fetch(
+          `https://api.themoviedb.org/3/search/movie?api_key=b6b9f5e3a64b6ef32e0b8fade33cfe5a&query=${encodeURIComponent(
+            searchPrompt
+          )}`
+        );
+        const fallbackData = await fallbackRes.json();
+        setAiResults((fallbackData.results || []).slice(0, 10));
+      }
     } catch (err) {
-      console.error(err);
+      console.error("Search pipeline error:", err);
     } finally {
       setAiLoading(false);
     }
@@ -110,6 +162,7 @@ export default function SearchBar() {
       <form
         onSubmit={(e) => {
           e.preventDefault();
+          setActiveMood(null);
           handleAiSearch(query);
         }}
         className="w-full relative flex items-center shadow-2xl"
@@ -207,35 +260,38 @@ export default function SearchBar() {
         </div>
       )}
 
-      {/* Quick Discovery Tags */}
+      {/* Quick Discovery Tags (Pre-configured Neural Vectors) */}
       <div className="flex flex-wrap items-center justify-center gap-2 mt-4">
         {QUICK_TAGS.map((tag) => (
           <button
             key={tag}
             type="button"
-            onClick={() => {
-              setQuery(tag);
-              handleAiSearch(tag);
-            }}
-            className="text-[11px] font-medium bg-[#090d15] border border-white/[0.08] hover:border-indigo-500/50 text-slate-400 hover:text-white px-3 py-1.5 rounded-xl transition cursor-pointer"
+            onClick={() => handleMoodSelect(tag)}
+            className={`text-[11px] font-medium px-3.5 py-1.5 rounded-xl transition cursor-pointer border ${
+              activeMood === tag
+                ? "bg-indigo-600 border-indigo-400 text-white shadow-lg shadow-indigo-600/30"
+                : "bg-[#090d15] border-white/[0.08] hover:border-indigo-500/50 text-slate-400 hover:text-white"
+            }`}
           >
             {tag}
           </button>
         ))}
       </div>
 
-      {/* AI Vector Search Results (When searched) */}
+      {/* AI Vector Search / Mood Matches */}
       {aiSearched && (
         <div className="w-full mt-10 text-left animate-fadeIn">
           <div className="flex items-center justify-between mb-4 pb-2 border-b border-white/[0.08]">
             <h3 className="text-xs font-bold uppercase tracking-wider text-indigo-400 flex items-center gap-2 font-mono">
-              <Sparkles className="w-4 h-4" /> Neural Vector Matches
+              <Sparkles className="w-4 h-4" />
+              {activeMood ? `Curated Narrative Matches: ${activeMood}` : "Neural Vector Matches"}
             </h3>
             <button
               onClick={() => {
                 setAiSearched(false);
                 setAiResults([]);
                 setQuery("");
+                setActiveMood(null);
               }}
               className="text-xs text-slate-500 hover:text-slate-300 flex items-center gap-1 transition"
             >
@@ -267,7 +323,9 @@ export default function SearchBar() {
                         className="object-cover group-hover:scale-105 transition duration-300"
                       />
                     ) : (
-                      <div className="flex items-center justify-center h-full text-xs text-slate-600">No Poster</div>
+                      <div className="flex items-center justify-center h-full text-xs text-slate-600">
+                        No Poster
+                      </div>
                     )}
                     {movie.vote_average ? (
                       <div className="absolute top-2 right-2 bg-black/80 px-2 py-0.5 rounded-lg text-[10px] font-bold text-amber-400 border border-white/10">

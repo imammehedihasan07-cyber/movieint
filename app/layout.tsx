@@ -15,13 +15,10 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.movieint.com";
+
 export const metadata: Metadata = {
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_SITE_URL || "https://www.movieint.com"
-  ),
-  alternates: {
-    canonical: "https://www.movieint.com",
-  },
+  metadataBase: new URL(siteUrl),
   title: {
     default: "MOVIEINT — Cinematic Intelligence & Narrative DNA Engine",
     template: "%s | MOVIEINT",
@@ -55,16 +52,25 @@ export const metadata: Metadata = {
     title: "MOVIEINT — AI-Powered Cinema Intelligence & DNA Archival",
     description:
       "Algorithmic narrative breakdown and streaming availability for worldwide cinema & series.",
-    url: "https://www.movieint.com",
+    url: siteUrl,
     siteName: "MOVIEINT",
     locale: "en_US",
     type: "website",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "MOVIEINT Cinema Intelligence",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "MOVIEINT — Cinematic Intelligence",
     description:
       "Decode narrative pacing, plot complexity, and spoiler-free twist potency.",
+    images: ["/og-image.png"],
   },
 };
 
@@ -73,9 +79,40 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebSite",
+        "@id": `${siteUrl}/#website`,
+        url: siteUrl,
+        name: "MOVIEINT",
+        description: "Cinematic Intelligence & Narrative DNA Archival Engine",
+        publisher: {
+          "@id": `${siteUrl}/#organization`,
+        },
+      },
+      {
+        "@type": "Organization",
+        "@id": `${siteUrl}/#organization`,
+        name: "MOVIEINT",
+        url: siteUrl,
+        logo: {
+          "@type": "ImageObject",
+          url: `${siteUrl}/favicon.ico`,
+        },
+      },
+    ],
+  };
+
   return (
     <html lang="en">
       <head>
+        <Script
+          type="application/ld+json"
+          id="global-schema"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
         {/* Google Analytics (GA4) */}
         <Script
           strategy="afterInteractive"

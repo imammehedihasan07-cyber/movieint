@@ -7,9 +7,9 @@ interface StreamingAffiliateBoxProps {
 
 export default function StreamingAffiliateBox({ movieTitle }: StreamingAffiliateBoxProps) {
   const providers = [
-    { name: "Netflix", type: "Subscription", status: "Active Telemetry" },
-    { name: "Prime Video", type: "Stream / Rent", status: "4K UHD" },
-    { name: "Apple TV", type: "Buy / Rent", status: "Dolby Atmos" },
+    { name: "Netflix", type: "Subscription", status: "Active Index" },
+    { name: "Prime Video", type: "Stream / Rent", status: "HD / 4K" },
+    { name: "Apple TV", type: "Buy / Rent", status: "Digital Store" },
   ];
 
   return (
@@ -19,16 +19,16 @@ export default function StreamingAffiliateBox({ movieTitle }: StreamingAffiliate
           <div className="flex items-center gap-2 mb-1">
             <Globe className="w-4 h-4 text-indigo-400" />
             <h3 className="text-sm sm:text-base font-bold text-white tracking-wide">
-              Official Legal Streaming Telemetry
+              Streaming Availability & Discovery
             </h3>
           </div>
           <p className="text-xs text-slate-400 font-normal">
-            Direct authenticated distribution for <span className="text-slate-200 font-semibold">{movieTitle}</span>.
+            Platform catalog indices and licensed providers for <span className="text-slate-200 font-semibold">{movieTitle}</span>.
           </p>
         </div>
 
         <span className="inline-flex items-center gap-1.5 self-start sm:self-auto text-[10px] font-mono uppercase bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-2.5 py-1 rounded-full">
-          <ShieldCheck className="w-3 h-3" /> DRM Verified
+          <ShieldCheck className="w-3 h-3" /> Catalog Verified
         </span>
       </div>
 
@@ -55,7 +55,7 @@ export default function StreamingAffiliateBox({ movieTitle }: StreamingAffiliate
         ))}
       </div>
 
-      {/* VPN High-Margin Referral Fallback */}
+      {/* Privacy & Regional Security Partner Unit */}
       <div className="rounded-xl bg-gradient-to-r from-indigo-950/40 via-purple-950/20 to-slate-900/40 border border-indigo-500/20 p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center shrink-0">
@@ -63,10 +63,10 @@ export default function StreamingAffiliateBox({ movieTitle }: StreamingAffiliate
           </div>
           <div>
             <h4 className="text-xs font-bold text-white">
-              Geo-restricted in your region?
+              Streaming availability varies by region
             </h4>
             <p className="text-[11px] text-slate-400 mt-0.5">
-              Switch regions securely with ultra-fast stream encryption.
+              Protect your online privacy and streaming security across devices.
             </p>
           </div>
         </div>
@@ -77,14 +77,14 @@ export default function StreamingAffiliateBox({ movieTitle }: StreamingAffiliate
           rel="noopener noreferrer sponsored"
           className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold px-4 py-2 rounded-xl transition shadow-lg shadow-indigo-600/30 shrink-0"
         >
-          <span>Unlock with NordVPN</span>
+          <span>Explore NordVPN</span>
           <ExternalLink className="w-3 h-3" />
         </a>
       </div>
 
       {/* FTC Micro Disclaimer */}
       <p className="text-[9px] font-mono text-slate-600 text-center mt-3">
-        Affiliate links may provide commission to MOVIEINT upon qualifying subscription at no additional cost.
+        Regional rights and catalog availability are subject to change by respective license holders. Affiliate links may provide commission to MOVIEINT.
       </p>
     </div>
   );

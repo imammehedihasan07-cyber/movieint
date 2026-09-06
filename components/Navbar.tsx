@@ -47,7 +47,7 @@ export default function Navbar() {
           </div>
         </Link>
 
-        {/* Desktop Navigation Actions (Large Screens) */}
+        {/* Desktop Navigation Actions */}
         <div className="hidden xl:flex items-center gap-2">
           <Link
             href="/"
@@ -74,7 +74,7 @@ export default function Navbar() {
           </Link>
 
           <Link
-            href="/compare"
+            href="/vs"
             className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold text-rose-300 bg-rose-500/10 border border-rose-500/30 hover:bg-rose-500/20 transition duration-200"
           >
             <Swords className="w-3.5 h-3.5 text-rose-400" />
@@ -161,7 +161,7 @@ export default function Navbar() {
           </Link>
 
           <Link
-            href="/compare"
+            href="/vs"
             onClick={() => setMobileMenuOpen(false)}
             className="flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-semibold text-rose-300 bg-rose-500/10 border border-rose-500/20 transition"
           >

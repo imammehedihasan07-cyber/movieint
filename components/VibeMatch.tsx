@@ -198,7 +198,7 @@ function computeBaselineVibe(title: string, overview: string = ""): VibeMovie[] 
       year: "2014",
       coreLink: "Uncompromising Character Study",
       reason: "Mirrors sharp modern cinematography, intense tension, and an unrelenting moral perspective.",
-      poster_path: "/8BgPdAeqP1V6N8UjT67uM3W0oU6.jpg",
+      poster_path: "/j9HrX8f3wAQrmOehPRUmvzz30hi.jpg",
       vote_average: 7.9,
     },
     {
@@ -207,7 +207,7 @@ function computeBaselineVibe(title: string, overview: string = ""): VibeMovie[] 
       year: "2010",
       coreLink: "Psychological Deconstruction",
       reason: "Parallels persistent paranoia, ambiguous narrative clues, and an earth-shattering climax.",
-      poster_path: "/kve20tXwUZpu4GUX8l6X7Z14Z57.jpg",
+      poster_path: "/4GDy0PHYX3VRXUtwK5ysagvk2Te.jpg",
       vote_average: 8.2,
     },
   ];
@@ -225,7 +225,6 @@ export default function VibeMatch({
   );
 
   useEffect(() => {
-    // Re-compute baseline whenever movieTitle or overview changes
     setMatches(computeBaselineVibe(movieTitle, overview));
 
     let isMounted = true;
@@ -239,7 +238,6 @@ export default function VibeMatch({
         if (res.ok) {
           const data = await res.json();
           if (isMounted && Array.isArray(data) && data.length > 0) {
-            // Validate items have title and valid properties
             const valid = data.filter((d: any) => d && d.title);
             if (valid.length > 0) {
               setMatches(valid);

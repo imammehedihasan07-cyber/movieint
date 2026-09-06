@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Search, Sparkles, Loader2, Star, Film, X } from "lucide-react";
+import { Search, Sparkles, Loader2, Star, X } from "lucide-react";
+import MoviePoster from "@/components/MoviePoster";
 
 interface AutocompleteMovie {
   id: number;
@@ -49,7 +49,7 @@ export default function SearchBar() {
 
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Debounced Live TMDB Search for Autocomplete
+  // Debounced Live TMDB Search with strict data hygiene
   useEffect(() => {
     if (!query.trim() || aiSearched) {
       setSuggestions([]);
@@ -67,8 +67,19 @@ export default function SearchBar() {
         );
         const data = await res.json();
         if (data.results) {
-          setSuggestions(data.results.slice(0, 6));
-          setIsDropdownOpen(true);
+          // Strict curation: Must have poster, positive rating, and minimal consensus threshold
+          const cleanMatches = (data.results || [])
+            .filter(
+              (m: any) =>
+                m &&
+                m.poster_path &&
+                m.vote_average > 0 &&
+                (m.vote_count ?? 0) >= 3
+            )
+            .slice(0, 6);
+
+          setSuggestions(cleanMatches);
+          setIsDropdownOpen(cleanMatches.length > 0);
         }
       } catch (err) {
         console.error("Autocomplete fetch error:", err);
@@ -91,7 +102,7 @@ export default function SearchBar() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Preset Mood Fetcher (Guaranteed 100% Results)
+  // Preset Mood Fetcher
   const handleMoodSelect = async (mood: string) => {
     setQuery(mood);
     setActiveMood(mood);
@@ -108,7 +119,10 @@ export default function SearchBar() {
         );
         if (res.ok) {
           const data = await res.json();
-          setAiResults((data.results || []).slice(0, 10));
+          const cleanPreset = (data.results || []).filter(
+            (m: any) => m && m.poster_path && m.vote_average > 0
+          );
+          setAiResults(cleanPreset.slice(0, 10));
           setAiLoading(false);
           return;
         }
@@ -117,11 +131,10 @@ export default function SearchBar() {
       }
     }
 
-    // Fallback to text search if preset fails
     handleAiSearch(mood);
   };
 
-  // Trigger Gemini AI Vector Search (With TMDB Fallback)
+  // Trigger Vector / Keyword Search
   const handleAiSearch = async (searchPrompt: string) => {
     if (!searchPrompt.trim()) return;
     setIsDropdownOpen(false);
@@ -136,18 +149,20 @@ export default function SearchBar() {
         body: JSON.stringify({ query: searchPrompt }),
       });
       const data = await res.json();
-      
+
       if (data.movies && data.movies.length > 0) {
         setAiResults(data.movies);
       } else {
-        // Safe Fallback to standard TMDB movie search
         const fallbackRes = await fetch(
           `https://api.themoviedb.org/3/search/movie?api_key=b6b9f5e3a64b6ef32e0b8fade33cfe5a&query=${encodeURIComponent(
             searchPrompt
           )}`
         );
         const fallbackData = await fallbackRes.json();
-        setAiResults((fallbackData.results || []).slice(0, 10));
+        const cleanFallback = (fallbackData.results || []).filter(
+          (m: any) => m && m.poster_path && m.vote_average > 0
+        );
+        setAiResults(cleanFallback.slice(0, 10));
       }
     } catch (err) {
       console.error("Search pipeline error:", err);
@@ -222,19 +237,18 @@ export default function SearchBar() {
               className="flex items-center gap-3.5 p-3 hover:bg-white/[0.04] cursor-pointer transition duration-150 group"
             >
               <div className="w-10 aspect-[2/3] relative rounded-md overflow-hidden bg-slate-900 shrink-0 border border-white/5">
-                {item.poster_path ? (
-                  <Image
-                    src={`https://image.tmdb.org/t/p/w92${item.poster_path}`}
-                    alt={item.title}
-                    fill
-                    sizes="40px"
-                    className="object-cover"
-                  />
-                ) : (
-                  <div className="flex items-center justify-center h-full text-[8px] text-slate-600">
-                    <Film className="w-4 h-4 text-slate-700" />
-                  </div>
-                )}
+                <MoviePoster
+                  src={
+                    item.poster_path
+                      ? `https://image.tmdb.org/t/p/w200${item.poster_path}`
+                      : null
+                  }
+                  alt={item.title}
+                  fallbackTitle={item.title}
+                  fill
+                  sizes="40px"
+                  className="object-cover"
+                />
               </div>
 
               <div className="flex-grow truncate">
@@ -243,24 +257,29 @@ export default function SearchBar() {
                     {item.title}
                   </h4>
                   <span className="text-[11px] font-mono text-slate-500">
-                    ({item.release_date ? item.release_date.split("-")[0] : "TBA"})
+                    ({item.release_date ? item.release_date.split("-")[0] : "Cinema"})
                   </span>
                 </div>
                 <p className="text-[11px] text-slate-400 truncate mt-0.5">
-                  {item.overview || "No synopsis available."}
+                  {item.overview || "Narrative profile indexed in intelligence archive."}
                 </p>
               </div>
 
-              <div className="flex items-center gap-1 text-amber-400 text-xs font-semibold shrink-0 pl-2">
-                <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
-                <span>{item.vote_average ? item.vote_average.toFixed(1) : "NR"}</span>
+              <div className="flex items-center gap-1.5 shrink-0 pl-2">
+                <span className="text-[9px] font-mono uppercase tracking-wider text-indigo-300 font-bold bg-indigo-500/20 px-1.5 py-0.5 rounded">
+                  DNA
+                </span>
+                <div className="flex items-center gap-0.5 text-amber-400 text-xs font-semibold font-mono">
+                  <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                  <span>{item.vote_average.toFixed(1)}</span>
+                </div>
               </div>
             </div>
           ))}
         </div>
       )}
 
-      {/* Quick Discovery Tags (Pre-configured Neural Vectors) */}
+      {/* Quick Discovery Tags */}
       <div className="flex flex-wrap items-center justify-center gap-2 mt-4">
         {QUICK_TAGS.map((tag) => (
           <button
@@ -314,22 +333,24 @@ export default function SearchBar() {
                   className="group bg-[#090d15] border border-white/[0.06] rounded-2xl overflow-hidden hover:border-indigo-500 transition flex flex-col"
                 >
                   <div className="aspect-[2/3] relative w-full bg-slate-900">
-                    {movie.poster_path ? (
-                      <Image
-                        src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
-                        alt={movie.title}
-                        fill
-                        sizes="(max-width: 640px) 50vw, 20vw"
-                        className="object-cover group-hover:scale-105 transition duration-300"
-                      />
-                    ) : (
-                      <div className="flex items-center justify-center h-full text-xs text-slate-600">
-                        No Poster
-                      </div>
-                    )}
+                    <MoviePoster
+                      src={
+                        movie.poster_path
+                          ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
+                          : null
+                      }
+                      alt={movie.title}
+                      fallbackTitle={movie.title}
+                      fill
+                      sizes="(max-width: 640px) 50vw, 20vw"
+                      className="object-cover group-hover:scale-105 transition duration-300"
+                    />
                     {movie.vote_average ? (
-                      <div className="absolute top-2 right-2 bg-black/80 px-2 py-0.5 rounded-lg text-[10px] font-bold text-amber-400 border border-white/10">
-                        ★ {movie.vote_average.toFixed(1)}
+                      <div className="absolute top-2 right-2 bg-black/80 px-2 py-0.5 rounded-lg text-[10px] font-bold text-amber-400 border border-white/10 flex items-center gap-1">
+                        <span className="text-[8px] uppercase tracking-wider text-indigo-300 font-bold bg-indigo-500/20 px-1 rounded">
+                          DNA
+                        </span>
+                        <span>★ {movie.vote_average.toFixed(1)}</span>
                       </div>
                     ) : null}
                   </div>

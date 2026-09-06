@@ -1,11 +1,12 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Star, Film, Compass, Dna, Play, Info, ArrowUpRight, Tv, Globe2, Sparkles, ShieldCheck } from "lucide-react";
+import { Star, Film, Compass, Dna, Play, Info, ArrowUpRight, Tv, Globe2, Sparkles } from "lucide-react";
 import SearchBar from "@/components/SearchBar";
 import SponsoredSpotlight from "@/components/SponsoredSpotlight";
+import MediaGridSection from "@/components/MediaGridSection";
 
 async function getGlobalCatalog() {
-  const apiKey = process.env.TMDB_API_KEY;
+  const apiKey = process.env.TMDB_API_KEY || "b6b9f5e3a64b6ef32e0b8fade33cfe5a";
 
   try {
     const [moviesRes, seriesRes, animeRes] = await Promise.all([
@@ -132,7 +133,7 @@ export default async function HomePage() {
           </div>
         )}
 
-        {/* SECTION 1: BLOCKBUSTER MOVIES */}
+        {/* SECTION 1: BLOCKBUSTER MOVIES (Dynamic Load More) */}
         <section className="w-full text-left mb-16">
           <div className="flex items-center justify-between mb-6 pb-3 border-b border-white/[0.06]">
             <div className="flex items-center gap-2.5">
@@ -140,65 +141,26 @@ export default async function HomePage() {
               <h2 className="text-lg font-bold text-white tracking-wide">
                 Trending Feature Films
               </h2>
-              <span className="text-[10px] font-mono text-slate-400 bg-white/[0.04] border border-white/5 px-2 py-0.5 rounded-full">
-                20 Cinema Titles
-              </span>
             </div>
             <Link
               href="/rankings"
               className="inline-flex items-center gap-1 text-xs font-semibold text-indigo-400 hover:text-indigo-300 transition"
             >
-              <span>Explore All</span>
+              <span>Explore Leaderboard</span>
               <ArrowUpRight className="w-3.5 h-3.5" />
             </Link>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-5">
-            {movies.map((movie: any) => (
-              <Link
-                key={`movie-${movie.id}`}
-                href={`/movie/${movie.id}`}
-                className="group relative bg-[#090d15] border border-white/[0.06] rounded-2xl overflow-hidden hover:border-indigo-500/40 hover:shadow-2xl hover:shadow-indigo-950/40 transition-all duration-300 flex flex-col"
-              >
-                <div className="aspect-[2/3] relative w-full bg-slate-950 overflow-hidden">
-                  {movie.poster_path ? (
-                    <Image
-                      src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
-                      alt={movie.title}
-                      fill
-                      sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 20vw"
-                      className="object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
-                    />
-                  ) : (
-                    <div className="flex items-center justify-center h-full text-xs text-slate-400">No Poster</div>
-                  )}
-
-                  <div className="absolute top-2.5 left-2.5 bg-black/80 backdrop-blur-md border border-white/10 px-2 py-0.5 rounded-md text-[9px] font-mono font-bold uppercase tracking-wider text-indigo-300">
-                    CINEMA
-                  </div>
-
-                  <div className="absolute top-2.5 right-2.5 bg-black/80 backdrop-blur-md border border-white/10 px-2 py-0.5 rounded-lg flex items-center gap-1 text-[10px] font-bold text-amber-400 shadow-lg">
-                    <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-                    <span>{movie.vote_average?.toFixed(1) || "NR"}</span>
-                  </div>
-                </div>
-
-                <div className="p-3.5 flex flex-col justify-between flex-grow">
-                  <div>
-                    <h3 className="font-bold text-xs sm:text-sm text-slate-200 group-hover:text-indigo-400 transition-colors duration-200 line-clamp-1">
-                      {movie.title}
-                    </h3>
-                    <p className="text-[10px] font-mono text-slate-400 mt-1">
-                      {movie.release_date ? movie.release_date.split("-")[0] : "Cinema"}
-                    </p>
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
+          <MediaGridSection
+            initialItems={movies}
+            type="movie"
+            badgeLabel="Cinema"
+            badgeBg="bg-black/80"
+            accentColor="indigo"
+          />
         </section>
 
-        {/* SECTION 2: TOP-TIER WEB & TV SERIES */}
+        {/* SECTION 2: TOP-TIER WEB & TV SERIES (Dynamic Load More) */}
         <section className="w-full text-left mb-16">
           <div className="flex items-center justify-between mb-6 pb-3 border-b border-white/[0.06]">
             <div className="flex items-center gap-2.5">
@@ -206,9 +168,6 @@ export default async function HomePage() {
               <h2 className="text-lg font-bold text-white tracking-wide">
                 Trending Web & TV Series
               </h2>
-              <span className="text-[10px] font-mono text-slate-400 bg-white/[0.04] border border-white/5 px-2 py-0.5 rounded-full">
-                20 Binge Series
-              </span>
             </div>
             <Link
               href="/rankings"
@@ -219,56 +178,13 @@ export default async function HomePage() {
             </Link>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-5">
-            {series.map((show: any) => (
-              <Link
-                key={`series-${show.id}`}
-                href={`/movie/${show.id}`}
-                className="group relative bg-[#090d15] border border-white/[0.06] rounded-2xl overflow-hidden hover:border-rose-500/40 hover:shadow-2xl hover:shadow-rose-950/40 transition-all duration-300 flex flex-col"
-              >
-                <div className="aspect-[2/3] relative w-full bg-slate-950 overflow-hidden">
-                  {show.poster_path ? (
-                    <Image
-                      src={`https://image.tmdb.org/t/p/w500${show.poster_path}`}
-                      alt={show.name}
-                      fill
-                      sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 20vw"
-                      className="object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
-                    />
-                  ) : (
-                    <div className="flex items-center justify-center h-full text-xs text-slate-400">No Poster</div>
-                  )}
-
-                  <div className="absolute top-2.5 left-2.5 bg-rose-950/80 backdrop-blur-md border border-rose-500/30 px-2 py-0.5 rounded-md text-[9px] font-mono font-bold uppercase tracking-wider text-rose-300">
-                    SERIES
-                  </div>
-
-                  <div className="absolute top-2.5 right-2.5 bg-black/80 backdrop-blur-md border border-white/10 px-2 py-0.5 rounded-lg flex items-center gap-1 text-[10px] font-bold text-amber-400 shadow-lg">
-                    <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-                    <span>{show.vote_average?.toFixed(1) || "NR"}</span>
-                  </div>
-                </div>
-
-                <div className="p-3.5 flex flex-col justify-between flex-grow">
-                  <div>
-                    <h3 className="font-bold text-xs sm:text-sm text-slate-200 group-hover:text-rose-400 transition-colors duration-200 line-clamp-1">
-                      {show.name}
-                    </h3>
-                    <div className="flex items-center justify-between mt-1">
-                      <span className="text-[10px] font-mono text-slate-400">
-                        {show.first_air_date ? show.first_air_date.split("-")[0] : "TV"}
-                      </span>
-                      {show.origin_country?.[0] && (
-                        <span className="text-[9px] font-mono text-slate-400 uppercase bg-white/[0.04] px-1.5 py-0.5 rounded">
-                          {show.origin_country[0]}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
+          <MediaGridSection
+            initialItems={series}
+            type="tv"
+            badgeLabel="Series"
+            badgeBg="bg-rose-950/80"
+            accentColor="rose"
+          />
         </section>
 
         {/* SECTION 3: GLOBAL ANIME & MASTERPIECES */}
@@ -280,7 +196,7 @@ export default async function HomePage() {
                 Global Masterpieces, Anime & K-Drama
               </h2>
               <span className="text-[10px] font-mono text-slate-400 bg-white/[0.04] border border-white/5 px-2 py-0.5 rounded-full">
-                20 Cult Classics
+                Curated
               </span>
             </div>
             <Link

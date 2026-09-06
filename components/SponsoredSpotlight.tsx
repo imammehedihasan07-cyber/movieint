@@ -10,7 +10,6 @@ export default function SponsoredSpotlight() {
   const partner = {
     title: "Challengers",
     tagline: "High-voltage psychological tension on and off the court.",
-    // Direct static poster URL with SVG fallback
     image: "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=400&q=80",
     streamPlatform: "Prime Video",
     streamUrl: "https://www.amazon.com/gp/video/storefront",
@@ -25,11 +24,11 @@ export default function SponsoredSpotlight() {
         <div className="flex flex-col lg:flex-row items-center justify-between gap-6 z-10 relative">
           {/* Left: Poster & Title Details */}
           <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5 text-center sm:text-left">
-            <div className="relative w-24 h-32 rounded-2xl overflow-hidden bg-[#0a0f1d] border border-white/10 shrink-0 shadow-lg flex items-center justify-center">
+            <div className="relative w-24 aspect-[2/3] rounded-2xl overflow-hidden bg-[#0a0f1d] border border-white/10 shrink-0 shadow-lg flex items-center justify-center">
               {!imgError ? (
                 <img
                   src={partner.image}
-                  alt=""
+                  alt={partner.title}
                   loading="eager"
                   onError={() => setImgError(true)}
                   className="w-full h-full object-cover"
@@ -79,7 +78,7 @@ export default function SponsoredSpotlight() {
 
             <Link
               href="/about"
-              className="text-[11px] text-slate-400 hover:text-amber-400 font-mono transition underline underline-offset-4"
+              className="text-[11px] text-slate-400 hover:text-amber-300 font-mono transition underline underline-offset-4"
             >
               Sponsor a Title?
             </Link>

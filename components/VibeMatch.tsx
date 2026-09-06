@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Sparkles, ArrowRight, Star, Link2, Loader2 } from "lucide-react";
 import MoviePoster from "@/components/MoviePoster";
 
@@ -22,6 +22,7 @@ export default function VibeMatch({
   movieTitle: string;
   overview: string;
 }) {
+  const router = useRouter();
   const [matches, setMatches] = useState<VibeMovie[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -35,7 +36,6 @@ export default function VibeMatch({
       const apiKey = "b6b9f5e3a64b6ef32e0b8fade33cfe5a";
 
       try {
-        // ১. প্রথমে বর্তমান মুভিটির আইডি খুঁজে বের করা
         const searchRes = await fetch(
           `https://api.themoviedb.org/3/search/movie?api_key=${apiKey}&query=${encodeURIComponent(
             movieTitle
@@ -45,14 +45,12 @@ export default function VibeMatch({
         const currentMovie = searchData.results?.[0];
 
         if (currentMovie?.id) {
-          // ২. TMDB-র অফিসিয়াল রিকমেন্ডেশন ইঞ্জিন থেকে লাইভ ম্যাচ ফেচ করা
           const recRes = await fetch(
             `https://api.themoviedb.org/3/movie/${currentMovie.id}/recommendations?api_key=${apiKey}&page=1`
           );
           const recData = await recRes.json();
           let rawList = recData.results || [];
 
-          // ৩. ব্যাকআপ: রিকমেন্ডেশন কম থাকলে Similar এপিআই থেকে নেওয়া
           if (rawList.length < 3) {
             const simRes = await fetch(
               `https://api.themoviedb.org/3/movie/${currentMovie.id}/similar?api_key=${apiKey}&page=1`
@@ -61,7 +59,6 @@ export default function VibeMatch({
             rawList = [...rawList, ...(simData.results || [])];
           }
 
-          // ৪. ডাটা হাইজিন ফিল্টারিং (পোস্টার ও রেটিং নিশ্চিত করা)
           const cleanMatches = rawList
             .filter(
               (m: any) =>
@@ -105,6 +102,10 @@ export default function VibeMatch({
     };
   }, [movieTitle]);
 
+  const handleNavigate = (id: number) => {
+    router.push(`/movie/${id}`);
+  };
+
   if (loading) {
     return (
       <div className="py-8 flex items-center gap-2 text-xs font-mono text-slate-500">
@@ -129,7 +130,8 @@ export default function VibeMatch({
         {matches.map((item) => (
           <div
             key={item.id}
-            className="bg-[#090d15] border border-white/[0.06] rounded-2xl p-4 flex flex-col justify-between hover:border-indigo-500/40 transition duration-300 shadow-xl"
+            onClick={() => handleNavigate(item.id)}
+            className="bg-[#090d15] border border-white/[0.06] rounded-2xl p-4 flex flex-col justify-between hover:border-indigo-500/50 hover:bg-white/[0.02] cursor-pointer transition-all duration-300 shadow-xl group select-none"
           >
             <div>
               <div className="flex gap-3 mb-3">
@@ -144,7 +146,7 @@ export default function VibeMatch({
                     fallbackTitle={item.title}
                     fill
                     sizes="64px"
-                    className="object-cover"
+                    className="object-cover group-hover:scale-105 transition-transform duration-300"
                   />
                 </div>
 
@@ -152,7 +154,9 @@ export default function VibeMatch({
                   <span className="inline-flex items-center gap-1 text-[10px] font-bold text-rose-400 bg-rose-500/10 border border-rose-500/20 px-2 py-0.5 rounded-full mb-1">
                     <Link2 className="w-3 h-3" /> {item.coreLink}
                   </span>
-                  <h4 className="font-bold text-sm text-white truncate">{item.title}</h4>
+                  <h4 className="font-bold text-sm text-white group-hover:text-indigo-400 transition-colors truncate">
+                    {item.title}
+                  </h4>
                   <p className="text-[11px] text-slate-500 font-mono">{item.year}</p>
                   <div className="flex items-center gap-1 text-amber-400 text-xs mt-1 font-mono">
                     <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
@@ -161,18 +165,15 @@ export default function VibeMatch({
                 </div>
               </div>
 
-              <p className="text-xs text-slate-300 italic leading-relaxed border-t border-white/[0.04] pt-3">
+              <p className="text-xs text-slate-300 italic leading-relaxed border-t border-white/[0.04] pt-3 line-clamp-3">
                 &quot;{item.reason}&quot;
               </p>
             </div>
 
-            <Link
-              href={`/movie/${item.id}`}
-              className="mt-4 inline-flex items-center justify-between text-xs font-semibold text-indigo-400 hover:text-indigo-300 transition pt-2 border-t border-white/[0.04]"
-            >
+            <div className="mt-4 inline-flex items-center justify-between text-xs font-semibold text-indigo-400 group-hover:text-indigo-300 transition pt-2 border-t border-white/[0.04]">
               <span>Analyze Telemetry</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </Link>
+              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+            </div>
           </div>
         ))}
       </div>

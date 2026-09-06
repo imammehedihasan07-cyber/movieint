@@ -1,25 +1,22 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Star, Flame, Sparkles, Film, Compass, Dna, Play, Info, ArrowUpRight, Tv, Globe2 } from "lucide-react";
+import { Star, Film, Compass, Dna, Play, Info, ArrowUpRight, Tv, Globe2, Sparkles, ShieldCheck } from "lucide-react";
 import SearchBar from "@/components/SearchBar";
 import SponsoredSpotlight from "@/components/SponsoredSpotlight";
 
-const TMDB_KEY = process.env.TMDB_API_KEY || "b6b9f5e3a64b6ef32e0b8fade33cfe5a";
-
 async function getGlobalCatalog() {
+  const apiKey = process.env.TMDB_API_KEY;
+
   try {
     const [moviesRes, seriesRes, animeRes] = await Promise.all([
-      // 1. Trending Movies (20)
-      fetch(`https://api.themoviedb.org/3/trending/movie/week?api_key=${TMDB_KEY}&page=1`, {
+      fetch(`https://api.themoviedb.org/3/trending/movie/week?api_key=${apiKey}&page=1`, {
         next: { revalidate: 3600 },
       }),
-      // 2. Trending TV / Web Series (20)
-      fetch(`https://api.themoviedb.org/3/trending/tv/week?api_key=${TMDB_KEY}&page=1`, {
+      fetch(`https://api.themoviedb.org/3/trending/tv/week?api_key=${apiKey}&page=1`, {
         next: { revalidate: 3600 },
       }),
-      // 3. Top Rated Global & Anime / Cult Series (20)
       fetch(
-        `https://api.themoviedb.org/3/discover/tv?api_key=${TMDB_KEY}&with_genres=16,18&sort_by=vote_average.desc&vote_count.gte=300&page=1`,
+        `https://api.themoviedb.org/3/discover/tv?api_key=${apiKey}&with_genres=16,18&sort_by=vote_average.desc&vote_count.gte=300&page=1`,
         { next: { revalidate: 3600 } }
       ),
     ]);
@@ -54,17 +51,14 @@ export default async function HomePage() {
 
   return (
     <main className="min-h-screen bg-[#05070b] text-slate-100 flex flex-col items-center selection:bg-indigo-600 selection:text-white relative overflow-hidden pb-28">
-      {/* Dynamic Ambient Illumination */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-[550px] bg-gradient-to-b from-indigo-600/10 via-purple-900/5 to-transparent pointer-events-none -z-0" />
 
       <div className="max-w-7xl w-full px-4 sm:px-8 pt-8 pb-6 flex flex-col items-center z-10 text-center">
-        {/* Header Badge */}
         <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#0a0d14]/90 border border-white/[0.08] text-indigo-300 text-[10px] font-mono uppercase tracking-[0.2em] mb-4 shadow-xl">
           <Sparkles className="w-3 h-3 text-indigo-400" />
           <span>Global Cinema & Series Intelligence v3.2</span>
         </div>
 
-        {/* Hero Title */}
         <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight text-white mb-3 leading-tight">
           Decode Worldwide <br className="hidden sm:block" />
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-indigo-100 to-indigo-300">
@@ -76,15 +70,12 @@ export default async function HomePage() {
           Explore synchronized telemetry across Hollywood, K-Dramas, Anime, and global streaming networks.
         </p>
 
-        {/* AI Semantic Multi-Search */}
         <div id="search-section" className="w-full max-w-2xl mb-8">
           <SearchBar />
         </div>
 
-        {/* Legal Streaming & Partner Sponsored Showcase */}
         <SponsoredSpotlight />
 
-        {/* Spotlight Banner */}
         {featured && (
           <div className="w-full relative rounded-3xl overflow-hidden border border-white/[0.08] bg-[#090d15] shadow-2xl mb-16 text-left group">
             <div className="relative aspect-[16/8] md:aspect-[21/8] w-full min-h-[340px] max-h-[460px]">
@@ -141,7 +132,7 @@ export default async function HomePage() {
           </div>
         )}
 
-        {/* SECTION 1: BLOCKBUSTER MOVIES (20 Titles) */}
+        {/* SECTION 1: BLOCKBUSTER MOVIES */}
         <section className="w-full text-left mb-16">
           <div className="flex items-center justify-between mb-6 pb-3 border-b border-white/[0.06]">
             <div className="flex items-center gap-2.5">
@@ -187,7 +178,7 @@ export default async function HomePage() {
                   </div>
 
                   <div className="absolute top-2.5 right-2.5 bg-black/80 backdrop-blur-md border border-white/10 px-2 py-0.5 rounded-lg flex items-center gap-1 text-[10px] font-bold text-amber-400 shadow-lg">
-                    <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                    <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
                     <span>{movie.vote_average?.toFixed(1) || "NR"}</span>
                   </div>
                 </div>
@@ -207,7 +198,7 @@ export default async function HomePage() {
           </div>
         </section>
 
-        {/* SECTION 2: TOP-TIER WEB & TV SERIES (20 Titles) */}
+        {/* SECTION 2: TOP-TIER WEB & TV SERIES */}
         <section className="w-full text-left mb-16">
           <div className="flex items-center justify-between mb-6 pb-3 border-b border-white/[0.06]">
             <div className="flex items-center gap-2.5">
@@ -253,7 +244,7 @@ export default async function HomePage() {
                   </div>
 
                   <div className="absolute top-2.5 right-2.5 bg-black/80 backdrop-blur-md border border-white/10 px-2 py-0.5 rounded-lg flex items-center gap-1 text-[10px] font-bold text-amber-400 shadow-lg">
-                    <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                    <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
                     <span>{show.vote_average?.toFixed(1) || "NR"}</span>
                   </div>
                 </div>
@@ -280,7 +271,7 @@ export default async function HomePage() {
           </div>
         </section>
 
-        {/* SECTION 3: GLOBAL ANIME & MASTERPIECES (20 Titles) */}
+        {/* SECTION 3: GLOBAL ANIME & MASTERPIECES */}
         <section className="w-full text-left mb-16">
           <div className="flex items-center justify-between mb-6 pb-3 border-b border-white/[0.06]">
             <div className="flex items-center gap-2.5">
@@ -326,7 +317,7 @@ export default async function HomePage() {
                   </div>
 
                   <div className="absolute top-2.5 right-2.5 bg-black/80 backdrop-blur-md border border-white/10 px-2 py-0.5 rounded-lg flex items-center gap-1 text-[10px] font-bold text-amber-400 shadow-lg">
-                    <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                    <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
                     <span>{item.vote_average?.toFixed(1) || "NR"}</span>
                   </div>
                 </div>
@@ -354,7 +345,7 @@ export default async function HomePage() {
         </section>
 
         {/* Feature Hubs */}
-        <section className="w-full grid grid-cols-1 sm:grid-cols-3 gap-4 mt-8 text-left">
+        <section className="w-full grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4 text-left">
           <Link
             href="#search-section"
             className="group bg-[#090d15] border border-white/[0.06] hover:border-indigo-500/50 rounded-2xl p-5 transition duration-300 block hover:-translate-y-1 hover:shadow-xl hover:shadow-indigo-950/30"
@@ -402,6 +393,45 @@ export default async function HomePage() {
               Real-time regional availability for Netflix, Prime Video, Disney+, Apple TV, and Crunchyroll.
             </p>
           </Link>
+        </section>
+
+        {/* Editorial SEO Content Block */}
+        <section className="w-full text-left mt-16 pt-10 border-t border-white/[0.06]">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 bg-[#090d15]/50 border border-white/[0.05] rounded-3xl p-6 sm:p-8 backdrop-blur-sm">
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <Sparkles className="w-4 h-4 text-indigo-400" />
+                <h3 className="text-sm font-bold text-white uppercase tracking-wider">
+                  What is MOVIEINT?
+                </h3>
+              </div>
+              <p className="text-xs text-slate-300 leading-relaxed mb-4">
+                MOVIEINT is an autonomous cinema intelligence and media discovery engine engineered to look beyond standard ratings. By analyzing thematic structures, narrative telemetry, and global catalog movements, MOVIEINT bridges the gap between static databases and cognitive film discovery across Hollywood productions, K-dramas, European masterpieces, and Japanese anime.
+              </p>
+              <div className="flex flex-wrap gap-2 text-[11px] text-slate-400">
+                <span className="bg-white/[0.03] border border-white/5 px-2.5 py-1 rounded-md">Real-Time Leaderboards</span>
+                <span className="bg-white/[0.03] border border-white/5 px-2.5 py-1 rounded-md">Catalog Availability</span>
+                <span className="bg-white/[0.03] border border-white/5 px-2.5 py-1 rounded-md">Semantic Vector Search</span>
+              </div>
+            </div>
+
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <Dna className="w-4 h-4 text-rose-400" />
+                <h3 className="text-sm font-bold text-white uppercase tracking-wider">
+                  How Narrative DNA Works
+                </h3>
+              </div>
+              <p className="text-xs text-slate-300 leading-relaxed mb-4">
+                Powered by neural contextual models, Narrative DNA decomposes every title into five critical narrative dimensions: storytelling pacing, conceptual complexity, emotional resonance, climax impact, and ending twist potency. This allows viewers to filter cinematic works based on mental bandwidth and mood affinity rather than generic genre buckets.
+              </p>
+              <div className="flex flex-wrap gap-2 text-[11px] text-slate-400">
+                <span className="bg-white/[0.03] border border-white/5 px-2.5 py-1 rounded-md">Pacing Telemetry</span>
+                <span className="bg-white/[0.03] border border-white/5 px-2.5 py-1 rounded-md">Ending Resolution Scoring</span>
+                <span className="bg-white/[0.03] border border-white/5 px-2.5 py-1 rounded-md">Couch Mode Filtering</span>
+              </div>
+            </div>
+          </div>
         </section>
       </div>
     </main>

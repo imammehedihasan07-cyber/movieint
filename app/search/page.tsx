@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, Suspense } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { Search, Star, Film, Sparkles, ArrowLeft, Loader2 } from "lucide-react";
 import MoviePoster from "@/components/MoviePoster";
@@ -13,10 +13,12 @@ interface MovieItem {
   release_date: string;
   vote_average: number;
   overview: string;
+  vote_count?: number;
 }
 
 function SearchContainer() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const queryParam = searchParams.get("q") || "";
 
   const [searchTerm, setSearchTerm] = useState(queryParam);
@@ -40,8 +42,13 @@ function SearchContainer() {
       );
       if (res.ok) {
         const data = await res.json();
+        // Strict Data Hygiene: Poster, valid rating, and minimum 3 votes
         const filtered = (data.results || []).filter(
-          (m: any) => m && m.poster_path && m.vote_average > 0
+          (m: any) =>
+            m &&
+            m.poster_path &&
+            m.vote_average > 0 &&
+            (m.vote_count ?? 0) >= 3
         );
         setResults(filtered);
       }
@@ -61,7 +68,9 @@ function SearchContainer() {
 
   const handleManualSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    performSearch(searchTerm);
+    if (!searchTerm.trim()) return;
+    router.push(`/search?q=${encodeURIComponent(searchTerm.trim())}`);
+    performSearch(searchTerm.trim());
   };
 
   return (
@@ -127,11 +136,7 @@ function SearchContainer() {
             >
               <div className="aspect-[2/3] relative w-full bg-slate-950 overflow-hidden">
                 <MoviePoster
-                  src={
-                    movie.poster_path
-                      ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
-                      : null
-                  }
+                  src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
                   alt={movie.title}
                   fallbackTitle={movie.title}
                   fill
@@ -140,7 +145,7 @@ function SearchContainer() {
                 />
                 <div className="absolute top-2.5 right-2.5 bg-black/80 backdrop-blur-md border border-white/10 px-2 py-0.5 rounded-lg flex items-center gap-1 text-[11px] font-mono font-bold text-amber-400">
                   <Star className="w-3 h-3 fill-amber-400" />
-                  <span>{movie.vote_average?.toFixed(1)}</span>
+                  <span>{movie.vote_average.toFixed(1)}</span>
                 </div>
               </div>
 
@@ -150,7 +155,7 @@ function SearchContainer() {
                     {movie.title}
                   </h3>
                   <p className="text-[11px] font-mono text-slate-500 mt-1">
-                    {movie.release_date?.split("-")[0] || "TBA"}
+                    {movie.release_date?.split("-")[0] || "Cinema"}
                   </p>
                 </div>
               </div>

@@ -48,6 +48,16 @@ const GENRE_MAP: Record<string, { id: number; name: string; description: string 
     name: "Animation",
     description: "Visually unbounded storytelling across global anime and groundbreaking cinematic features.",
   },
+  romance: {
+    id: 10749,
+    name: "Romance",
+    description: "Poetic magnetism, poignant interpersonal connections, and emotionally resonant journeys.",
+  },
+  comedy: {
+    id: 35,
+    name: "Comedy",
+    description: "Sharp wit, situational subversions, and high-energy narrative levity.",
+  },
 };
 
 async function getGenreMovies(genreId: number) {
@@ -55,12 +65,16 @@ async function getGenreMovies(genreId: number) {
 
   try {
     const res = await fetch(
-      `https://api.themoviedb.org/3/discover/movie?api_key=${apiKey}&with_genres=${genreId}&sort_by=vote_average.desc&vote_count.gte=800&page=1`,
+      `https://api.themoviedb.org/3/discover/movie?api_key=${apiKey}&with_genres=${genreId}&sort_by=vote_average.desc&vote_count.gte=500&page=1`,
       { next: { revalidate: 86400 } }
     );
     if (!res.ok) return [];
     const data = await res.json();
-    return (data.results || []).filter((m: any) => m && m.vote_average > 0);
+    
+    // Strict Hygiene: Enforce valid poster and positive rating
+    return (data.results || []).filter(
+      (m: any) => m && m.poster_path && m.vote_average > 0 && (m.vote_count ?? 0) >= 100
+    );
   } catch (err) {
     console.error("Failed to fetch genre movies:", err);
     return [];
@@ -127,7 +141,13 @@ export default async function GenrePage({ params }: PageProps) {
         "@type": "Movie",
         name: movie.title,
         url: `https://www.movieint.com/movie/${movie.id}`,
-        image: movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : undefined,
+        image: `https://image.tmdb.org/t/p/w500${movie.poster_path}`,
+        aggregateRating: {
+          "@type": "AggregateRating",
+          ratingValue: movie.vote_average?.toFixed(1),
+          bestRating: "10",
+          ratingCount: movie.vote_count,
+        },
       },
     })),
   };
@@ -192,7 +212,7 @@ export default async function GenrePage({ params }: PageProps) {
             >
               <div className="aspect-[2/3] relative w-full bg-slate-950 overflow-hidden">
                 <MoviePoster
-                  src={movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : null}
+                  src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
                   alt={movie.title}
                   fallbackTitle={movie.title}
                   fill
@@ -204,7 +224,7 @@ export default async function GenrePage({ params }: PageProps) {
                 </div>
                 <div className="absolute top-2 right-2 bg-black/80 backdrop-blur-md px-2 py-0.5 rounded-md text-[10px] font-bold text-amber-400 flex items-center gap-1 border border-white/10 font-mono">
                   <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
-                  {movie.vote_average?.toFixed(1)}
+                  {movie.vote_average.toFixed(1)}
                 </div>
               </div>
               <div className="p-3 flex flex-col flex-grow justify-between">
@@ -213,11 +233,11 @@ export default async function GenrePage({ params }: PageProps) {
                     {movie.title}
                   </h3>
                   <p className="text-[10px] text-slate-500 mt-0.5 font-mono">
-                    {movie.release_date?.split("-")[0] || "TBA"}
+                    {movie.release_date?.split("-")[0] || "Cinema"}
                   </p>
                 </div>
                 <p className="text-[11px] text-slate-400 line-clamp-2 mt-2 leading-relaxed">
-                  {movie.overview || "Deep narrative resonance."}
+                  {movie.overview || "Deep narrative resonance archived in system catalog."}
                 </p>
               </div>
             </Link>

@@ -18,46 +18,63 @@ interface DNAData {
   whyWatch: string;
 }
 
-function computeBaselineDNA(genres: string = "", voteAverage: number = 7.0): DNAData {
+function computeBaselineDNA(title: string, genres: string = "", voteAverage: number = 7.0, overview: string = ""): DNAData {
   const g = genres.toLowerCase();
+  const text = overview.toLowerCase();
   
-  let pacing = "Moderate & Measured";
-  if (g.includes("action") || g.includes("thriller") || g.includes("adventure")) {
+  let pacing = "Dynamic Narrative Flow";
+  if (g.includes("action") || g.includes("thriller") || g.includes("adventure") || text.includes("chase") || text.includes("race")) {
     pacing = "High-Octane Dynamic";
-  } else if (g.includes("drama") || g.includes("mystery") || g.includes("documentary")) {
+  } else if (g.includes("drama") || g.includes("mystery") || g.includes("documentary") || text.includes("investigate")) {
     pacing = "Slow-Burn Atmospheric";
+  } else if (g.includes("animation") || g.includes("comedy")) {
+    pacing = "Brisk & Engaging";
   }
 
   let complexity = Math.min(Math.max(Math.round(voteAverage), 5), 9);
-  if (g.includes("sci-fi") || g.includes("mystery")) complexity = Math.min(complexity + 1, 10);
+  if (g.includes("sci-fi") || g.includes("mystery") || text.includes("conspiracy") || text.includes("future")) {
+    complexity = Math.min(complexity + 1, 10);
+  }
 
   let endingImpact = "Resonant Resolution";
-  if (g.includes("mystery") || g.includes("thriller")) endingImpact = "High Twist Index";
-  if (g.includes("horror")) endingImpact = "Dread Lingering";
-  if (g.includes("comedy")) endingImpact = "Tonal Closure";
+  if (g.includes("mystery") || g.includes("thriller") || text.includes("secret") || text.includes("truth")) {
+    endingImpact = "High Twist Index";
+  } else if (g.includes("horror")) {
+    endingImpact = "Lingering Psychological Dread";
+  } else if (g.includes("comedy") || g.includes("family")) {
+    endingImpact = "Uplifting Closure";
+  } else if (g.includes("drama")) {
+    endingImpact = "Emotionally Piercing";
+  }
 
   let emotionalTone = "Cinematic Narrative";
   if (g.includes("drama")) emotionalTone = "Emotionally Grounded";
   if (g.includes("sci-fi")) emotionalTone = "Philosophical & Cerebral";
-  if (g.includes("action")) emotionalTone = "Adrenaline-Charged";
+  if (g.includes("action") || g.includes("crime")) emotionalTone = "Adrenaline-Charged";
+  if (g.includes("romance")) emotionalTone = "Intimate & Heartfelt";
+  if (g.includes("horror")) emotionalTone = "Claustrophobic & Ominous";
+
+  const primaryGenre = genres.split(",")[0]?.trim() || "cinematic storytelling";
+  const assessment = `Calculated narrative telemetry highlights notable thematic precision within ${primaryGenre}. With an established critical baseline of ${voteAverage.toFixed(1)}/10, the plot emphasizes ${pacing.toLowerCase()} pacing paired with an ending characterized by ${endingImpact.toLowerCase()}.`;
 
   return {
     pacing,
     complexityScore: complexity,
     endingImpact,
     emotionalTone,
-    whyWatch: `Calculated narrative telemetry highlights significant thematic depth with an audience consensus rating of ${voteAverage.toFixed(1)}/10.`,
+    whyWatch: assessment,
   };
 }
 
 export default function MovieDNA({ title, overview, genres = "", voteAverage = 7.0 }: DNAProps) {
-  const [dna, setDna] = useState<DNAData>(() => computeBaselineDNA(genres, voteAverage));
-  const [isAiRefining, setIsAiRefining] = useState(true);
+  const [dna, setDna] = useState<DNAData>(() => computeBaselineDNA(title, genres, voteAverage, overview));
+  const [isAiRefining, setIsAiRefining] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
 
     async function fetchDNA() {
+      setIsAiRefining(true);
       try {
         const res = await fetch("/api/movie-dna", {
           method: "POST",
@@ -66,12 +83,12 @@ export default function MovieDNA({ title, overview, genres = "", voteAverage = 7
         });
         if (res.ok) {
           const data = await res.json();
-          if (isMounted && data) {
+          if (isMounted && data && data.pacing) {
             setDna(data);
           }
         }
       } catch (err) {
-        console.error("AI DNA fetch error:", err);
+        console.error("AI DNA refinement error:", err);
       } finally {
         if (isMounted) setIsAiRefining(false);
       }
@@ -79,10 +96,8 @@ export default function MovieDNA({ title, overview, genres = "", voteAverage = 7
 
     if (title && overview) {
       fetchDNA();
-    } else {
-      setIsAiRefining(false);
     }
-
+    
     return () => {
       isMounted = false;
     };
@@ -98,9 +113,9 @@ export default function MovieDNA({ title, overview, genres = "", voteAverage = 7
           </h3>
         </div>
         {isAiRefining && (
-          <span className="inline-flex items-center gap-1.5 text-[10px] font-mono text-slate-500">
+          <span className="inline-flex items-center gap-1.5 text-[10px] font-mono text-slate-500 animate-pulse">
             <Loader2 className="w-3 h-3 text-rose-500 animate-spin" />
-            Fine-tuning with Gemini...
+            Fine-tuning telemetry...
           </span>
         )}
       </div>

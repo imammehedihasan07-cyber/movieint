@@ -16,9 +16,11 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   metadataBase: new URL(
-    process.env.NEXT_PUBLIC_SITE_URL || "https://movieint.vercel.app"
+    process.env.NEXT_PUBLIC_SITE_URL || "https://www.movieint.com"
   ),
-  
+  alternates: {
+    canonical: "https://www.movieint.com",
+  },
   title: {
     default: "MOVIEINT — Cinematic Intelligence & Narrative DNA Engine",
     template: "%s | MOVIEINT",
@@ -52,7 +54,7 @@ export const metadata: Metadata = {
     title: "MOVIEINT — AI-Powered Cinema Intelligence & DNA Archival",
     description:
       "Algorithmic narrative breakdown and streaming availability for worldwide cinema & series.",
-    url: "https://movieint.vercel.app",
+    url: "https://www.movieint.com",
     siteName: "MOVIEINT",
     locale: "en_US",
     type: "website",
@@ -76,7 +78,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-[#05070b] text-slate-100 flex flex-col min-h-screen justify-between selection:bg-indigo-600 selection:text-white`}
       >
         <Navbar />
-        <div className="flex-grow">{children}</div>
+        <main className="flex-grow">{children}</main>
         <Footer />
       </body>
     </html>

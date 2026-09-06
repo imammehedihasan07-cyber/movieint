@@ -1,22 +1,20 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   Swords,
   Search,
   Star,
-  Clock,
-  Calendar,
-  Sparkles,
   Trophy,
   ArrowRight,
-  Info,
   RotateCcw,
   Zap,
   Activity,
   Layers,
-  Flame,
+  Scale,
+  ShieldCheck,
+  Brain,
 } from "lucide-react";
 import MoviePoster from "@/components/MoviePoster";
 
@@ -34,13 +32,11 @@ export default function VsModePage() {
   const [query1, setQuery1] = useState("");
   const [results1, setResults1] = useState<MovieSummary[]>([]);
   const [movie1, setMovie1] = useState<MovieSummary | null>(null);
-  const [loading1, setLoading1] = useState(false);
 
   // Movie 2 States
   const [query2, setQuery2] = useState("");
   const [results2, setResults2] = useState<MovieSummary[]>([]);
   const [movie2, setMovie2] = useState<MovieSummary | null>(null);
-  const [loading2, setLoading2] = useState(false);
 
   // Search Debouncing for Slot 1
   useEffect(() => {
@@ -49,7 +45,6 @@ export default function VsModePage() {
       return;
     }
     const timer = setTimeout(async () => {
-      setLoading1(true);
       try {
         const res = await fetch(
           `https://api.themoviedb.org/3/search/movie?api_key=b6b9f5e3a64b6ef32e0b8fade33cfe5a&query=${encodeURIComponent(
@@ -60,8 +55,6 @@ export default function VsModePage() {
         setResults1((data.results || []).slice(0, 5));
       } catch (e) {
         console.error(e);
-      } finally {
-        setLoading1(false);
       }
     }, 400);
     return () => clearTimeout(timer);
@@ -74,7 +67,6 @@ export default function VsModePage() {
       return;
     }
     const timer = setTimeout(async () => {
-      setLoading2(true);
       try {
         const res = await fetch(
           `https://api.themoviedb.org/3/search/movie?api_key=b6b9f5e3a64b6ef32e0b8fade33cfe5a&query=${encodeURIComponent(
@@ -85,8 +77,6 @@ export default function VsModePage() {
         setResults2((data.results || []).slice(0, 5));
       } catch (e) {
         console.error(e);
-      } finally {
-        setLoading2(false);
       }
     }, 400);
     return () => clearTimeout(timer);
@@ -128,7 +118,7 @@ export default function VsModePage() {
           Cinema Vs Mode
         </h1>
         <p className="text-xs sm:text-sm text-slate-400 max-w-lg mx-auto mb-10 leading-relaxed">
-          Pitting two cinematic contenders against each other. Analyze narrative velocity, consensus thresholds, and twist mechanics to determine your evening selection.
+          Pitting two cinematic contenders head-to-head. Analyze comparative narrative velocity, consensus thresholds, and twist mechanics to settle your evening choice.
         </p>
 
         {/* Duel Selection Hub */}
@@ -147,12 +137,11 @@ export default function VsModePage() {
                     type="text"
                     value={query1}
                     onChange={(e) => setQuery1(e.target.value)}
-                    placeholder="Search first movie (e.g. Inception)..."
+                    placeholder="Search first title (e.g. Inception)..."
                     className="w-full bg-[#05070b] border border-white/[0.08] rounded-xl pl-10 pr-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition"
                   />
                 </div>
 
-                {/* Autocomplete Dropdown */}
                 {results1.length > 0 && (
                   <div className="absolute top-full left-0 right-0 mt-2 bg-[#0c101a] border border-white/10 rounded-2xl overflow-hidden shadow-2xl z-30 divide-y divide-white/5">
                     {results1.map((item) => (
@@ -166,19 +155,25 @@ export default function VsModePage() {
                         className="w-full p-3 flex items-center gap-3 hover:bg-white/[0.05] transition text-left cursor-pointer"
                       >
                         <div className="w-8 aspect-[2/3] relative rounded bg-slate-900 shrink-0 overflow-hidden">
-                          {item.poster_path && (
-                            <MoviePoster
-                              src={`https://image.tmdb.org/t/p/w92${item.poster_path}`}
-                              alt={item.title}
-                              fill
-                              className="object-cover"
-                            />
-                          )}
+                          <MoviePoster
+                            src={
+                              item.poster_path
+                                ? `https://image.tmdb.org/t/p/w92${item.poster_path}`
+                                : null
+                            }
+                            alt={item.title}
+                            fallbackTitle={item.title}
+                            fill
+                            className="object-cover"
+                          />
                         </div>
                         <div className="overflow-hidden">
                           <p className="text-xs font-bold text-white truncate">{item.title}</p>
                           <span className="text-[10px] font-mono text-slate-400">
-                            {item.release_date?.split("-")[0] || "TBA"} • ★ {item.vote_average?.toFixed(1)}
+                            {item.release_date?.split("-")[0] || "TBA"} •{" "}
+                            {item.vote_average > 0
+                              ? `★ ${item.vote_average.toFixed(1)}`
+                              : "NR"}
                           </span>
                         </div>
                       </button>
@@ -190,19 +185,25 @@ export default function VsModePage() {
               <div className="flex gap-4 items-center justify-between">
                 <div className="flex gap-3 items-center overflow-hidden">
                   <div className="w-14 aspect-[2/3] relative rounded-xl bg-slate-950 shrink-0 overflow-hidden border border-white/10 shadow-lg">
-                    {movie1.poster_path && (
-                      <MoviePoster
-                        src={`https://image.tmdb.org/t/p/w185${movie1.poster_path}`}
-                        alt={movie1.title}
-                        fill
-                        className="object-cover"
-                      />
-                    )}
+                    <MoviePoster
+                      src={
+                        movie1.poster_path
+                          ? `https://image.tmdb.org/t/p/w185${movie1.poster_path}`
+                          : null
+                      }
+                      alt={movie1.title}
+                      fallbackTitle={movie1.title}
+                      fill
+                      className="object-cover"
+                    />
                   </div>
                   <div className="truncate">
                     <h3 className="text-sm font-black text-white truncate">{movie1.title}</h3>
                     <p className="text-[11px] font-mono text-slate-400 mt-0.5">
-                      {movie1.release_date?.split("-")[0]} • ★ {movie1.vote_average?.toFixed(1)}
+                      {movie1.release_date?.split("-")[0] || "TBA"} •{" "}
+                      {movie1.vote_average > 0
+                        ? `★ ${movie1.vote_average.toFixed(1)}`
+                        : "NR"}
                     </p>
                   </div>
                 </div>
@@ -230,12 +231,11 @@ export default function VsModePage() {
                     type="text"
                     value={query2}
                     onChange={(e) => setQuery2(e.target.value)}
-                    placeholder="Search rival movie (e.g. Shutter Island)..."
+                    placeholder="Search rival title (e.g. Shutter Island)..."
                     className="w-full bg-[#05070b] border border-white/[0.08] rounded-xl pl-10 pr-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-rose-500 transition"
                   />
                 </div>
 
-                {/* Autocomplete Dropdown */}
                 {results2.length > 0 && (
                   <div className="absolute top-full left-0 right-0 mt-2 bg-[#0c101a] border border-white/10 rounded-2xl overflow-hidden shadow-2xl z-30 divide-y divide-white/5">
                     {results2.map((item) => (
@@ -249,19 +249,25 @@ export default function VsModePage() {
                         className="w-full p-3 flex items-center gap-3 hover:bg-white/[0.05] transition text-left cursor-pointer"
                       >
                         <div className="w-8 aspect-[2/3] relative rounded bg-slate-900 shrink-0 overflow-hidden">
-                          {item.poster_path && (
-                            <MoviePoster
-                              src={`https://image.tmdb.org/t/p/w92${item.poster_path}`}
-                              alt={item.title}
-                              fill
-                              className="object-cover"
-                            />
-                          )}
+                          <MoviePoster
+                            src={
+                              item.poster_path
+                                ? `https://image.tmdb.org/t/p/w92${item.poster_path}`
+                                : null
+                            }
+                            alt={item.title}
+                            fallbackTitle={item.title}
+                            fill
+                            className="object-cover"
+                          />
                         </div>
                         <div className="overflow-hidden">
                           <p className="text-xs font-bold text-white truncate">{item.title}</p>
                           <span className="text-[10px] font-mono text-slate-400">
-                            {item.release_date?.split("-")[0] || "TBA"} • ★ {item.vote_average?.toFixed(1)}
+                            {item.release_date?.split("-")[0] || "TBA"} •{" "}
+                            {item.vote_average > 0
+                              ? `★ ${item.vote_average.toFixed(1)}`
+                              : "NR"}
                           </span>
                         </div>
                       </button>
@@ -273,19 +279,25 @@ export default function VsModePage() {
               <div className="flex gap-4 items-center justify-between">
                 <div className="flex gap-3 items-center overflow-hidden">
                   <div className="w-14 aspect-[2/3] relative rounded-xl bg-slate-950 shrink-0 overflow-hidden border border-white/10 shadow-lg">
-                    {movie2.poster_path && (
-                      <MoviePoster
-                        src={`https://image.tmdb.org/t/p/w185${movie2.poster_path}`}
-                        alt={movie2.title}
-                        fill
-                        className="object-cover"
-                      />
-                    )}
+                    <MoviePoster
+                      src={
+                        movie2.poster_path
+                          ? `https://image.tmdb.org/t/p/w185${movie2.poster_path}`
+                          : null
+                      }
+                      alt={movie2.title}
+                      fallbackTitle={movie2.title}
+                      fill
+                      className="object-cover"
+                    />
                   </div>
                   <div className="truncate">
                     <h3 className="text-sm font-black text-white truncate">{movie2.title}</h3>
                     <p className="text-[11px] font-mono text-slate-400 mt-0.5">
-                      {movie2.release_date?.split("-")[0]} • ★ {movie2.vote_average?.toFixed(1)}
+                      {movie2.release_date?.split("-")[0] || "TBA"} •{" "}
+                      {movie2.vote_average > 0
+                        ? `★ ${movie2.vote_average.toFixed(1)}`
+                        : "NR"}
                     </p>
                   </div>
                 </div>
@@ -352,12 +364,12 @@ export default function VsModePage() {
                   <div>
                     <div className="flex justify-between text-slate-400 mb-1">
                       <span className="flex items-center gap-1.5"><Star className="w-3.5 h-3.5 text-amber-400" /> Consensus Rating</span>
-                      <span className="text-white font-bold">{movie1.vote_average.toFixed(1)} / 10</span>
+                      <span className="text-white font-bold">{movie1.vote_average > 0 ? `${movie1.vote_average.toFixed(1)} / 10` : "NR"}</span>
                     </div>
                     <div className="w-full h-1.5 bg-slate-950 rounded-full overflow-hidden">
                       <div
                         className="h-full bg-amber-400"
-                        style={{ width: `${movie1.vote_average * 10}%` }}
+                        style={{ width: `${Math.min(100, movie1.vote_average * 10)}%` }}
                       />
                     </div>
                   </div>
@@ -413,12 +425,12 @@ export default function VsModePage() {
                   <div>
                     <div className="flex justify-between text-slate-400 mb-1">
                       <span className="flex items-center gap-1.5"><Star className="w-3.5 h-3.5 text-amber-400" /> Consensus Rating</span>
-                      <span className="text-white font-bold">{movie2.vote_average.toFixed(1)} / 10</span>
+                      <span className="text-white font-bold">{movie2.vote_average > 0 ? `${movie2.vote_average.toFixed(1)} / 10` : "NR"}</span>
                     </div>
                     <div className="w-full h-1.5 bg-slate-950 rounded-full overflow-hidden">
                       <div
                         className="h-full bg-amber-400"
-                        style={{ width: `${movie2.vote_average * 10}%` }}
+                        style={{ width: `${Math.min(100, movie2.vote_average * 10)}%` }}
                       />
                     </div>
                   </div>
@@ -457,23 +469,58 @@ export default function VsModePage() {
             <Swords className="w-10 h-10 text-slate-600 mx-auto mb-4 animate-pulse" />
             <h3 className="text-base font-bold text-slate-300 mb-1">Awaiting Contender Inputs</h3>
             <p className="text-xs text-slate-500 max-w-sm mx-auto">
-              Select two titles in the slots above to activate the dual comparison matrix.
+              Select two cinematic titles above to initiate the comparative telemetry matrix.
             </p>
           </div>
         )}
 
-        {/* Informational Editorial Framework */}
-        <section className="text-left space-y-6 border-t border-white/[0.08] pt-12 mt-12">
+        {/* Informational SEO & Architecture Section */}
+        <section className="text-left space-y-8 border-t border-white/[0.08] pt-12 mt-12">
           <div className="bg-[#090d15] border border-white/[0.08] rounded-3xl p-6 sm:p-8">
-            <h2 className="text-xl font-bold text-white mb-3 flex items-center gap-2">
-              <Layers className="w-5 h-5 text-indigo-400" /> The Duel Decision Heuristic
+            <div className="flex items-center gap-2 text-indigo-400 text-xs font-mono uppercase tracking-widest mb-3">
+              <Scale className="w-4 h-4" /> Comparative Narrative Analysis
+            </div>
+            <h2 className="text-xl sm:text-2xl font-bold text-white mb-4">
+              How MovieINT DNA Comparison Works
             </h2>
             <p className="text-slate-300 text-xs sm:text-sm leading-relaxed mb-4">
-              Deciding between two contrasting film options frequently causes cognitive stall. <strong>Vs Mode</strong> extracts structural indicators—such as narrative density, community reception distribution, and climax escalation curves—to give viewers a transparent, objective baseline for selection.
+              Deciding between two contrasting film options frequently causes cognitive stall. Standard star ratings fail to convey rhythmic differences—a 7.8 rated slow-burn thriller and a 7.8 rated action spectacle offer fundamentally different viewing experiences. <strong>Vs Mode</strong> deconstructs both films across structural dimensions to reveal which title matches your session constraints.
             </p>
             <p className="text-slate-400 text-xs sm:text-sm leading-relaxed">
-              Rather than trusting surface popularity alone, the dual algorithm correlates pacing indices with verified audience engagement to surface which contender best matches your current viewing window.
+              By assessing narrative pacing curves alongside verified audience telemetry, viewers receive an objective comparative baseline rather than subjective opinions.
             </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            <div className="bg-[#090d15] border border-white/[0.06] rounded-2xl p-5">
+              <div className="flex items-center gap-2 text-indigo-400 mb-2">
+                <Activity className="w-4 h-4" />
+                <h3 className="text-sm font-bold text-white">Pacing Cadence</h3>
+              </div>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Measures scene progression velocity and narrative acceleration to identify whether a title demands sustained endurance or offers instant momentum.
+              </p>
+            </div>
+
+            <div className="bg-[#090d15] border border-white/[0.06] rounded-2xl p-5">
+              <div className="flex items-center gap-2 text-rose-400 mb-2">
+                <Zap className="w-4 h-4" />
+                <h3 className="text-sm font-bold text-white">Twist Potency</h3>
+              </div>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Calculates screenplay deviation and climax unpredictability, distinguishing formulaic resolutions from structural revelations.
+              </p>
+            </div>
+
+            <div className="bg-[#090d15] border border-white/[0.06] rounded-2xl p-5">
+              <div className="flex items-center gap-2 text-emerald-400 mb-2">
+                <ShieldCheck className="w-4 h-4" />
+                <h3 className="text-sm font-bold text-white">Consensus Equilibrium</h3>
+              </div>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Normalizes critical acclaim against general community reception to protect against polarized review spikes.
+              </p>
+            </div>
           </div>
         </section>
       </div>

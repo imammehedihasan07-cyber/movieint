@@ -12,10 +12,13 @@ import StreamingAffiliateBox from "@/components/StreamingAffiliateBox";
 import MovieFAQ from "@/components/MovieFAQ";
 import SpoilerVault from "@/components/SpoilerVault";
 
-async function getMediaDetails(id: string) {
-  const apiKey = process.env.TMDB_API_KEY || "b6b9f5e3a64b6ef32e0b8fade33cfe5a";
+interface MovieDetailProps {
+  params: Promise<{ id: string }>;
+}
 
-  // First attempt: Movie fetch
+async function getMediaDetails(id: string) {
+  const apiKey = process.env.TMDB_API_KEY;
+
   try {
     const movieRes = await fetch(
       `https://api.themoviedb.org/3/movie/${id}?api_key=${apiKey}&append_to_response=credits,similar,videos,watch/providers`,
@@ -29,7 +32,6 @@ async function getMediaDetails(id: string) {
     console.error("Movie fetch failed, checking TV series...", e);
   }
 
-  // Fallback attempt: TV Series fetch
   try {
     const tvRes = await fetch(
       `https://api.themoviedb.org/3/tv/${id}?api_key=${apiKey}&append_to_response=credits,similar,videos,watch/providers`,
@@ -52,17 +54,14 @@ async function getMediaDetails(id: string) {
   return null;
 }
 
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}): Promise<Metadata> {
+export async function generateMetadata({ params }: MovieDetailProps): Promise<Metadata> {
   const { id } = await params;
   const media = await getMediaDetails(id);
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.movieint.com";
 
   if (!media) {
     return {
-      title: "Archive Record Not Found - MOVIEINT",
+      title: "Archive Record Not Found | MOVIEINT",
       description: "Cinema and series intelligence discovery system.",
     };
   }
@@ -70,9 +69,9 @@ export async function generateMetadata({
   const title = media.title || media.name;
   const releaseYear = (media.release_date || media.first_air_date || "").split("-")[0];
   const cleanDescription =
-    media.overview?.slice(0, 160) || "AI-powered narrative DNA, twist metrics, and streaming telemetry.";
+    media.overview?.slice(0, 160) || "AI-powered narrative DNA, twist metrics, and streaming availability.";
+  const canonicalUrl = `${baseUrl}/movie/${id}`;
 
-  // Dynamic OpenGraph Dynamic Social Preview Banner
   const ogImageUrl = `/api/og?title=${encodeURIComponent(title)}&rating=${media.vote_average?.toFixed(
     1
   )}&year=${releaseYear}&poster=${encodeURIComponent(
@@ -80,8 +79,11 @@ export async function generateMetadata({
   )}`;
 
   return {
-    title: `${title} (${releaseYear}) - DNA Breakdown & Twist Index | MOVIEINT`,
+    title: `${title} (${releaseYear}) — Narrative DNA & Analysis | MOVIEINT`,
     description: cleanDescription,
+    alternates: {
+      canonical: canonicalUrl,
+    },
     keywords: [
       title,
       "Movie DNA",
@@ -90,8 +92,10 @@ export async function generateMetadata({
       ...(media.genres?.map((g: { name: string }) => g.name) || []),
     ],
     openGraph: {
-      title: `${title} (${releaseYear}) - Neural Cinema Archival`,
+      title: `${title} (${releaseYear}) | MOVIEINT`,
       description: cleanDescription,
+      url: canonicalUrl,
+      siteName: "MOVIEINT",
       type: media.media_type === "tv" ? "video.tv_show" : "video.movie",
       images: [
         {
@@ -104,20 +108,17 @@ export async function generateMetadata({
     },
     twitter: {
       card: "summary_large_image",
-      title: `${title} - AI Cinema Intelligence`,
+      title: `${title} — Cinematic Intelligence`,
       description: cleanDescription,
       images: [ogImageUrl],
     },
   };
 }
 
-export default async function MediaDetailPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
+export default async function MediaDetailPage({ params }: MovieDetailProps) {
   const { id } = await params;
   const media = await getMediaDetails(id);
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.movieint.com";
 
   if (!media) {
     return (
@@ -151,6 +152,7 @@ export default async function MediaDetailPage({
     "@context": "https://schema.org",
     "@type": isTv ? "TVSeries" : "Movie",
     name: title,
+    url: `${baseUrl}/movie/${id}`,
     image: media.poster_path ? `https://image.tmdb.org/t/p/w500${media.poster_path}` : undefined,
     datePublished: releaseDate,
     description: media.overview,
@@ -168,7 +170,6 @@ export default async function MediaDetailPage({
 
   return (
     <main className="min-h-screen bg-[#05070b] text-slate-100 px-4 py-10 flex flex-col items-center selection:bg-indigo-600 selection:text-white relative overflow-hidden pb-24">
-      {/* Background Ambient Glow */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-6xl h-[450px] bg-gradient-to-b from-indigo-600/10 via-rose-950/5 to-transparent pointer-events-none -z-0" />
 
       <script
@@ -177,7 +178,6 @@ export default async function MediaDetailPage({
       />
 
       <div className="max-w-5xl w-full z-10">
-        {/* Back Button */}
         <Link
           href="/"
           className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-400 hover:text-slate-200 mb-8 transition"
@@ -185,11 +185,9 @@ export default async function MediaDetailPage({
           <ArrowLeft className="w-3.5 h-3.5" /> Back to Discover
         </Link>
 
-        {/* Hero Banner Section */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 bg-[#090d15] border border-white/[0.08] rounded-3xl p-6 sm:p-8 mb-10 shadow-2xl relative overflow-hidden">
           <div className="absolute top-0 right-0 w-80 h-80 bg-indigo-500/5 blur-3xl -z-0 pointer-events-none" />
 
-          {/* Poster */}
           <div className="aspect-[2/3] relative rounded-2xl overflow-hidden shadow-2xl bg-slate-950 border border-white/10 z-10">
             {media.poster_path ? (
               <Image
@@ -205,10 +203,8 @@ export default async function MediaDetailPage({
             )}
           </div>
 
-          {/* Details Column */}
           <div className="md:col-span-2 flex flex-col justify-between gap-6 z-10">
             <div>
-              {/* Badges & Actions */}
               <div className="flex flex-wrap items-center gap-2.5 mb-4">
                 <span className="bg-white/[0.05] border border-white/10 text-slate-300 px-3 py-1 rounded-full text-xs font-mono uppercase tracking-wider">
                   {isTv ? "TV Series" : "Feature Film"}
@@ -240,7 +236,6 @@ export default async function MediaDetailPage({
                 <p className="italic text-slate-400 text-sm mb-4 font-serif">"{media.tagline}"</p>
               )}
 
-              {/* Specs Bar */}
               <div className="flex flex-wrap gap-5 text-xs font-medium text-slate-400 mb-6 border-y border-white/[0.06] py-3">
                 <div className="flex items-center gap-1.5">
                   <Calendar className="w-3.5 h-3.5 text-indigo-400" />
@@ -256,27 +251,22 @@ export default async function MediaDetailPage({
                 </div>
               </div>
 
-              {/* Synopsis */}
               <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Narrative Synopsis</h2>
               <p className="text-slate-300 text-xs sm:text-sm leading-relaxed mb-6">
                 {media.overview}
               </p>
 
-              {/* Where to Watch Streaming Availability */}
               <div className="mb-2">
                 <WatchProviders providers={providers} />
               </div>
 
-              {/* High-Converting VPN & Regional Streaming Monetization Unit */}
               <StreamingAffiliateBox movieTitle={title} />
             </div>
 
-            {/* Dynamic AI Movie DNA */}
-            <MovieDNA title={title} overview={media.overview} />
+            <MovieDNA title={title} overview={media.overview} genres={genreList} voteAverage={media.vote_average} />
           </div>
         </div>
 
-        {/* Spoiler-Free Climax & Mind-Fuck Index + Exportable Social Card */}
         <ClimaxIndex
           title={title}
           overview={media.overview}
@@ -284,17 +274,14 @@ export default async function MediaDetailPage({
           rating={media.vote_average}
         />
 
-        {/* AI Classified Spoiler Vault: Ending Explained */}
         <SpoilerVault
           title={title}
           year={year}
           overview={media.overview}
         />
 
-        {/* AI Vibe Matcher ("If You Loved X, Watch These") */}
         <VibeMatch movieTitle={title} overview={media.overview} />
 
-        {/* Top Cast Section */}
         {cast.length > 0 && (
           <section className="mb-14 text-left">
             <h3 className="text-xs font-mono uppercase tracking-[0.2em] text-slate-400 mb-4 font-bold">
@@ -324,7 +311,6 @@ export default async function MediaDetailPage({
           </section>
         )}
 
-        {/* Similar Recommendations */}
         {similarMedia.length > 0 && (
           <section className="mb-14 text-left">
             <h3 className="text-xs font-mono uppercase tracking-[0.2em] text-slate-400 mb-4 font-bold">
@@ -367,8 +353,14 @@ export default async function MediaDetailPage({
           </section>
         )}
 
-        {/* SEO Rich FAQ Accordion & Google FAQ Schema */}
-        <MovieFAQ title={title} genres={genreList} runtime={media.runtime} />
+        <MovieFAQ
+          title={title}
+          genres={genreList}
+          runtime={media.runtime}
+          voteAverage={media.vote_average}
+          overview={media.overview}
+          tagline={media.tagline}
+        />
       </div>
     </main>
   );

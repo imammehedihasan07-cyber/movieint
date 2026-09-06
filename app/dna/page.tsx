@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import {
   Dna,
   Search,
@@ -13,6 +14,10 @@ import {
   Loader2,
   Star,
   Film,
+  HelpCircle,
+  Zap,
+  Gauge,
+  Compass,
 } from "lucide-react";
 
 interface MovieOption {
@@ -46,7 +51,6 @@ export default function MovieDNAPage() {
 
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Debounced Real-time Smart Autocomplete
   useEffect(() => {
     if (!search.trim()) {
       setMovieList([]);
@@ -77,7 +81,6 @@ export default function MovieDNAPage() {
     return () => clearTimeout(timer);
   }, [search]);
 
-  // Click outside to close dropdown
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (
@@ -91,7 +94,6 @@ export default function MovieDNAPage() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // নির্বাচিত সিনেমার Gemini AI Movie DNA অ্যানালাইসিস
   const handleAnalyzeDNA = async (movie: MovieOption) => {
     setSelectedMovie(movie);
     setSearch(movie.title);
@@ -122,12 +124,10 @@ export default function MovieDNAPage() {
   };
 
   return (
-    <main className="min-h-screen bg-[#05070b] text-slate-100 px-4 py-12 flex flex-col items-center selection:bg-indigo-600 selection:text-white relative overflow-hidden">
-      {/* Dynamic Ambient Background Illumination */}
+    <main className="min-h-screen bg-[#05070b] text-slate-100 px-4 py-12 flex flex-col items-center selection:bg-indigo-600 selection:text-white relative overflow-hidden pb-24">
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-5xl h-[450px] bg-gradient-to-b from-indigo-600/10 via-purple-900/5 to-transparent pointer-events-none -z-0" />
 
       <div className="max-w-4xl w-full z-10">
-        {/* Header */}
         <div className="text-center mb-10">
           <div className="inline-flex items-center gap-2 bg-indigo-500/10 border border-indigo-500/20 px-4 py-1.5 rounded-full text-indigo-400 text-xs font-semibold mb-4">
             <Dna className="w-4 h-4" /> Cinematic Intelligence Engine
@@ -140,7 +140,6 @@ export default function MovieDNAPage() {
           </p>
         </div>
 
-        {/* Smart Search Movie Bar Container */}
         <div ref={containerRef} className="relative mb-10 max-w-2xl mx-auto">
           <form onSubmit={handleFormSubmit}>
             <div className="relative flex items-center bg-[#090d15] border border-white/[0.1] rounded-2xl p-2 shadow-2xl focus-within:border-indigo-500/80 focus-within:ring-2 focus-within:ring-indigo-500/20 transition duration-200">
@@ -167,7 +166,6 @@ export default function MovieDNAPage() {
             </div>
           </form>
 
-          {/* Smart Autocomplete Dropdown */}
           {isOpen && movieList.length > 0 && (
             <div className="absolute top-full left-0 right-0 mt-2 bg-[#090d15] border border-white/[0.1] rounded-2xl shadow-2xl overflow-hidden z-50 divide-y divide-white/[0.05] animate-fadeIn">
               {movieList.map((m) => (
@@ -216,9 +214,8 @@ export default function MovieDNAPage() {
           )}
         </div>
 
-        {/* Analyzing State */}
         {analyzing && (
-          <div className="bg-[#090d15] border border-white/[0.08] rounded-3xl p-12 text-center flex flex-col items-center justify-center gap-3 shadow-2xl animate-fadeIn">
+          <div className="bg-[#090d15] border border-white/[0.08] rounded-3xl p-12 text-center flex flex-col items-center justify-center gap-3 shadow-2xl animate-fadeIn mb-12">
             <Loader2 className="w-8 h-8 text-indigo-400 animate-spin" />
             <p className="text-sm font-bold text-slate-200">
               Dissecting Narrative DNA for "{selectedMovie?.title}"...
@@ -229,10 +226,8 @@ export default function MovieDNAPage() {
           </div>
         )}
 
-        {/* DNA Results Display */}
         {dnaData && selectedMovie && !analyzing && (
-          <div className="bg-[#090d15] border border-white/[0.08] rounded-3xl p-6 sm:p-8 animate-fadeIn shadow-2xl">
-            {/* Movie Basic Info */}
+          <div className="bg-[#090d15] border border-white/[0.08] rounded-3xl p-6 sm:p-8 animate-fadeIn shadow-2xl mb-12">
             <div className="flex flex-col sm:flex-row gap-6 items-center sm:items-start mb-8 pb-6 border-b border-white/[0.06]">
               <div className="w-28 sm:w-36 aspect-[2/3] relative rounded-2xl overflow-hidden shadow-2xl bg-slate-900 shrink-0 border border-white/10">
                 {selectedMovie.poster_path ? (
@@ -261,7 +256,6 @@ export default function MovieDNAPage() {
               </div>
             </div>
 
-            {/* AI DNA Breakdown Metrics */}
             <h3 className="text-xs font-bold text-indigo-400 uppercase tracking-widest mb-4 flex items-center gap-2">
               <Sparkles className="w-3.5 h-3.5 text-indigo-400" /> Core Structural Vectors
             </h3>
@@ -300,7 +294,6 @@ export default function MovieDNAPage() {
               </div>
             </div>
 
-            {/* Why Watch Verdict Quote */}
             {dnaData.whyWatch && (
               <div className="bg-indigo-950/20 border border-indigo-500/20 rounded-2xl p-4 sm:p-5">
                 <span className="text-[11px] font-bold text-indigo-400 uppercase tracking-widest block mb-1">
@@ -313,6 +306,72 @@ export default function MovieDNAPage() {
             )}
           </div>
         )}
+
+        <section className="text-left mt-8 space-y-8">
+          <div className="bg-[#090d15] border border-white/[0.08] rounded-3xl p-6 sm:p-8">
+            <div className="flex items-center gap-2 text-indigo-400 text-xs font-mono uppercase tracking-widest mb-3">
+              <HelpCircle className="w-4 h-4" /> Comprehensive Anatomy
+            </div>
+            <h2 className="text-xl sm:text-2xl font-bold text-white mb-4">
+              What is Movie DNA & Narrative Intelligence?
+            </h2>
+            <p className="text-slate-300 text-xs sm:text-sm leading-relaxed mb-4">
+              Traditional film categories rely on broad genres such as "Drama," "Sci-Fi," or "Action." However, two films sharing identical genre classifications often provide radically different viewing experiences. MOVIEINT’s <strong>Narrative DNA Architecture</strong> decomposes films into cognitive and structural vectors, quantifying pacing rhythm, cerebral complexity, and climax impact.
+            </p>
+            <p className="text-slate-400 text-xs sm:text-sm leading-relaxed">
+              By mapping these storytelling telemetry metrics, MOVIEINT accurately predicts mental bandwidth requirements, narrative tension curves, and thematic alignment—ensuring you select the exact film suited for your current focus and emotional bandwidth.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            <div className="bg-[#090d15] border border-white/[0.06] rounded-2xl p-5">
+              <div className="flex items-center gap-2 text-rose-400 mb-2">
+                <Gauge className="w-4 h-4" />
+                <h3 className="text-sm font-bold text-white">Pacing Vector</h3>
+              </div>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Evaluates narrative momentum, scene length variance, and plot velocity. Identifies whether a film is a rapid <em>High-Octane Dynamic</em> ride or an introspective, slow-burning character study.
+              </p>
+            </div>
+
+            <div className="bg-[#090d15] border border-white/[0.06] rounded-2xl p-5">
+              <div className="flex items-center gap-2 text-indigo-400 mb-2">
+                <Brain className="w-4 h-4" />
+                <h3 className="text-sm font-bold text-white">Complexity Score</h3>
+              </div>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Measures non-linear chronological timelines, multi-character subplots, philosophical subtext, and ambiguous themes that demand active audience cognitive engagement.
+              </p>
+            </div>
+
+            <div className="bg-[#090d15] border border-white/[0.06] rounded-2xl p-5">
+              <div className="flex items-center gap-2 text-amber-400 mb-2">
+                <Zap className="w-4 h-4" />
+                <h3 className="text-sm font-bold text-white">Ending & Twist Potency</h3>
+              </div>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Quantifies the residual psychological shock and resolution architecture of the final act—categorizing endings from clean resolution closures to high-twist paradigm shifts.
+              </p>
+            </div>
+          </div>
+
+          <div className="bg-gradient-to-r from-indigo-950/20 via-[#090d15] to-rose-950/20 border border-white/[0.08] rounded-3xl p-6 sm:p-8 flex flex-col sm:flex-row items-center justify-between gap-6">
+            <div className="space-y-1 text-center sm:text-left">
+              <h3 className="text-base font-bold text-white flex items-center justify-center sm:justify-start gap-2">
+                <Compass className="w-4 h-4 text-indigo-400" /> Explore Algorithmic Architecture
+              </h3>
+              <p className="text-xs text-slate-400">
+                Learn how MOVIEINT calculates Bayesian weighted scores and streaming telemetry.
+              </p>
+            </div>
+            <Link
+              href="/methodology"
+              className="bg-white/[0.05] hover:bg-white/[0.1] border border-white/10 text-slate-200 text-xs font-semibold px-4 py-2.5 rounded-xl transition duration-200 shrink-0"
+            >
+              Read Methodology →
+            </Link>
+          </div>
+        </section>
       </div>
     </main>
   );

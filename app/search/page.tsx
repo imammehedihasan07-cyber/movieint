@@ -15,17 +15,20 @@ interface MovieItem {
   overview: string;
 }
 
-function SearchContent() {
+function SearchContainer() {
   const searchParams = useSearchParams();
-  const initialQuery = searchParams.get("q") || "";
-  
-  const [searchTerm, setSearchTerm] = useState(initialQuery);
+  const queryParam = searchParams.get("q") || "";
+
+  const [searchTerm, setSearchTerm] = useState(queryParam);
   const [results, setResults] = useState<MovieItem[]>([]);
   const [loading, setLoading] = useState(false);
-  const [searchedQuery, setSearchedQuery] = useState(initialQuery);
+  const [searchedQuery, setSearchedQuery] = useState(queryParam);
 
-  const fetchSearch = async (query: string) => {
-    if (!query.trim() || query.length < 2) return;
+  const performSearch = async (query: string) => {
+    if (!query || query.trim().length < 2) {
+      setResults([]);
+      return;
+    }
     setLoading(true);
     setSearchedQuery(query);
 
@@ -35,11 +38,13 @@ function SearchContent() {
           query
         )}`
       );
-      const data = await res.json();
-      const filtered = (data.results || []).filter(
-        (m: any) => m && m.poster_path && m.vote_average > 0
-      );
-      setResults(filtered);
+      if (res.ok) {
+        const data = await res.json();
+        const filtered = (data.results || []).filter(
+          (m: any) => m && m.poster_path && m.vote_average > 0
+        );
+        setResults(filtered);
+      }
     } catch (err) {
       console.error("Search fetch error:", err);
     } finally {
@@ -48,15 +53,15 @@ function SearchContent() {
   };
 
   useEffect(() => {
-    if (initialQuery) {
-      setSearchTerm(initialQuery);
-      fetchSearch(initialQuery);
+    if (queryParam) {
+      setSearchTerm(queryParam);
+      performSearch(queryParam);
     }
-  }, [initialQuery]);
+  }, [queryParam]);
 
   const handleManualSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    fetchSearch(searchTerm);
+    performSearch(searchTerm);
   };
 
   return (
@@ -68,7 +73,7 @@ function SearchContent() {
         <ArrowLeft className="w-3.5 h-3.5" /> Back to Discover
       </Link>
 
-      {/* Header & Search Field */}
+      {/* Header & Search Bar */}
       <div className="mb-10 pb-8 border-b border-white/[0.08]">
         <div className="inline-flex items-center gap-2 bg-indigo-500/10 border border-indigo-500/20 px-3.5 py-1 rounded-full text-indigo-400 text-[10px] font-mono uppercase tracking-widest mb-4">
           <Sparkles className="w-3.5 h-3.5" /> Quantum Archive Query
@@ -96,7 +101,7 @@ function SearchContent() {
         </form>
       </div>
 
-      {/* Search Output Status */}
+      {/* Query Status */}
       {searchedQuery && (
         <div className="flex items-center justify-between mb-6 pb-3 border-b border-white/[0.06]">
           <h2 className="text-sm font-mono uppercase tracking-[0.2em] text-slate-400 font-bold flex items-center gap-2">
@@ -106,7 +111,7 @@ function SearchContent() {
         </div>
       )}
 
-      {/* Results Grid */}
+      {/* Grid */}
       {loading ? (
         <div className="py-20 flex flex-col items-center justify-center gap-3 text-slate-400">
           <Loader2 className="w-8 h-8 text-indigo-500 animate-spin" />
@@ -122,7 +127,11 @@ function SearchContent() {
             >
               <div className="aspect-[2/3] relative w-full bg-slate-950 overflow-hidden">
                 <MoviePoster
-                  src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
+                  src={
+                    movie.poster_path
+                      ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
+                      : null
+                  }
                   alt={movie.title}
                   fallbackTitle={movie.title}
                   fill
@@ -164,11 +173,17 @@ function SearchContent() {
 export default function SearchPage() {
   return (
     <main className="min-h-screen bg-[#05070b] text-slate-100 px-4 sm:px-8 py-12 flex flex-col items-center selection:bg-indigo-600 selection:text-white relative overflow-hidden pb-24">
-      {/* Background Ambience */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-6xl h-[450px] bg-gradient-to-b from-indigo-600/10 via-rose-950/5 to-transparent pointer-events-none -z-0" />
 
-      <Suspense fallback={<div className="text-xs font-mono text-slate-500 py-20">Initializing search pipeline...</div>}>
-        <SearchContent />
+      <Suspense
+        fallback={
+          <div className="w-full max-w-6xl py-24 flex flex-col items-center justify-center gap-3 text-slate-500 font-mono text-xs">
+            <Loader2 className="w-6 h-6 animate-spin text-indigo-500" />
+            <span>Mounting Quantum Query Buffer...</span>
+          </div>
+        }
+      >
+        <SearchContainer />
       </Suspense>
     </main>
   );

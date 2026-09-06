@@ -4,6 +4,7 @@ import { Star, Film, Compass, Dna, Play, Info, ArrowUpRight, Tv, Globe2, Sparkle
 import SearchBar from "@/components/SearchBar";
 import SponsoredSpotlight from "@/components/SponsoredSpotlight";
 import MediaGridSection from "@/components/MediaGridSection";
+import MoviePoster from "@/components/MoviePoster";
 
 async function getGlobalCatalog() {
   const apiKey = process.env.TMDB_API_KEY || "b6b9f5e3a64b6ef32e0b8fade33cfe5a";
@@ -28,22 +29,19 @@ async function getGlobalCatalog() {
       animeRes.ok ? animeRes.json() : { results: [] },
     ]);
 
-    // Filter out 0.0 unrated or unreleased items to protect user trust
-    const rawMovies = moviesData.results || [];
-    const rawSeries = seriesData.results || [];
-
-    const movies = rawMovies.filter(
-      (m: any) => m && m.vote_average > 0 && (m.vote_count ?? 0) > 5
+    // Strict Data Hygiene: Only titles with active posters, positive ratings, and consensus
+    const movies = (moviesData.results || []).filter(
+      (m: any) => m && m.poster_path && m.vote_average > 0 && (m.vote_count ?? 0) >= 5
     );
-    const series = rawSeries.filter(
-      (s: any) => s && s.vote_average > 0 && (s.vote_count ?? 0) > 5
+    const series = (seriesData.results || []).filter(
+      (s: any) => s && s.poster_path && s.vote_average > 0 && (s.vote_count ?? 0) >= 5
     );
     const cultGlobal = (animeData.results || []).filter(
-      (a: any) => a && a.vote_average > 0
+      (a: any) => a && a.poster_path && a.vote_average > 0 && (a.vote_count ?? 0) >= 10
     );
 
-    // Featured title must also have a valid rating
-    const featured = movies[0] || series[0] || rawMovies[0] || null;
+    // Guaranteed rated & styled featured banner
+    const featured = movies[0] || series[0] || null;
 
     return {
       featured,
@@ -117,11 +115,7 @@ export default async function HomePage() {
                       <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
                       <span>{featured.vote_average.toFixed(1)}</span>
                     </div>
-                  ) : (
-                    <span className="bg-black/60 backdrop-blur-md px-2.5 py-0.5 rounded-full text-slate-400 text-[10px] font-mono border border-white/5">
-                      Rating Pending
-                    </span>
-                  )}
+                  ) : null}
                 </div>
 
                 <h2 className="text-2xl sm:text-4xl font-black text-white mb-2 tracking-tight">
@@ -236,31 +230,26 @@ export default async function HomePage() {
                 className="group relative bg-[#090d15] border border-white/[0.06] rounded-2xl overflow-hidden hover:border-emerald-500/40 hover:shadow-2xl hover:shadow-emerald-950/40 transition-all duration-300 flex flex-col"
               >
                 <div className="aspect-[2/3] relative w-full bg-slate-950 overflow-hidden">
-                  {item.poster_path ? (
-                    <Image
-                      src={`https://image.tmdb.org/t/p/w500${item.poster_path}`}
-                      alt={item.name || item.title}
-                      fill
-                      sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 20vw"
-                      className="object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
-                    />
-                  ) : (
-                    <div className="flex items-center justify-center h-full text-xs text-slate-400">No Poster</div>
-                  )}
+                  <MoviePoster
+                    src={
+                      item.poster_path
+                        ? `https://image.tmdb.org/t/p/w500${item.poster_path}`
+                        : null
+                    }
+                    alt={item.name || item.title}
+                    fallbackTitle={item.name || item.title}
+                    fill
+                    sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 20vw"
+                    className="object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
+                  />
 
                   <div className="absolute top-2.5 left-2.5 bg-emerald-950/80 backdrop-blur-md border border-emerald-500/30 px-2 py-0.5 rounded-md text-[9px] font-mono font-bold uppercase tracking-wider text-emerald-300">
                     MASTERPIECE
                   </div>
 
                   <div className="absolute top-2.5 right-2.5 bg-black/80 backdrop-blur-md border border-white/10 px-2 py-0.5 rounded-lg flex items-center gap-1 text-[10px] font-bold text-amber-400 shadow-lg">
-                    {item.vote_average && item.vote_average > 0 ? (
-                      <>
-                        <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-                        <span>{item.vote_average.toFixed(1)}</span>
-                      </>
-                    ) : (
-                      <span className="text-slate-400 text-[9px]">NR</span>
-                    )}
+                    <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                    <span>{item.vote_average.toFixed(1)}</span>
                   </div>
                 </div>
 

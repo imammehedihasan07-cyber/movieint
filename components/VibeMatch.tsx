@@ -148,7 +148,8 @@ function computeBaselineVibe(title: string, overview: string = ""): VibeMovie[] 
     text.includes("assassin") ||
     text.includes("revenge") ||
     text.includes("combat") ||
-    text.includes("war")
+    text.includes("war") ||
+    text.includes("mayday")
   ) {
     return [
       {
@@ -157,7 +158,7 @@ function computeBaselineVibe(title: string, overview: string = ""): VibeMovie[] 
         year: "2014",
         coreLink: "Relentless Kinetic Velocity",
         reason: "Balances strict spatial choreography, escalating retaliation stakes, and stylized underworld world-building.",
-        poster_path: "/fZPSNV7wmiNaAcvuBiJwSVbbylQ.jpg",
+        poster_path: "/ziEuG1essDuWuC5lpWUaw1u72cf.jpg",
         vote_average: 7.4,
       },
       {
@@ -170,13 +171,13 @@ function computeBaselineVibe(title: string, overview: string = ""): VibeMovie[] 
         vote_average: 7.6,
       },
       {
-        id: 110,
-        title: "Three Colors: Red",
-        year: "1994",
-        coreLink: "Cinematic Precision",
-        reason: "Exemplifies masterclass rhythmic pacing and uncompromising structural direction.",
-        poster_path: "/JHmspe860fF67bWj1g4nCq174o.jpg",
-        vote_average: 8.0,
+        id: 98,
+        title: "Gladiator",
+        year: "2000",
+        coreLink: "Epic Visceral Retaliation",
+        reason: "Presents monumental tactical momentum, emotional vengeance narrative, and grand arena choreography.",
+        poster_path: "/ty8TGRuvJLPUmAR1H1nRIsgwvim.jpg",
+        vote_average: 8.2,
       },
     ];
   }

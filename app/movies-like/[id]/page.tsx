@@ -25,7 +25,7 @@ async function getSimilarCollection(id: string) {
     const targetMovie = await targetRes.json();
     let similarData = similarRes.ok ? await similarRes.json() : { results: [] };
 
-    // If recommendations endpoint is thin, fallback to similar movies
+    // Fallback to similar endpoint if recommendations are insufficient
     if (!similarData.results || similarData.results.length < 5) {
       const fallbackRes = await fetch(
         `https://api.themoviedb.org/3/movie/${id}/similar?api_key=${apiKey}&page=1`,
@@ -36,8 +36,14 @@ async function getSimilarCollection(id: string) {
       }
     }
 
+    // Strict Data Hygiene: Exclude the target movie, enforce active posters and ratings
     const filteredSimilar = (similarData.results || []).filter(
-      (m: any) => m && m.poster_path && m.vote_average > 0
+      (m: any) =>
+        m &&
+        m.id !== targetMovie.id &&
+        m.poster_path &&
+        m.vote_average > 0 &&
+        (m.vote_count ?? 0) >= 5
     );
 
     return {
@@ -122,7 +128,13 @@ export default async function MoviesLikePage({ params }: PageProps) {
         "@type": "Movie",
         name: movie.title,
         url: `https://www.movieint.com/movie/${movie.id}`,
-        image: movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : undefined,
+        image: `https://image.tmdb.org/t/p/w500${movie.poster_path}`,
+        aggregateRating: {
+          "@type": "AggregateRating",
+          ratingValue: movie.vote_average?.toFixed(1),
+          bestRating: "10",
+          ratingCount: movie.vote_count || 1,
+        },
       },
     })),
   };
@@ -148,7 +160,7 @@ export default async function MoviesLikePage({ params }: PageProps) {
         <section className="bg-[#090d15] border border-white/[0.08] rounded-3xl p-6 sm:p-8 mb-12 shadow-2xl relative overflow-hidden flex flex-col sm:flex-row gap-6 items-center">
           <div className="w-24 sm:w-28 aspect-[2/3] relative rounded-xl overflow-hidden bg-slate-900 border border-white/10 shrink-0 shadow-lg">
             <MoviePoster
-              src={target.poster_path ? `https://image.tmdb.org/t/p/w300${target.poster_path}` : null}
+              src={target.poster_path ? `https://image.tmdb.org/t/p/w500${target.poster_path}` : null}
               alt={target.title}
               fallbackTitle={target.title}
               fill
@@ -189,7 +201,7 @@ export default async function MoviesLikePage({ params }: PageProps) {
               >
                 <div className="aspect-[2/3] relative w-full bg-slate-950 overflow-hidden">
                   <MoviePoster
-                    src={movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : null}
+                    src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
                     alt={movie.title}
                     fallbackTitle={movie.title}
                     fill
@@ -198,7 +210,7 @@ export default async function MoviesLikePage({ params }: PageProps) {
                   />
                   <div className="absolute top-2 right-2 bg-black/70 backdrop-blur-md px-2 py-0.5 rounded-md text-[10px] font-mono font-bold text-amber-400 flex items-center gap-1 border border-white/10">
                     <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
-                    {movie.vote_average?.toFixed(1) || "N/A"}
+                    {movie.vote_average.toFixed(1)}
                   </div>
                 </div>
                 <div className="p-3 flex flex-col flex-grow justify-between">
@@ -207,7 +219,7 @@ export default async function MoviesLikePage({ params }: PageProps) {
                       {movie.title}
                     </h3>
                     <p className="text-[10px] text-slate-500 mt-0.5 font-mono">
-                      {movie.release_date?.split("-")[0] || "TBA"}
+                      {movie.release_date?.split("-")[0] || "Cinema"}
                     </p>
                   </div>
                   <p className="text-[11px] text-slate-400 line-clamp-2 mt-2 leading-relaxed">

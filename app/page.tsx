@@ -28,12 +28,25 @@ async function getGlobalCatalog() {
       animeRes.ok ? animeRes.json() : { results: [] },
     ]);
 
-    const movies = moviesData.results || [];
-    const series = seriesData.results || [];
-    const cultGlobal = animeData.results || [];
+    // Filter out 0.0 unrated or unreleased items to protect user trust
+    const rawMovies = moviesData.results || [];
+    const rawSeries = seriesData.results || [];
+
+    const movies = rawMovies.filter(
+      (m: any) => m && m.vote_average > 0 && (m.vote_count ?? 0) > 5
+    );
+    const series = rawSeries.filter(
+      (s: any) => s && s.vote_average > 0 && (s.vote_count ?? 0) > 5
+    );
+    const cultGlobal = (animeData.results || []).filter(
+      (a: any) => a && a.vote_average > 0
+    );
+
+    // Featured title must also have a valid rating
+    const featured = movies[0] || series[0] || rawMovies[0] || null;
 
     return {
-      featured: movies[0] || series[0] || null,
+      featured,
       movies: movies.slice(0, 20),
       series: series.slice(0, 20),
       cultGlobal: cultGlobal.slice(0, 20),
@@ -98,10 +111,17 @@ export default async function HomePage() {
                   <span className="px-2.5 py-0.5 rounded-full bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 text-[10px] font-mono uppercase tracking-widest font-semibold flex items-center gap-1">
                     <Film className="w-3 h-3" /> {featuredType} Spotlight
                   </span>
-                  <div className="flex items-center gap-1.5 bg-black/60 backdrop-blur-md px-2.5 py-0.5 rounded-full text-amber-400 text-xs font-bold border border-white/5">
-                    <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-                    <span>{featured.vote_average?.toFixed(1)}</span>
-                  </div>
+                  
+                  {featured.vote_average && featured.vote_average > 0 ? (
+                    <div className="flex items-center gap-1.5 bg-black/60 backdrop-blur-md px-2.5 py-0.5 rounded-full text-amber-400 text-xs font-bold border border-white/5">
+                      <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                      <span>{featured.vote_average.toFixed(1)}</span>
+                    </div>
+                  ) : (
+                    <span className="bg-black/60 backdrop-blur-md px-2.5 py-0.5 rounded-full text-slate-400 text-[10px] font-mono border border-white/5">
+                      Rating Pending
+                    </span>
+                  )}
                 </div>
 
                 <h2 className="text-2xl sm:text-4xl font-black text-white mb-2 tracking-tight">
@@ -133,7 +153,7 @@ export default async function HomePage() {
           </div>
         )}
 
-        {/* SECTION 1: BLOCKBUSTER MOVIES (Dynamic Load More) */}
+        {/* SECTION 1: BLOCKBUSTER MOVIES */}
         <section className="w-full text-left mb-16">
           <div className="flex items-center justify-between mb-6 pb-3 border-b border-white/[0.06]">
             <div className="flex items-center gap-2.5">
@@ -160,7 +180,7 @@ export default async function HomePage() {
           />
         </section>
 
-        {/* SECTION 2: TOP-TIER WEB & TV SERIES (Dynamic Load More) */}
+        {/* SECTION 2: TOP-TIER WEB & TV SERIES */}
         <section className="w-full text-left mb-16">
           <div className="flex items-center justify-between mb-6 pb-3 border-b border-white/[0.06]">
             <div className="flex items-center gap-2.5">
@@ -233,8 +253,14 @@ export default async function HomePage() {
                   </div>
 
                   <div className="absolute top-2.5 right-2.5 bg-black/80 backdrop-blur-md border border-white/10 px-2 py-0.5 rounded-lg flex items-center gap-1 text-[10px] font-bold text-amber-400 shadow-lg">
-                    <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-                    <span>{item.vote_average?.toFixed(1) || "NR"}</span>
+                    {item.vote_average && item.vote_average > 0 ? (
+                      <>
+                        <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                        <span>{item.vote_average.toFixed(1)}</span>
+                      </>
+                    ) : (
+                      <span className="text-slate-400 text-[9px]">NR</span>
+                    )}
                   </div>
                 </div>
 

@@ -1,14 +1,9 @@
 "use client";
 
-import { useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
-import { Sparkles, ExternalLink, ShieldCheck, Film } from "lucide-react";
+import { Sparkles, ExternalLink, ShieldCheck } from "lucide-react";
 
 export default function SponsoredSpotlight() {
-  const [imgError, setImgError] = useState(false);
-
-  // 100% active and verified TMDB image path for Challengers (2024)
   const partner = {
     title: "Challengers",
     tagline: "High-voltage psychological tension on and off the court.",
@@ -26,23 +21,13 @@ export default function SponsoredSpotlight() {
         <div className="flex flex-col lg:flex-row items-center justify-between gap-6 z-10 relative">
           {/* Left: Poster & Title Details */}
           <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5 text-center sm:text-left">
-            <div className="relative w-24 h-32 rounded-2xl overflow-hidden bg-slate-900 border border-white/10 shrink-0 shadow-lg flex items-center justify-center">
-              {!imgError ? (
-                <Image
-                  src={partner.image}
-                  alt={partner.title}
-                  fill
-                  unoptimized
-                  sizes="96px"
-                  className="object-cover"
-                  onError={() => setImgError(true)}
-                />
-              ) : (
-                <div className="flex flex-col items-center justify-center p-2 text-center text-slate-500">
-                  <Film className="w-6 h-6 mb-1 text-amber-500/50" />
-                  <span className="text-[10px] font-mono leading-tight">Featured</span>
-                </div>
-              )}
+            <div className="relative w-24 h-32 rounded-2xl overflow-hidden bg-slate-900 border border-white/10 shrink-0 shadow-lg">
+              <img
+                src={partner.image}
+                alt={partner.title}
+                loading="eager"
+                className="w-full h-full object-cover"
+              />
             </div>
 
             <div>

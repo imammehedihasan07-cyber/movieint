@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { Bookmark, Trash2, Star, ArrowLeft, Loader2 } from "lucide-react";
 import { WatchlistMovie } from "@/components/WatchlistButton";
@@ -10,10 +10,20 @@ export default function WatchlistPage() {
   const [movies, setMovies] = useState<WatchlistMovie[]>([]);
   const [mounted, setMounted] = useState(false);
 
-  useEffect(() => {
+  const syncWatchlist = useCallback(() => {
     try {
-      const saved = JSON.parse(localStorage.getItem("movieint_watchlist") || "[]");
-      setMovies(saved);
+      const raw = localStorage.getItem("movieint_watchlist");
+      if (!raw) {
+        setMovies([]);
+        return;
+      }
+      const saved = JSON.parse(raw);
+      if (Array.isArray(saved)) {
+        // Sanitize: Keep only valid movie objects with IDs
+        setMovies(saved.filter((m) => m && typeof m.id === "number"));
+      } else {
+        setMovies([]);
+      }
     } catch {
       setMovies([]);
     } finally {
@@ -21,10 +31,28 @@ export default function WatchlistPage() {
     }
   }, []);
 
+  useEffect(() => {
+    syncWatchlist();
+
+    // Cross-tab and in-window storage sync
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === "movieint_watchlist") {
+        syncWatchlist();
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
+  }, [syncWatchlist]);
+
   const removeMovie = (id: number) => {
     const updated = movies.filter((m) => m.id !== id);
     setMovies(updated);
-    localStorage.setItem("movieint_watchlist", JSON.stringify(updated));
+    try {
+      localStorage.setItem("movieint_watchlist", JSON.stringify(updated));
+    } catch (e) {
+      console.error("Failed to update watchlist storage:", e);
+    }
   };
 
   return (
@@ -77,9 +105,16 @@ export default function WatchlistPage() {
                 key={m.id}
                 className="group relative bg-[#090d15] border border-white/[0.08] rounded-2xl overflow-hidden flex flex-col hover:border-indigo-500/40 transition duration-300 shadow-xl"
               >
-                <Link href={`/movie/${m.id}`} className="aspect-[2/3] relative w-full bg-slate-950 block overflow-hidden">
+                <Link
+                  href={`/movie/${m.id}`}
+                  className="aspect-[2/3] relative w-full bg-slate-950 block overflow-hidden"
+                >
                   <MoviePoster
-                    src={m.poster_path ? `https://image.tmdb.org/t/p/w500${m.poster_path}` : null}
+                    src={
+                      m.poster_path
+                        ? `https://image.tmdb.org/t/p/w500${m.poster_path}`
+                        : null
+                    }
                     alt={m.title}
                     fallbackTitle={m.title}
                     fill
@@ -88,7 +123,9 @@ export default function WatchlistPage() {
                   />
                   <div className="absolute top-2 right-2 bg-black/80 backdrop-blur-md px-2 py-0.5 rounded-lg border border-white/10 flex items-center gap-1 text-[11px] font-mono font-bold text-amber-400">
                     <Star className="w-3 h-3 fill-amber-400" />
-                    {m.vote_average ? m.vote_average.toFixed(1) : "—"}
+                    {m.vote_average && m.vote_average > 0
+                      ? m.vote_average.toFixed(1)
+                      : "—"}
                   </div>
                 </Link>
 
@@ -101,13 +138,14 @@ export default function WatchlistPage() {
                       {m.title}
                     </Link>
                     <p className="text-[10px] font-mono text-slate-500 mt-0.5">
-                      {m.release_date ? m.release_date.split("-")[0] : "TBA"}
+                      {m.release_date ? m.release_date.split("-")[0] : "Cinema"}
                     </p>
                   </div>
                   <button
                     onClick={() => removeMovie(m.id)}
                     className="text-slate-500 hover:text-rose-400 p-1.5 transition cursor-pointer shrink-0"
                     title="Remove from Watchlist"
+                    aria-label={`Remove ${m.title} from watchlist`}
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>

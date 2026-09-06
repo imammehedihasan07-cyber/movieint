@@ -1,5 +1,15 @@
+import { Metadata } from "next";
 import Link from "next/link";
-import { ArrowLeft, Shield } from "lucide-react";
+import { ArrowLeft, Shield, Lock, EyeOff, Cookie, Mail } from "lucide-react";
+
+export const metadata: Metadata = {
+  title: "Privacy Policy | MOVIEINT",
+  description:
+    "Learn how MOVIEINT protects user privacy, utilizes local browser storage, and manages third-party affiliate cookies.",
+  alternates: {
+    canonical: "https://www.movieint.com/privacy-policy",
+  },
+};
 
 export default function PrivacyPolicyPage() {
   return (
@@ -14,25 +24,77 @@ export default function PrivacyPolicyPage() {
 
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs font-mono uppercase mb-4">
           <Shield className="w-3.5 h-3.5 text-rose-400" />
-          <span>Legal Archival</span>
+          <span>User Privacy</span>
         </div>
 
-        <h1 className="text-3xl sm:text-4xl font-black text-white mb-6">
+        <h1 className="text-3xl sm:text-4xl font-black text-white mb-2">
           Privacy Policy
         </h1>
+        <p className="text-xs text-slate-400 mb-8">Effective Date: January 2026</p>
 
-        <div className="space-y-4 text-xs sm:text-sm text-slate-300 leading-relaxed">
-          <p>
-            Last Updated: 2026. MOVIEINT respects user privacy. We do not collect private personal data without consent, sell identity telemetry, or run intrusive client-side background scrapers.
-          </p>
-          <h2 className="text-white font-bold text-sm uppercase pt-4">Data Telemetry & Storage</h2>
-          <p>
-            Your watchlists and custom preferences are preserved inside your local client browser storage (LocalStorage). We do not record passwords or store sensitive financial tokens on our origin servers.
-          </p>
-          <h2 className="text-white font-bold text-sm uppercase pt-4">Third-Party Data</h2>
-          <p>
-            Cinema data is ingested via TMDB API. We participate in verified streaming and utility affiliate networks that may deploy standard session cookies to verify qualifying subscriptions.
-          </p>
+        <div className="space-y-6 text-xs sm:text-sm text-slate-300 leading-relaxed">
+          <section className="bg-slate-900/40 border border-slate-800/80 p-5 rounded-2xl">
+            <div className="flex items-center gap-2 mb-2">
+              <EyeOff className="w-4 h-4 text-rose-400" />
+              <h2 className="text-white font-bold text-sm uppercase tracking-wide">
+                1. Information We Do Not Collect
+              </h2>
+            </div>
+            <p>
+              MOVIEINT is committed to privacy by design. We do not require account registration to explore media indices, do not harvest personally identifiable information (PII), and do not record or monetize personal search histories.
+            </p>
+          </section>
+
+          <section className="bg-slate-900/40 border border-slate-800/80 p-5 rounded-2xl">
+            <div className="flex items-center gap-2 mb-2">
+              <Lock className="w-4 h-4 text-indigo-400" />
+              <h2 className="text-white font-bold text-sm uppercase tracking-wide">
+                2. Client-Side Data & LocalStorage
+              </h2>
+            </div>
+            <p>
+              Features such as your personal Watchlist and interface display preferences are stored exclusively on your device via browser LocalStorage. This data never touches or persists on our backend origin servers and can be wiped entirely at any time by clearing your browser cache.
+            </p>
+          </section>
+
+          <section className="bg-slate-900/40 border border-slate-800/80 p-5 rounded-2xl">
+            <div className="flex items-center gap-2 mb-2">
+              <Cookie className="w-4 h-4 text-amber-400" />
+              <h2 className="text-white font-bold text-sm uppercase tracking-wide">
+                3. Cookies & Affiliate Tracking
+              </h2>
+            </div>
+            <p>
+              MOVIEINT does not use first-party tracking cookies for user surveillance. However, outbound links to licensed streaming providers or partner services (e.g., NordVPN) may pass anonymous referral tags or utilize third-party session cookies to validate qualifying conversions.
+            </p>
+          </section>
+
+          <section className="bg-slate-900/40 border border-slate-800/80 p-5 rounded-2xl">
+            <h2 className="text-white font-bold text-sm uppercase tracking-wide mb-2">
+              4. Third-Party Integrations & APIs
+            </h2>
+            <p>
+              Our application queries public media assets via The Movie Database (TMDB) API and Google Gemini language models to provide real-time cinema telemetry. When interacting with embedded trailers, third-party video players (such as YouTube) may process standard request metadata according to their respective privacy disclosures.
+            </p>
+          </section>
+
+          <section className="bg-slate-900/40 border border-slate-800/80 p-5 rounded-2xl">
+            <div className="flex items-center gap-2 mb-2">
+              <Mail className="w-4 h-4 text-rose-400" />
+              <h2 className="text-white font-bold text-sm uppercase tracking-wide">
+                5. Privacy Inquiries
+              </h2>
+            </div>
+            <p className="mb-3">
+              If you have any questions or data clarification requests regarding our privacy infrastructure, contact us directly:
+            </p>
+            <a
+              href="mailto:contact@movieint.com"
+              className="text-indigo-400 hover:text-indigo-300 font-mono underline"
+            >
+              contact@movieint.com
+            </a>
+          </section>
         </div>
       </div>
     </main>

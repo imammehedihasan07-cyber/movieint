@@ -18,7 +18,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   try {
     const apiKey = process.env.TMDB_API_KEY;
 
-    // TMDB-এর ট্রেন্ডিং ও জনপ্রিয় একাধিক পেজের এন্ডপয়েন্ট (প্রতি পেজে ২০টি করে)
     const endpoints = [
       `https://api.themoviedb.org/3/trending/movie/week?api_key=${apiKey}&page=1`,
       `https://api.themoviedb.org/3/trending/movie/week?api_key=${apiKey}&page=2`,
@@ -43,7 +42,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       }
     });
 
-    // ডুপ্লিকেট মুভি আইডি দূর করা
     const uniqueMovieIds = Array.from(
       new Set(allMovies.filter((m) => m && m.id).map((m) => m.id))
     );

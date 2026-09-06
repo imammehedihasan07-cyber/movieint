@@ -10,25 +10,50 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${baseUrl}/dna`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.9 },
     { url: `${baseUrl}/rankings`, lastModified: new Date(), changeFrequency: "daily", priority: 0.8 },
     { url: `${baseUrl}/about`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.5 },
+    { url: `${baseUrl}/contact`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.5 },
     { url: `${baseUrl}/privacy-policy`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.3 },
     { url: `${baseUrl}/terms`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.3 },
   ];
 
   try {
     const apiKey = process.env.TMDB_API_KEY;
-    const res = await fetch(
-      `https://api.themoviedb.org/3/trending/all/week?api_key=${apiKey}&page=1`,
-      { next: { revalidate: 86400 } }
+
+    // TMDB-এর ট্রেন্ডিং ও জনপ্রিয় একাধিক পেজের এন্ডপয়েন্ট (প্রতি পেজে ২০টি করে)
+    const endpoints = [
+      `https://api.themoviedb.org/3/trending/movie/week?api_key=${apiKey}&page=1`,
+      `https://api.themoviedb.org/3/trending/movie/week?api_key=${apiKey}&page=2`,
+      `https://api.themoviedb.org/3/trending/movie/week?api_key=${apiKey}&page=3`,
+      `https://api.themoviedb.org/3/movie/popular?api_key=${apiKey}&page=1`,
+      `https://api.themoviedb.org/3/movie/popular?api_key=${apiKey}&page=2`,
+      `https://api.themoviedb.org/3/movie/popular?api_key=${apiKey}&page=3`,
+      `https://api.themoviedb.org/3/movie/top_rated?api_key=${apiKey}&page=1`,
+      `https://api.themoviedb.org/3/movie/top_rated?api_key=${apiKey}&page=2`,
+    ];
+
+    const responses = await Promise.allSettled(
+      endpoints.map((url) =>
+        fetch(url, { next: { revalidate: 86400 } }).then((res) => res.json())
+      )
     );
-    const data = await res.json();
-    const dynamicMediaRoutes: MetadataRoute.Sitemap = (data.results || [])
-      .filter((m: any) => m.id)
-      .map((item: any) => ({
-        url: `${baseUrl}/movie/${item.id}`,
-        lastModified: new Date(),
-        changeFrequency: "weekly",
-        priority: 0.8,
-      }));
+
+    const allMovies: any[] = [];
+    responses.forEach((res) => {
+      if (res.status === "fulfilled" && res.value?.results) {
+        allMovies.push(...res.value.results);
+      }
+    });
+
+    // ডুপ্লিকেট মুভি আইডি দূর করা
+    const uniqueMovieIds = Array.from(
+      new Set(allMovies.filter((m) => m && m.id).map((m) => m.id))
+    );
+
+    const dynamicMediaRoutes: MetadataRoute.Sitemap = uniqueMovieIds.map((id) => ({
+      url: `${baseUrl}/movie/${id}`,
+      lastModified: new Date(),
+      changeFrequency: "weekly",
+      priority: 0.8,
+    }));
 
     return [...staticRoutes, ...dynamicMediaRoutes];
   } catch {

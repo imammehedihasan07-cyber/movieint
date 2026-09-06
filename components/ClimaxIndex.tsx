@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { Zap, AlertTriangle, RefreshCw, Share2, Download, Check, Loader2, ShieldAlert } from "lucide-react";
+import { Zap, AlertTriangle, RefreshCw, Download, Check, Loader2, ShieldAlert } from "lucide-react";
 import { toPng } from "html-to-image";
 
 interface ClimaxData {
@@ -12,19 +12,59 @@ interface ClimaxData {
   rewatchValue: string;
 }
 
+function computeBaselineClimax(title: string, overview: string = "", rating: number = 7.0): ClimaxData {
+  const text = (title + " " + overview).toLowerCase();
+
+  let mindFuck = Math.min(Math.max(rating - 0.5, 4.0), 8.5);
+  if (text.includes("mystery") || text.includes("secret") || text.includes("twist") || text.includes("truth") || text.includes("conspiracy")) {
+    mindFuck = Math.min(mindFuck + 1.8, 9.8);
+  } else if (text.includes("sci-fi") || text.includes("dimension") || text.includes("mind") || text.includes("dream")) {
+    mindFuck = Math.min(mindFuck + 1.5, 9.6);
+  }
+
+  let boredomRisk: "Low" | "Moderate" | "High" = "Low";
+  if (rating < 6.0) {
+    boredomRisk = "Moderate";
+  }
+
+  let pacingStyle = "Standard Rhythmic Build";
+  if (text.includes("action") || text.includes("race") || text.includes("escape") || text.includes("chase")) {
+    pacingStyle = "High-Velocity Acceleration";
+    boredomRisk = "Low";
+  } else if (text.includes("investigat") || text.includes("drama") || text.includes("crime")) {
+    pacingStyle = "Methodical Slow-Burn";
+  }
+
+  let rewatchValue = "High (Layered Nuances)";
+  if (mindFuck > 7.5) {
+    rewatchValue = "Exceptional (Foreshadowing)";
+  } else if (mindFuck < 5.5) {
+    rewatchValue = "Moderate (Direct Narrative)";
+  }
+
+  const advisory = `Maintain active attention during the pivotal turning points. The narrative progression hinges on subtle thematic cues established in the first two acts before converging in the climax.`;
+
+  return {
+    mindFuckScore: Number(mindFuck.toFixed(1)),
+    boredomRisk,
+    pacingStyle,
+    climaxAdvisory: advisory,
+    rewatchValue,
+  };
+}
+
 export default function ClimaxIndex({
   title,
   overview,
   year,
-  rating,
+  rating = 7.0,
 }: {
   title: string;
   overview: string;
   year?: string;
   rating?: number;
 }) {
-  const [data, setData] = useState<ClimaxData | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [data, setData] = useState<ClimaxData>(() => computeBaselineClimax(title, overview, rating));
   const [downloading, setDownloading] = useState(false);
   const [downloaded, setDownloaded] = useState(false);
 
@@ -39,15 +79,21 @@ export default function ClimaxIndex({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ title, overview }),
         });
-        const result = await res.json();
-        if (isMounted) setData(result);
+        if (res.ok) {
+          const result = await res.json();
+          if (isMounted && result && result.mindFuckScore) {
+            setData(result);
+          }
+        }
       } catch (e) {
-        console.error(e);
-      } finally {
-        if (isMounted) setLoading(false);
+        console.error("AI Climax refinement error:", e);
       }
     }
-    fetchIndex();
+
+    if (title && overview) {
+      fetchIndex();
+    }
+
     return () => {
       isMounted = false;
     };
@@ -70,19 +116,6 @@ export default function ClimaxIndex({
       setDownloading(false);
     }
   };
-
-  if (loading) {
-    return (
-      <div className="bg-[#090d15] border border-white/[0.06] rounded-2xl p-5 mb-8 flex items-center justify-center gap-3">
-        <Loader2 className="w-4 h-4 text-rose-500 animate-spin" />
-        <span className="text-xs font-mono text-slate-400">
-          Calculating Spoiler-Free Climax & Mind-Fuck Potency...
-        </span>
-      </div>
-    );
-  }
-
-  if (!data) return null;
 
   return (
     <div className="mb-10">
@@ -123,7 +156,7 @@ export default function ClimaxIndex({
             <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
               <div
                 className="bg-gradient-to-r from-rose-500 to-amber-400 h-full"
-                style={{ width: `${data.mindFuckScore * 10}%` }}
+                style={{ width: `${Math.min(data.mindFuckScore * 10, 100)}%` }}
               />
             </div>
           </div>
@@ -163,7 +196,7 @@ export default function ClimaxIndex({
             <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider flex items-center gap-1">
               <RefreshCw className="w-3 h-3 text-indigo-400" /> Rewatch Value
             </span>
-            <p className="text-sm sm:text-base font-bold text-indigo-300 mt-2">
+            <p className="text-sm sm:text-base font-bold text-indigo-300 mt-2 truncate">
               {data.rewatchValue}
             </p>
             <span className="text-[10px] text-slate-500 font-mono">Hidden layers</span>
@@ -175,7 +208,7 @@ export default function ClimaxIndex({
           <span className="text-[10px] font-bold text-rose-400 uppercase tracking-widest block mb-1">
             ⚡ Critical Viewing Advisory:
           </span>
-          <p className="text-xs sm:text-sm text-slate-200 italic font-serif">
+          <p className="text-xs sm:text-sm text-slate-200 italic font-serif leading-relaxed">
             "{data.climaxAdvisory}"
           </p>
         </div>
@@ -187,7 +220,7 @@ export default function ClimaxIndex({
         </div>
       </div>
 
-      {/* Social Export Button (Instagram / Reddit Share) */}
+      {/* Social Export Button */}
       <div className="flex justify-end mt-3">
         <button
           onClick={handleDownloadCard}
@@ -207,7 +240,7 @@ export default function ClimaxIndex({
           ) : (
             <>
               <Download className="w-3.5 h-3.5 text-indigo-400" />
-              <span>Export Shareable Card (Instagram/Reddit)</span>
+              <span>Export Shareable Card</span>
             </>
           )}
         </button>

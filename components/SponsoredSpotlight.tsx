@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Sparkles, ExternalLink, ShieldCheck, Trophy } from "lucide-react";
+import { Sparkles, ExternalLink, ShieldCheck, Film } from "lucide-react";
 
 export default function SponsoredSpotlight() {
   const [imgError, setImgError] = useState(false);
@@ -10,8 +10,8 @@ export default function SponsoredSpotlight() {
   const partner = {
     title: "Challengers",
     tagline: "High-voltage psychological tension on and off the court.",
-    // 100% active, reliable poster image
-    image: "https://images.unsplash.com/photo-1534447677768-be436bb09401?q=80&w=600&auto=format&fit=crop",
+    // Direct static poster URL with SVG fallback
+    image: "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=400&q=80",
     streamPlatform: "Prime Video",
     streamUrl: "https://www.amazon.com/gp/video/storefront",
     year: "2024",
@@ -25,22 +25,21 @@ export default function SponsoredSpotlight() {
         <div className="flex flex-col lg:flex-row items-center justify-between gap-6 z-10 relative">
           {/* Left: Poster & Title Details */}
           <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5 text-center sm:text-left">
-            <div className="relative w-24 h-32 rounded-2xl overflow-hidden bg-slate-900 border border-white/10 shrink-0 shadow-lg flex items-center justify-center">
+            <div className="relative w-24 h-32 rounded-2xl overflow-hidden bg-[#0a0f1d] border border-white/10 shrink-0 shadow-lg flex items-center justify-center">
               {!imgError ? (
                 <img
-                  src="https://m.media-amazon.com/images/M/MV5BNmNmZDNkMDAtNzA0Ny00MGNiLWE0YzQtYjA4Y2U5MmM2OWYyXkEyXkFqcGc@._V1_FMjpg_UX1000_.jpg"
-                  alt={partner.title}
+                  src={partner.image}
+                  alt=""
                   loading="eager"
                   onError={() => setImgError(true)}
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <div className="w-full h-full flex flex-col items-center justify-center p-2 text-center bg-[#0e131f]">
-                  <Trophy className="w-7 h-7 text-amber-400 mb-1.5 opacity-90" />
-                  <span className="text-[9px] font-mono text-amber-300 font-bold uppercase tracking-wider">
-                    {partner.title}
+                <div className="w-full h-full flex flex-col items-center justify-center p-2 text-center bg-gradient-to-b from-indigo-950/40 to-slate-900">
+                  <Film className="w-7 h-7 text-amber-400 mb-1" />
+                  <span className="text-[9px] font-mono text-amber-300 font-bold uppercase">
+                    Cinema
                   </span>
-                  <span className="text-[8px] font-mono text-slate-400 mt-0.5">Spotlight</span>
                 </div>
               )}
             </div>

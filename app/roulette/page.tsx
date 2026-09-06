@@ -39,9 +39,10 @@ export default function RoulettePage() {
         `https://api.themoviedb.org/3/discover/movie?api_key=b6b9f5e3a64b6ef32e0b8fade33cfe5a&with_genres=${selectedMood.genre}&sort_by=vote_average.desc&vote_count.gte=500&vote_average.gte=6.0&page=${randomPage}`
       );
       const data = await res.json();
-      // Filter out invalid items or zero-ratings
+      
+      // Strict Data Hygiene: Enforce valid poster and active verified rating
       const pool = (data.results || []).filter(
-        (m: any) => m && m.vote_average && m.vote_average > 0
+        (m: any) => m && m.poster_path && m.vote_average && m.vote_average > 0
       );
 
       setTimeout(() => {
@@ -146,19 +147,24 @@ export default function RoulettePage() {
                     {selectedMovie.title}
                   </span>
                   {selectedMovie.vote_average ? (
-                    <div className="flex items-center gap-1 bg-black/60 px-2.5 py-0.5 rounded-full border border-white/10 text-amber-400 text-xs font-bold font-mono">
-                      <Star className="w-3 h-3 fill-amber-400" />
-                      <span>{selectedMovie.vote_average.toFixed(1)}</span>
+                    <div className="flex items-center gap-1.5 bg-black/60 px-2.5 py-0.5 rounded-full border border-white/10 text-amber-400 text-xs font-bold font-mono">
+                      <span className="text-[8px] uppercase tracking-wider text-indigo-300 font-bold bg-indigo-500/20 px-1 rounded">
+                        DNA
+                      </span>
+                      <span className="flex items-center gap-0.5">
+                        <Star className="w-3 h-3 fill-amber-400" />
+                        {selectedMovie.vote_average.toFixed(1)}
+                      </span>
                     </div>
                   ) : null}
                 </div>
 
                 <p className="text-[11px] font-mono text-slate-500 mb-3">
-                  Released {selectedMovie.release_date?.split("-")[0] || "TBA"}
+                  Released {selectedMovie.release_date?.split("-")[0] || "Cinema"}
                 </p>
 
                 <p className="text-xs sm:text-sm text-slate-300 leading-relaxed line-clamp-3 mb-6">
-                  {selectedMovie.overview}
+                  {selectedMovie.overview || "Narrative profile fully cataloged in deep cinema intelligence archive."}
                 </p>
 
                 <div className="flex items-center gap-3">

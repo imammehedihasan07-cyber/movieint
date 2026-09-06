@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
@@ -16,6 +16,13 @@ const geistMono = Geist_Mono({
 });
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.movieint.com";
+
+export const viewport: Viewport = {
+  themeColor: "#05070b",
+  colorScheme: "dark",
+  width: "device-width",
+  initialScale: 1,
+};
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -37,6 +44,9 @@ export const metadata: Metadata = {
   authors: [{ name: "MOVIEINT Intelligence" }],
   creator: "MOVIEINT",
   publisher: "MOVIEINT",
+  alternates: {
+    canonical: siteUrl,
+  },
   robots: {
     index: true,
     follow: true,
@@ -106,7 +116,7 @@ export default function RootLayout({
   };
 
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning className="dark">
       <head>
         <Script
           type="application/ld+json"
@@ -133,10 +143,10 @@ export default function RootLayout({
         </Script>
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-[#05070b] text-slate-100 flex flex-col min-h-screen justify-between selection:bg-indigo-600 selection:text-white`}
+        className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased bg-[#05070b] text-slate-100 flex flex-col min-h-screen justify-between selection:bg-indigo-600 selection:text-white`}
       >
         <Navbar />
-        <main className="flex-grow">{children}</main>
+        <div className="flex-grow flex flex-col">{children}</div>
         <Footer />
       </body>
     </html>

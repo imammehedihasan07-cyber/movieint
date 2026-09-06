@@ -54,7 +54,6 @@ export default function MediaGridSection({
       if (res.ok) {
         const data = await res.json();
         const rawResults: MediaItem[] = data.results || [];
-        // Filter out zero-ratings and unreleased/unvoted entries
         const newResults = rawResults.filter((m) => m && m.vote_average > 0);
 
         if (newResults.length === 0 || nextPage >= 5) {
@@ -107,7 +106,6 @@ export default function MediaGridSection({
                   {badgeLabel}
                 </div>
 
-                {/* Proprietary Intelligence Score Badge with Hover Tooltip */}
                 <div className="absolute top-2.5 right-2.5 group/score z-20">
                   <div className="bg-black/85 backdrop-blur-md border border-white/10 hover:border-indigo-500/50 px-2 py-0.5 rounded-lg flex items-center gap-1.5 text-[10px] font-mono font-bold text-amber-400 shadow-xl cursor-help transition">
                     <span className="text-[8px] uppercase tracking-widest text-indigo-300 font-bold bg-indigo-500/20 px-1 rounded">
@@ -119,7 +117,6 @@ export default function MediaGridSection({
                     </span>
                   </div>
 
-                  {/* Tooltip Card */}
                   <div className="absolute top-full right-0 mt-1.5 hidden group-hover/score:block w-48 p-2.5 bg-[#0c101a] border border-indigo-500/30 rounded-xl shadow-2xl z-50 text-[10px] text-slate-300 font-sans leading-relaxed pointer-events-none">
                     <div className="flex items-center gap-1 text-white font-bold mb-1">
                       <Info className="w-3 h-3 text-indigo-400" />

@@ -12,6 +12,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "mystery",
     "crime",
     "animation",
+    "romance",
+    "comedy",
   ];
 
   const staticRoutes: MetadataRoute.Sitemap = [
@@ -22,6 +24,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${baseUrl}/dna`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.9 },
     { url: `${baseUrl}/roulette`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.8 },
     { url: `${baseUrl}/rankings`, lastModified: new Date(), changeFrequency: "daily", priority: 0.8 },
+    { url: `${baseUrl}/watchlist`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.5 },
     { url: `${baseUrl}/methodology`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.6 },
     { url: `${baseUrl}/about`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.5 },
     { url: `${baseUrl}/contact`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.5 },
@@ -41,7 +44,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }));
 
   try {
-    const apiKey = process.env.TMDB_API_KEY;
+    const apiKey = process.env.TMDB_API_KEY || "b6b9f5e3a64b6ef32e0b8fade33cfe5a";
 
     const endpoints = [
       `https://api.themoviedb.org/3/trending/movie/week?api_key=${apiKey}&page=1`,
@@ -49,14 +52,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       `https://api.themoviedb.org/3/trending/movie/week?api_key=${apiKey}&page=3`,
       `https://api.themoviedb.org/3/movie/popular?api_key=${apiKey}&page=1`,
       `https://api.themoviedb.org/3/movie/popular?api_key=${apiKey}&page=2`,
-      `https://api.themoviedb.org/3/movie/popular?api_key=${apiKey}&page=3`,
       `https://api.themoviedb.org/3/movie/top_rated?api_key=${apiKey}&page=1`,
       `https://api.themoviedb.org/3/movie/top_rated?api_key=${apiKey}&page=2`,
     ];
 
     const responses = await Promise.allSettled(
       endpoints.map((url) =>
-        fetch(url, { next: { revalidate: 86400 } }).then((res) => res.json())
+        fetch(url, { next: { revalidate: 86400 } }).then((res) => {
+          if (!res.ok) throw new Error("Fetch failed");
+          return res.json();
+        })
       )
     );
 
@@ -67,9 +72,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       }
     });
 
-    const uniqueMovieIds = Array.from(
-      new Set(allMovies.filter((m) => m && m.id).map((m) => m.id))
+    // Strict Data Hygiene: Only index movies with poster, confirmed rating, and votes
+    const cleanMovies = allMovies.filter(
+      (m) => m && m.id && m.poster_path && m.vote_average > 0 && (m.vote_count ?? 0) >= 10
     );
+
+    const uniqueMovieIds = Array.from(new Set(cleanMovies.map((m) => m.id)));
 
     const dynamicMediaRoutes: MetadataRoute.Sitemap = uniqueMovieIds.map((id) => ({
       url: `${baseUrl}/movie/${id}`,
@@ -78,7 +86,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.8,
     }));
 
-    const moviesLikeRoutes: MetadataRoute.Sitemap = uniqueMovieIds.slice(0, 30).map((id) => ({
+    const moviesLikeRoutes: MetadataRoute.Sitemap = uniqueMovieIds.slice(0, 40).map((id) => ({
       url: `${baseUrl}/movies-like/${id}`,
       lastModified: new Date(),
       changeFrequency: "weekly",
@@ -91,7 +99,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       ...dynamicMediaRoutes,
       ...moviesLikeRoutes,
     ];
-  } catch {
+  } catch (e) {
+    console.error("Sitemap generation fallback triggered:", e);
     return [...staticRoutes, ...genreRoutes];
   }
 }

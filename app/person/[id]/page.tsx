@@ -1,7 +1,7 @@
 import { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
-import { ArrowLeft, Star, Film, Sparkles, Award, UserCheck } from "lucide-react";
+import { ArrowLeft, Star, Film, Sparkles, UserCheck } from "lucide-react";
+import MoviePoster from "@/components/MoviePoster";
 
 interface PersonPageProps {
   params: Promise<{ id: string }>;
@@ -118,9 +118,10 @@ export default async function PersonPage({ params }: PersonPageProps) {
         <section className="bg-[#090d15] border border-white/[0.08] rounded-3xl p-6 sm:p-8 mb-12 shadow-2xl flex flex-col sm:flex-row gap-6 items-center sm:items-start text-center sm:text-left">
           <div className="w-32 aspect-[2/3] relative rounded-2xl overflow-hidden bg-slate-900 border border-white/10 shrink-0 shadow-lg">
             {person.profile_path ? (
-              <Image
+              <MoviePoster
                 src={`https://image.tmdb.org/t/p/w500${person.profile_path}`}
                 alt={person.name}
+                fallbackTitle={person.name}
                 fill
                 sizes="128px"
                 priority
@@ -153,7 +154,7 @@ export default async function PersonPage({ params }: PersonPageProps) {
             <h2 className="text-sm font-mono uppercase tracking-[0.2em] text-slate-400 font-bold flex items-center gap-2">
               <Film className="w-4 h-4 text-indigo-400" /> Rated Filmography ({validCredits.length})
             </h2>
-            <span className="text-[11px] font-mono text-slate-500">Sorted by Quality Score</span>
+            <span className="text-[11px] font-mono text-slate-500">Sorted by Score</span>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
@@ -164,9 +165,10 @@ export default async function PersonPage({ params }: PersonPageProps) {
                 className="group bg-[#090d15] border border-white/[0.06] rounded-2xl overflow-hidden hover:border-indigo-500/50 transition duration-300 flex flex-col"
               >
                 <div className="aspect-[2/3] relative w-full bg-slate-950">
-                  <Image
+                  <MoviePoster
                     src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
                     alt={`${movie.title} poster`}
+                    fallbackTitle={movie.title}
                     fill
                     sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
                     className="object-cover group-hover:scale-105 transition duration-300"

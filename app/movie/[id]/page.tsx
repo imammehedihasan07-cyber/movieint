@@ -17,7 +17,7 @@ interface MovieDetailProps {
 }
 
 async function getMediaDetails(id: string) {
-  const apiKey = process.env.TMDB_API_KEY;
+  const apiKey = process.env.TMDB_API_KEY || "b6b9f5e3a64b6ef32e0b8fade33cfe5a";
 
   try {
     const movieRes = await fetch(
@@ -142,7 +142,7 @@ export default async function MediaDetailPage({ params }: MovieDetailProps) {
     .slice(0, 6);
 
   const similarMedia = (media.similar?.results || [])
-    .filter((sim: any) => sim && sim.vote_average > 0)
+    .filter((sim: any) => sim && sim.poster_path && sim.vote_average > 0)
     .slice(0, 5);
 
   const trailer = media.videos?.results?.find(
@@ -166,7 +166,7 @@ export default async function MediaDetailPage({ params }: MovieDetailProps) {
     aggregateRating: media.vote_count
       ? {
           "@type": "AggregateRating",
-          ratingValue: media.vote_average?.toFixed(1),
+          "@ratingValue": media.vote_average?.toFixed(1),
           bestRating: "10",
           ratingCount: media.vote_count,
         }
@@ -224,9 +224,10 @@ export default async function MediaDetailPage({ params }: MovieDetailProps) {
                   {media.vote_average?.toFixed(1)} <span className="text-slate-500 font-normal">/ 10</span>
                 </div>
 
-                <TrailerModal trailerKey={trailer?.key} movieTitle={title} />
+                <TrailerModal key={`trailer-${id}`} trailerKey={trailer?.key} movieTitle={title} />
 
                 <WatchlistButton
+                  key={`watchlist-${id}`}
                   movie={{
                     id: media.id,
                     title: title,
@@ -266,17 +267,24 @@ export default async function MediaDetailPage({ params }: MovieDetailProps) {
               </p>
 
               <div className="mb-2">
-                <WatchProviders providers={providers} />
+                <WatchProviders key={`providers-${id}`} providers={providers} />
               </div>
 
-              <StreamingAffiliateBox movieTitle={title} />
+              <StreamingAffiliateBox key={`affiliate-${id}`} movieTitle={title} />
             </div>
 
-            <MovieDNA title={title} overview={media.overview} genres={genreList} voteAverage={media.vote_average} />
+            <MovieDNA
+              key={`dna-${id}`}
+              title={title}
+              overview={media.overview}
+              genres={genreList}
+              voteAverage={media.vote_average}
+            />
           </div>
         </div>
 
         <ClimaxIndex
+          key={`climax-${id}`}
           title={title}
           overview={media.overview}
           year={year}
@@ -284,12 +292,17 @@ export default async function MediaDetailPage({ params }: MovieDetailProps) {
         />
 
         <SpoilerVault
+          key={`spoiler-${id}`}
           title={title}
           year={year}
           overview={media.overview}
         />
 
-        <VibeMatch movieTitle={title} overview={media.overview} />
+        <VibeMatch
+          key={`vibe-${id}`}
+          movieTitle={title}
+          overview={media.overview}
+        />
 
         {cast.length > 0 && (
           <section className="mb-14 text-left">
@@ -379,6 +392,7 @@ export default async function MediaDetailPage({ params }: MovieDetailProps) {
         )}
 
         <MovieFAQ
+          key={`faq-${id}`}
           title={title}
           genres={genreList}
           runtime={media.runtime}

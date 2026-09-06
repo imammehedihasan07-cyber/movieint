@@ -46,7 +46,10 @@ Return pure JSON matching this exact structure:
       },
     });
 
-    const parsedData = JSON.parse(response.text || "{}");
+    let rawText = response.text || "{}";
+    rawText = rawText.replace(/```json/gi, "").replace(/```/g, "").trim();
+
+    const parsedData = JSON.parse(rawText);
 
     // Cache the result
     dnaCache.set(cacheKey, parsedData);

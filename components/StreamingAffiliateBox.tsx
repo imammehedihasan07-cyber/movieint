@@ -6,6 +6,8 @@ interface StreamingAffiliateBoxProps {
 }
 
 export default function StreamingAffiliateBox({ movieTitle }: StreamingAffiliateBoxProps) {
+  const safeTitle = (movieTitle || "Movie").trim();
+
   const providers = [
     { name: "Netflix", type: "Subscription", status: "Active Index" },
     { name: "Prime Video", type: "Stream / Rent", status: "HD / 4K" },
@@ -13,7 +15,7 @@ export default function StreamingAffiliateBox({ movieTitle }: StreamingAffiliate
   ];
 
   return (
-    <div className="w-full bg-[#080c14] border border-white/[0.08] rounded-2xl p-5 sm:p-6 shadow-xl my-8">
+    <div className="w-full bg-[#080c14] border border-white/[0.08] rounded-2xl p-5 sm:p-6 shadow-xl my-8 text-left">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5 pb-4 border-b border-white/[0.06]">
         <div>
           <div className="flex items-center gap-2 mb-1">
@@ -23,7 +25,8 @@ export default function StreamingAffiliateBox({ movieTitle }: StreamingAffiliate
             </h3>
           </div>
           <p className="text-xs text-slate-400 font-normal">
-            Platform catalog indices and licensed providers for <span className="text-slate-200 font-semibold">{movieTitle}</span>.
+            Platform catalog indices and licensed providers for{" "}
+            <span className="text-slate-200 font-semibold">{safeTitle}</span>.
           </p>
         </div>
 
@@ -37,9 +40,9 @@ export default function StreamingAffiliateBox({ movieTitle }: StreamingAffiliate
         {providers.map((item) => (
           <a
             key={item.name}
-            href={getSmartStreamLink(item.name, movieTitle)}
+            href={getSmartStreamLink(item.name, safeTitle)}
             target="_blank"
-            rel="noopener noreferrer sponsored"
+            rel="nofollow sponsored noopener noreferrer"
             className="flex items-center justify-between p-3.5 rounded-xl bg-white/[0.03] border border-white/[0.05] hover:border-indigo-500/40 hover:bg-white/[0.06] transition duration-200 group"
           >
             <div>
@@ -72,9 +75,9 @@ export default function StreamingAffiliateBox({ movieTitle }: StreamingAffiliate
         </div>
 
         <a
-          href={AFFILIATE_CONFIG.NORD_VPN}
+          href={AFFILIATE_CONFIG?.NORD_VPN || "https://nordvpn.com"}
           target="_blank"
-          rel="noopener noreferrer sponsored"
+          rel="nofollow sponsored noopener noreferrer"
           className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold px-4 py-2 rounded-xl transition shadow-lg shadow-indigo-600/30 shrink-0"
         >
           <span>Explore NordVPN</span>
@@ -83,7 +86,7 @@ export default function StreamingAffiliateBox({ movieTitle }: StreamingAffiliate
       </div>
 
       {/* FTC Micro Disclaimer */}
-      <p className="text-[9px] font-mono text-slate-600 text-center mt-3">
+      <p className="text-[9px] font-mono text-slate-500 text-center mt-3">
         Regional rights and catalog availability are subject to change by respective license holders. Affiliate links may provide commission to MOVIEINT.
       </p>
     </div>

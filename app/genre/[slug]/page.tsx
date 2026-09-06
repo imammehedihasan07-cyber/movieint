@@ -1,7 +1,7 @@
 import { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
-import { ArrowLeft, Star, Film, Sparkles, Compass } from "lucide-react";
+import { ArrowLeft, Star, Sparkles, Compass } from "lucide-react";
+import MoviePoster from "@/components/MoviePoster";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -51,7 +51,7 @@ const GENRE_MAP: Record<string, { id: number; name: string; description: string 
 };
 
 async function getGenreMovies(genreId: number) {
-  const apiKey = process.env.TMDB_API_KEY;
+  const apiKey = process.env.TMDB_API_KEY || "b6b9f5e3a64b6ef32e0b8fade33cfe5a";
 
   try {
     const res = await fetch(
@@ -60,7 +60,7 @@ async function getGenreMovies(genreId: number) {
     );
     if (!res.ok) return [];
     const data = await res.json();
-    return data.results || [];
+    return (data.results || []).filter((m: any) => m && m.vote_average > 0);
   } catch (err) {
     console.error("Failed to fetch genre movies:", err);
     return [];
@@ -69,7 +69,8 @@ async function getGenreMovies(genreId: number) {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const genre = GENRE_MAP[slug];
+  const normalizedSlug = slug.toLowerCase();
+  const genre = GENRE_MAP[normalizedSlug];
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.movieint.com";
 
   if (!genre) {
@@ -79,7 +80,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     };
   }
 
-  const canonicalUrl = `${baseUrl}/genre/${slug}`;
+  const canonicalUrl = `${baseUrl}/genre/${normalizedSlug}`;
 
   return {
     title: `Best ${genre.name} Movies & Algorithmic Index | MOVIEINT`,
@@ -98,7 +99,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function GenrePage({ params }: PageProps) {
   const { slug } = await params;
-  const genre = GENRE_MAP[slug];
+  const normalizedSlug = slug.toLowerCase();
+  const genre = GENRE_MAP[normalizedSlug];
 
   if (!genre) {
     return (
@@ -139,20 +141,20 @@ export default async function GenrePage({ params }: PageProps) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
-      <div className="max-w-5xl w-full z-10">
+      <div className="max-w-5xl w-full z-10 text-left">
         <Link
           href="/"
-          className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-400 hover:text-slate-200 mb-8 transition"
+          className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-400 hover:text-slate-200 mb-8 transition font-mono"
         >
           <ArrowLeft className="w-3.5 h-3.5" /> Back to Discover
         </Link>
 
         {/* Genre Header */}
-        <div className="mb-8 text-left">
+        <div className="mb-8">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-mono uppercase mb-4">
             <Sparkles className="w-3.5 h-3.5" /> Curated Thematic Genre
           </div>
-          <h1 className="text-3xl sm:text-5xl font-black text-white mb-3">
+          <h1 className="text-3xl sm:text-5xl font-black text-white mb-3 tracking-tight">
             Top {genre.name} Cinema
           </h1>
           <p className="text-slate-400 text-sm max-w-2xl leading-relaxed">
@@ -163,14 +165,14 @@ export default async function GenrePage({ params }: PageProps) {
         {/* Genre Switcher Pills */}
         <div className="flex flex-wrap gap-2 mb-10 pb-4 border-b border-white/[0.06]">
           {Object.entries(GENRE_MAP).map(([key, item]) => {
-            const isActive = key === slug;
+            const isActive = key === normalizedSlug;
             return (
               <Link
                 key={key}
                 href={`/genre/${key}`}
                 className={`text-xs px-3.5 py-1.5 rounded-full border transition duration-200 ${
                   isActive
-                    ? "bg-indigo-600 border-indigo-500 text-white font-semibold"
+                    ? "bg-indigo-600 border-indigo-500 text-white font-semibold shadow-lg shadow-indigo-600/30"
                     : "bg-white/[0.03] border-white/[0.08] text-slate-400 hover:text-slate-200 hover:bg-white/[0.06]"
                 }`}
               >
@@ -186,24 +188,21 @@ export default async function GenrePage({ params }: PageProps) {
             <Link
               key={movie.id}
               href={`/movie/${movie.id}`}
-              className="group bg-[#090d15] border border-white/[0.06] rounded-2xl overflow-hidden hover:border-indigo-500/50 transition duration-300 flex flex-col"
+              className="group bg-[#090d15] border border-white/[0.06] rounded-2xl overflow-hidden hover:border-indigo-500/50 transition duration-300 flex flex-col shadow-xl"
             >
-              <div className="aspect-[2/3] relative w-full bg-slate-950">
-                {movie.poster_path ? (
-                  <Image
-                    src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
-                    alt={`${movie.title} poster`}
-                    fill
-                    sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
-                    className="object-cover group-hover:scale-105 transition duration-300"
-                  />
-                ) : (
-                  <div className="flex items-center justify-center h-full text-xs text-slate-600">No Image</div>
-                )}
+              <div className="aspect-[2/3] relative w-full bg-slate-950 overflow-hidden">
+                <MoviePoster
+                  src={movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : null}
+                  alt={movie.title}
+                  fallbackTitle={movie.title}
+                  fill
+                  sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
+                  className="object-cover group-hover:scale-105 transition duration-300"
+                />
                 <div className="absolute top-2 left-2 bg-black/80 backdrop-blur-md px-2 py-0.5 rounded-md text-[10px] font-mono text-indigo-300 border border-white/10">
                   #{idx + 1}
                 </div>
-                <div className="absolute top-2 right-2 bg-black/80 backdrop-blur-md px-2 py-0.5 rounded-md text-[10px] font-bold text-amber-400 flex items-center gap-1 border border-white/10">
+                <div className="absolute top-2 right-2 bg-black/80 backdrop-blur-md px-2 py-0.5 rounded-md text-[10px] font-bold text-amber-400 flex items-center gap-1 border border-white/10 font-mono">
                   <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
                   {movie.vote_average?.toFixed(1)}
                 </div>

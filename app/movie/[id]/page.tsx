@@ -16,39 +16,101 @@ interface MovieDetailProps {
   params: Promise<{ id: string }>;
 }
 
-async function getMediaDetails(id: string) {
+async function getMediaDetails(rawId: string) {
   const apiKey = process.env.TMDB_API_KEY || "b6b9f5e3a64b6ef32e0b8fade33cfe5a";
 
-  try {
-    const movieRes = await fetch(
-      `https://api.themoviedb.org/3/movie/${id}?api_key=${apiKey}&append_to_response=credits,similar,videos,watch/providers`,
-      { next: { revalidate: 3600 } }
-    );
-    if (movieRes.ok) {
-      const data = await movieRes.json();
-      return { ...data, media_type: "movie" };
+  // প্রিফিক্স সাপোর্ট: tv-12345 বা series-12345 থাকলে সরাসরি TV কল হবে
+  const isExplicitTv = rawId.startsWith("tv-") || rawId.startsWith("series-");
+  const isExplicitMovie = rawId.startsWith("movie-");
+  const cleanId = rawId.replace(/^(tv-|series-|movie-)/, "");
+
+  // ১. যদি সরাসরি TV নির্দেশ করা থাকে
+  if (isExplicitTv) {
+    try {
+      const tvRes = await fetch(
+        `https://api.themoviedb.org/3/tv/${cleanId}?api_key=${apiKey}&append_to_response=credits,similar,videos,watch/providers`,
+        { next: { revalidate: 3600 } }
+      );
+      if (tvRes.ok) {
+        const data = await tvRes.json();
+        return {
+          ...data,
+          title: data.name,
+          release_date: data.first_air_date,
+          runtime: data.episode_run_time?.[0] || 45,
+          media_type: "tv",
+        };
+      }
+    } catch (e) {
+      console.error("Explicit TV fetch failed", e);
     }
-  } catch (e) {
-    console.error("Movie fetch failed, checking TV series...", e);
   }
 
+  // ২. যদি সরাসরি Movie নির্দেশ করা থাকে
+  if (isExplicitMovie) {
+    try {
+      const movieRes = await fetch(
+        `https://api.themoviedb.org/3/movie/${cleanId}?api_key=${apiKey}&append_to_response=credits,similar,videos,watch/providers`,
+        { next: { revalidate: 3600 } }
+      );
+      if (movieRes.ok) {
+        const data = await movieRes.json();
+        return { ...data, media_type: "movie" };
+      }
+    } catch (e) {
+      console.error("Explicit Movie fetch failed", e);
+    }
+  }
+
+  // ৩. যদি কোনো প্রিফিক্স ছাড়া শুধু আইডি আসে, সমান্তরালে (Parallel) দুটিই কল হবে
   try {
-    const tvRes = await fetch(
-      `https://api.themoviedb.org/3/tv/${id}?api_key=${apiKey}&append_to_response=credits,similar,videos,watch/providers`,
-      { next: { revalidate: 3600 } }
-    );
-    if (tvRes.ok) {
-      const data = await tvRes.json();
+    const [movieRes, tvRes] = await Promise.allSettled([
+      fetch(
+        `https://api.themoviedb.org/3/movie/${cleanId}?api_key=${apiKey}&append_to_response=credits,similar,videos,watch/providers`,
+        { next: { revalidate: 3600 } }
+      ),
+      fetch(
+        `https://api.themoviedb.org/3/tv/${cleanId}?api_key=${apiKey}&append_to_response=credits,similar,videos,watch/providers`,
+        { next: { revalidate: 3600 } }
+      ),
+    ]);
+
+    const movieData =
+      movieRes.status === "fulfilled" && movieRes.value.ok
+        ? await movieRes.value.json()
+        : null;
+    const tvData =
+      tvRes.status === "fulfilled" && tvRes.value.ok
+        ? await tvRes.value.json()
+        : null;
+
+    // যদি দুটিই ডেটা পায়, পপুলারিটি ও ভোট কাউন্ট বিবেচনা করে সঠিকটি নির্ধারণ
+    if (movieData && tvData) {
+      if ((tvData.popularity || 0) > (movieData.popularity || 0)) {
+        return {
+          ...tvData,
+          title: tvData.name,
+          release_date: tvData.first_air_date,
+          runtime: tvData.episode_run_time?.[0] || 45,
+          media_type: "tv",
+        };
+      }
+      return { ...movieData, media_type: "movie" };
+    }
+
+    if (movieData) return { ...movieData, media_type: "movie" };
+
+    if (tvData) {
       return {
-        ...data,
-        title: data.name,
-        release_date: data.first_air_date,
-        runtime: data.episode_run_time?.[0] || 45,
+        ...tvData,
+        title: tvData.name,
+        release_date: tvData.first_air_date,
+        runtime: tvData.episode_run_time?.[0] || 45,
         media_type: "tv",
       };
     }
   } catch (e) {
-    console.error("TV fetch failed", e);
+    console.error("Parallel fetch failed", e);
   }
 
   return null;
@@ -358,10 +420,11 @@ export default async function MediaDetailPage({ params }: MovieDetailProps) {
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
               {similarMedia.map((sim: any) => {
                 const simTitle = sim.title || sim.name;
+                const linkId = isTv ? `tv-${sim.id}` : sim.id;
                 return (
                   <Link
                     key={sim.id}
-                    href={`/movie/${sim.id}`}
+                    href={`/movie/${linkId}`}
                     className="group bg-[#090d15] border border-white/[0.06] rounded-2xl overflow-hidden hover:border-indigo-500/50 transition duration-300 flex flex-col"
                   >
                     <div className="aspect-[2/3] relative w-full bg-slate-950">

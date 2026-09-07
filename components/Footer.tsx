@@ -31,6 +31,9 @@ export default function Footer() {
             <Link href="/terms" className="hover:text-white transition duration-200">
               Terms of Service
             </Link>
+            <Link href="/disclaimer" className="hover:text-white transition duration-200">
+              Disclaimer
+            </Link>
           </div>
 
           <p className="text-slate-600 text-center text-[11px] font-mono">

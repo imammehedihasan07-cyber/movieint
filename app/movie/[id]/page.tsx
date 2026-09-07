@@ -23,7 +23,7 @@ async function getMediaDetails(rawId: string) {
   const isExplicitMovie = rawId.startsWith("movie-");
   const cleanId = rawId.replace(/^(tv-|series-|movie-)/, "");
 
-  // ১. নির্দিষ্টভাবে TV সিরিজ হলে
+  // 1. Handle explicit TV routes
   if (isExplicitTv) {
     try {
       const tvRes = await fetch(
@@ -48,7 +48,7 @@ async function getMediaDetails(rawId: string) {
     }
   }
 
-  // ২. নির্দিষ্টভাবে Movie হলে
+  // 2. Handle explicit Movie routes
   if (isExplicitMovie) {
     try {
       const movieRes = await fetch(
@@ -64,7 +64,7 @@ async function getMediaDetails(rawId: string) {
     }
   }
 
-  // ৩. আইডি শুধু সংখ্যা হলে: Movie এবং TV দুটোতেই রিকোয়েস্ট করে সঠিকটি বেছে নেওয়া
+  // 3. Ambiguous IDs: Query both endpoints concurrently to prevent collisions
   try {
     const [movieRes, tvRes] = await Promise.allSettled([
       fetch(
@@ -86,7 +86,7 @@ async function getMediaDetails(rawId: string) {
         ? await tvRes.value.json()
         : null;
 
-    // দুটোই পাওয়া গেলে: পপুলারিটি ও রিভিউ কাউন্ট দেখে আসলটি বেছে নেওয়া
+    // Resolve collision using weighted popularity score
     if (movieData && tvData) {
       const tvScore = (tvData.vote_count || 0) * (tvData.popularity || 1);
       const movieScore = (movieData.vote_count || 0) * (movieData.popularity || 1);

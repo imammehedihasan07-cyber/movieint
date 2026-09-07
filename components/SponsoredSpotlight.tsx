@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { Sparkles, ExternalLink, ShieldCheck, Film } from "lucide-react";
 
 export default function SponsoredSpotlight() {
@@ -11,7 +10,7 @@ export default function SponsoredSpotlight() {
   const partner = {
     title: "Challengers",
     tagline: "High-voltage psychological tension on and off the court.",
-    image: "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=300&q=75",
+    image: "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=400&q=80",
     streamPlatform: "Prime Video",
     streamUrl: "https://www.amazon.com/gp/video/storefront",
     year: "2024",
@@ -20,21 +19,19 @@ export default function SponsoredSpotlight() {
   return (
     <div className="w-full max-w-6xl mx-auto px-4 mb-14">
       <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#0d121f] via-[#090d15] to-[#120a16] border border-amber-500/20 p-5 sm:p-7 shadow-2xl">
-        <div className="absolute top-0 right-0 w-72 h-72 bg-amber-500/5 blur-2xl pointer-events-none -z-0 hidden sm:block" />
+        <div className="absolute top-0 right-0 w-80 h-80 bg-amber-500/5 blur-3xl pointer-events-none -z-0" />
 
         <div className="flex flex-col lg:flex-row items-center justify-between gap-6 z-10 relative">
           {/* Left: Poster & Title Details */}
-          <div className="flex flex-col sm:row items-center sm:items-start gap-5 text-center sm:text-left">
+          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5 text-center sm:text-left">
             <div className="relative w-24 aspect-[2/3] rounded-2xl overflow-hidden bg-[#0a0f1d] border border-white/10 shrink-0 shadow-lg flex items-center justify-center">
               {!imgError ? (
-                <Image
+                <img
                   src={partner.image}
                   alt={partner.title}
-                  fill
-                  priority
-                  sizes="96px"
+                  loading="eager"
                   onError={() => setImgError(true)}
-                  className="object-cover"
+                  className="w-full h-full object-cover"
                 />
               ) : (
                 <div className="w-full h-full flex flex-col items-center justify-center p-2 text-center bg-gradient-to-b from-indigo-950/40 to-slate-900">

@@ -163,14 +163,16 @@ export default async function MediaDetailPage({ params }: MovieDetailProps) {
     description: media.overview,
     genre: media.genres?.map((g: { name: string }) => g.name),
     duration: media.runtime ? `PT${media.runtime}M` : undefined,
-    aggregateRating: media.vote_count
-      ? {
-          "@type": "AggregateRating",
-          "@ratingValue": media.vote_average?.toFixed(1),
-          bestRating: "10",
-          ratingCount: media.vote_count,
-        }
-      : undefined,
+    aggregateRating:
+      media.vote_count && media.vote_average
+        ? {
+            "@type": "AggregateRating",
+            ratingValue: Number(media.vote_average.toFixed(1)),
+            bestRating: "10",
+            worstRating: "1",
+            ratingCount: media.vote_count,
+          }
+        : undefined,
   };
 
   return (

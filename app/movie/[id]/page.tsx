@@ -19,16 +19,15 @@ interface MovieDetailProps {
 async function getMediaDetails(rawId: string) {
   const apiKey = process.env.TMDB_API_KEY || "b6b9f5e3a64b6ef32e0b8fade33cfe5a";
 
-  // প্রিফিক্স সাপোর্ট: tv-12345 বা series-12345 থাকলে সরাসরি TV কল হবে
   const isExplicitTv = rawId.startsWith("tv-") || rawId.startsWith("series-");
   const isExplicitMovie = rawId.startsWith("movie-");
   const cleanId = rawId.replace(/^(tv-|series-|movie-)/, "");
 
-  // ১. যদি সরাসরি TV নির্দেশ করা থাকে
+  // ১. নির্দিষ্টভাবে TV সিরিজ হলে
   if (isExplicitTv) {
     try {
       const tvRes = await fetch(
-        `https://api.themoviedb.org/3/tv/${cleanId}?api_key=${apiKey}&append_to_response=credits,similar,videos,watch/providers`,
+        `https://api.themoviedb.org/3/tv/${cleanId}?api_key=${apiKey}&append_to_response=credits,aggregate_credits,similar,videos,watch/providers`,
         { next: { revalidate: 3600 } }
       );
       if (tvRes.ok) {
@@ -38,6 +37,9 @@ async function getMediaDetails(rawId: string) {
           title: data.name,
           release_date: data.first_air_date,
           runtime: data.episode_run_time?.[0] || 45,
+          credits: {
+            cast: data.aggregate_credits?.cast?.length ? data.aggregate_credits.cast : data.credits?.cast || [],
+          },
           media_type: "tv",
         };
       }
@@ -46,7 +48,7 @@ async function getMediaDetails(rawId: string) {
     }
   }
 
-  // ২. যদি সরাসরি Movie নির্দেশ করা থাকে
+  // ২. নির্দিষ্টভাবে Movie হলে
   if (isExplicitMovie) {
     try {
       const movieRes = await fetch(
@@ -62,7 +64,7 @@ async function getMediaDetails(rawId: string) {
     }
   }
 
-  // ৩. যদি কোনো প্রিফিক্স ছাড়া শুধু আইডি আসে, সমান্তরালে (Parallel) দুটিই কল হবে
+  // ৩. আইডি শুধু সংখ্যা হলে: Movie এবং TV দুটোতেই রিকোয়েস্ট করে সঠিকটি বেছে নেওয়া
   try {
     const [movieRes, tvRes] = await Promise.allSettled([
       fetch(
@@ -70,7 +72,7 @@ async function getMediaDetails(rawId: string) {
         { next: { revalidate: 3600 } }
       ),
       fetch(
-        `https://api.themoviedb.org/3/tv/${cleanId}?api_key=${apiKey}&append_to_response=credits,similar,videos,watch/providers`,
+        `https://api.themoviedb.org/3/tv/${cleanId}?api_key=${apiKey}&append_to_response=credits,aggregate_credits,similar,videos,watch/providers`,
         { next: { revalidate: 3600 } }
       ),
     ]);
@@ -84,14 +86,20 @@ async function getMediaDetails(rawId: string) {
         ? await tvRes.value.json()
         : null;
 
-    // যদি দুটিই ডেটা পায়, পপুলারিটি ও ভোট কাউন্ট বিবেচনা করে সঠিকটি নির্ধারণ
+    // দুটোই পাওয়া গেলে: পপুলারিটি ও রিভিউ কাউন্ট দেখে আসলটি বেছে নেওয়া
     if (movieData && tvData) {
-      if ((tvData.popularity || 0) > (movieData.popularity || 0)) {
+      const tvScore = (tvData.vote_count || 0) * (tvData.popularity || 1);
+      const movieScore = (movieData.vote_count || 0) * (movieData.popularity || 1);
+
+      if (tvScore > movieScore) {
         return {
           ...tvData,
           title: tvData.name,
           release_date: tvData.first_air_date,
           runtime: tvData.episode_run_time?.[0] || 45,
+          credits: {
+            cast: tvData.aggregate_credits?.cast?.length ? tvData.aggregate_credits.cast : tvData.credits?.cast || [],
+          },
           media_type: "tv",
         };
       }
@@ -106,11 +114,14 @@ async function getMediaDetails(rawId: string) {
         title: tvData.name,
         release_date: tvData.first_air_date,
         runtime: tvData.episode_run_time?.[0] || 45,
+        credits: {
+          cast: tvData.aggregate_credits?.cast?.length ? tvData.aggregate_credits.cast : tvData.credits?.cast || [],
+        },
         media_type: "tv",
       };
     }
   } catch (e) {
-    console.error("Parallel fetch failed", e);
+    console.error("Parallel fetch error", e);
   }
 
   return null;
@@ -200,7 +211,7 @@ export default async function MediaDetailPage({ params }: MovieDetailProps) {
   const genreList = media.genres?.map((g: { name: string }) => g.name).join(", ") || "Cinema";
 
   const cast = (media.credits?.cast || [])
-    .filter((actor: any) => actor && actor.id && actor.name)
+    .filter((actor: any) => actor && (actor.id || actor.name))
     .slice(0, 6);
 
   const similarMedia = (media.similar?.results || [])

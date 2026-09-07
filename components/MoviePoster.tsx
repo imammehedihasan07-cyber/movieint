@@ -17,11 +17,11 @@ export default function MoviePoster({
   fill,
   width,
   height,
-  sizes = "(max-width: 640px) 160px, (max-width: 1024px) 240px, 300px",
   ...props
 }: MoviePosterProps) {
   const [error, setError] = useState(false);
 
+  // If no source is provided or the image failed to load, display the branded fallback
   if (!src || error) {
     return (
       <div
@@ -45,7 +45,6 @@ export default function MoviePoster({
       fill={fill}
       width={!fill ? width : undefined}
       height={!fill ? height : undefined}
-      sizes={fill ? sizes : undefined}
       className={className}
       onError={() => setError(true)}
       {...props}

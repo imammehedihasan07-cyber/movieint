@@ -1,3 +1,4 @@
+// app/movie/[id]/page.tsx
 import { Metadata } from "next";
 import Link from "next/link";
 import { ArrowLeft, Star, Clock, Calendar, Film, Tv, Clapperboard, BookOpen, ChevronRight } from "lucide-react";
@@ -11,6 +12,7 @@ import StreamingAffiliateBox from "@/components/StreamingAffiliateBox";
 import MovieFAQ from "@/components/MovieFAQ";
 import SpoilerVault from "@/components/SpoilerVault";
 import MoviePoster from "@/components/MoviePoster";
+import DnaAffinityEngine from "@/components/DnaAffinityEngine";
 import { EDITORIAL_ARTICLES } from "@/lib/editorial-data";
 
 interface MovieDetailProps {
@@ -333,7 +335,7 @@ export default async function MediaDetailPage({ params }: MovieDetailProps) {
               </h1>
 
               {media.tagline && (
-                <p className="italic text-slate-400 text-sm mb-4 font-serif">"{media.tagline}"</p>
+                <p className="italic text-slate-400 text-sm mb-4 font-serif">&quot;{media.tagline}&quot;</p>
               )}
 
               <div className="flex flex-wrap gap-5 text-xs font-medium text-slate-400 mb-6 border-y border-white/[0.06] py-3">
@@ -392,6 +394,19 @@ export default async function MediaDetailPage({ params }: MovieDetailProps) {
           key={`vibe-${id}`}
           movieTitle={title}
           overview={media.overview}
+        />
+
+        {/* 6-Vector Neural DNA Affinity Engine ("Because You Liked...") */}
+        <DnaAffinityEngine
+          currentMovie={{
+            id: media.id,
+            title: title,
+            poster_path: media.poster_path,
+            release_date: releaseDate,
+            vote_average: media.vote_average,
+            overview: media.overview,
+            genres: media.genres,
+          }}
         />
 
         {cast.length > 0 && (

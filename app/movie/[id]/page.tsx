@@ -1,6 +1,6 @@
 import { Metadata } from "next";
 import Link from "next/link";
-import { ArrowLeft, Star, Clock, Calendar, Film, Tv, Clapperboard } from "lucide-react";
+import { ArrowLeft, Star, Clock, Calendar, Film, Tv, Clapperboard, BookOpen, ChevronRight } from "lucide-react";
 import MovieDNA from "@/components/MovieDNA";
 import WatchlistButton from "@/components/WatchlistButton";
 import TrailerModal from "@/components/TrailerModal";
@@ -11,6 +11,7 @@ import StreamingAffiliateBox from "@/components/StreamingAffiliateBox";
 import MovieFAQ from "@/components/MovieFAQ";
 import SpoilerVault from "@/components/SpoilerVault";
 import MoviePoster from "@/components/MoviePoster";
+import { EDITORIAL_ARTICLES } from "@/lib/editorial-data";
 
 interface MovieDetailProps {
   params: Promise<{ id: string }>;
@@ -225,6 +226,20 @@ export default async function MediaDetailPage({ params }: MovieDetailProps) {
   const providers =
     media["watch/providers"]?.results?.US ||
     (Object.values(media["watch/providers"]?.results || {})[0] as any);
+
+  // Match Related Editorial Guides contextually
+  const cleanId = id.replace(/^(tv-|series-|movie-)/, "");
+  const directGuides = EDITORIAL_ARTICLES.filter((article) =>
+    article.movies.some(
+      (m) =>
+        String(m.slugId) === String(cleanId) ||
+        String(m.tmdbId) === String(cleanId) ||
+        m.title.toLowerCase() === title.toLowerCase()
+    )
+  );
+
+  const relatedEditorialGuides =
+    directGuides.length > 0 ? directGuides : EDITORIAL_ARTICLES.slice(0, 3);
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -466,6 +481,50 @@ export default async function MediaDetailPage({ params }: MovieDetailProps) {
             </div>
           </section>
         )}
+
+        {/* Curated Context & Editorial Guides Cross-Funnel Section */}
+        <section className="mb-14 text-left">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <BookOpen className="w-4 h-4 text-cyan-400" />
+              <h3 className="text-xs font-mono uppercase tracking-[0.2em] text-slate-400 font-bold">
+                Curated Context & Editorial Guides
+              </h3>
+            </div>
+            <Link
+              href="/editorial"
+              className="text-xs text-cyan-400 hover:text-cyan-300 transition font-mono flex items-center gap-1"
+            >
+              Explore All Guides <ChevronRight className="w-3 h-3" />
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            {relatedEditorialGuides.map((guide) => (
+              <Link
+                key={guide.slug}
+                href={`/editorial/${guide.slug}`}
+                className="group bg-[#090d15] border border-white/[0.06] hover:border-cyan-500/40 rounded-2xl p-4 transition-all duration-300 flex flex-col justify-between"
+              >
+                <div>
+                  <div className="flex items-center justify-between text-[10px] font-mono text-slate-400 mb-2">
+                    <span className="px-2 py-0.5 rounded bg-cyan-950/60 border border-cyan-500/30 text-cyan-400 uppercase tracking-wider">
+                      {guide.moodTag}
+                    </span>
+                    <span>{guide.readTime}</span>
+                  </div>
+                  <h4 className="text-xs font-bold text-slate-200 group-hover:text-cyan-300 transition line-clamp-2 leading-relaxed">
+                    {guide.title}
+                  </h4>
+                </div>
+                <div className="pt-3 mt-3 border-t border-white/[0.04] flex items-center justify-between text-[11px] font-mono text-slate-500">
+                  <span>{guide.movies.length} Evaluated Films</span>
+                  <span className="text-cyan-400 group-hover:translate-x-1 transition-transform">Read →</span>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
 
         <MovieFAQ
           key={`faq-${id}`}

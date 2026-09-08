@@ -41,6 +41,83 @@ function findArticle(rawSlug: string): EditorialArticle | undefined {
   );
 }
 
+// Helper: Dynamic Streaming URL & Branding Engine
+function getPlatformConfig(platform: string, movieTitle: string) {
+  const encTitle = encodeURIComponent(movieTitle);
+  const pLower = platform.toLowerCase();
+
+  if (pLower.includes('netflix')) {
+    return {
+      url: `https://www.netflix.com/search?q=${encTitle}`,
+      badgeClass: 'bg-rose-950/50 text-rose-300 border-rose-600/40 hover:bg-rose-900/60 hover:border-rose-500',
+      dotClass: 'bg-rose-500',
+      label: 'Netflix'
+    };
+  }
+  if (pLower.includes('prime')) {
+    return {
+      url: `https://www.amazon.com/s?k=${encTitle}+movie&i=instant-video`,
+      badgeClass: 'bg-sky-950/50 text-sky-300 border-sky-600/40 hover:bg-sky-900/60 hover:border-sky-500',
+      dotClass: 'bg-sky-400',
+      label: 'Prime Video'
+    };
+  }
+  if (pLower.includes('apple')) {
+    return {
+      url: `https://tv.apple.com/search?term=${encTitle}`,
+      badgeClass: 'bg-slate-800/80 text-slate-200 border-slate-600/40 hover:bg-slate-700/80 hover:border-slate-400',
+      dotClass: 'bg-slate-300',
+      label: 'Apple TV'
+    };
+  }
+  if (pLower.includes('max') || pLower.includes('hbo')) {
+    return {
+      url: `https://www.max.com/search?q=${encTitle}`,
+      badgeClass: 'bg-purple-950/50 text-purple-300 border-purple-600/40 hover:bg-purple-900/60 hover:border-purple-500',
+      dotClass: 'bg-purple-400',
+      label: 'Max'
+    };
+  }
+  if (pLower.includes('disney')) {
+    return {
+      url: `https://www.disneyplus.com/search?q=${encTitle}`,
+      badgeClass: 'bg-blue-950/50 text-blue-300 border-blue-600/40 hover:bg-blue-900/60 hover:border-blue-500',
+      dotClass: 'bg-blue-400',
+      label: 'Disney+'
+    };
+  }
+  if (pLower.includes('paramount')) {
+    return {
+      url: `https://www.paramountplus.com/search/?q=${encTitle}`,
+      badgeClass: 'bg-blue-900/50 text-blue-200 border-blue-500/40 hover:bg-blue-800/60 hover:border-blue-400',
+      dotClass: 'bg-blue-300',
+      label: 'Paramount+'
+    };
+  }
+  if (pLower.includes('hulu')) {
+    return {
+      url: `https://www.hulu.com/search?q=${encTitle}`,
+      badgeClass: 'bg-emerald-950/50 text-emerald-300 border-emerald-600/40 hover:bg-emerald-900/60 hover:border-emerald-500',
+      dotClass: 'bg-emerald-400',
+      label: 'Hulu'
+    };
+  }
+  if (pLower.includes('criterion')) {
+    return {
+      url: `https://www.criterionchannel.com/search?q=${encTitle}`,
+      badgeClass: 'bg-amber-950/50 text-amber-300 border-amber-600/40 hover:bg-amber-900/60 hover:border-amber-500',
+      dotClass: 'bg-amber-400',
+      label: 'Criterion'
+    };
+  }
+  return {
+    url: `https://www.google.com/search?q=watch+${encTitle}+streaming+online`,
+    badgeClass: 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700',
+    dotClass: 'bg-cyan-400',
+    label: platform
+  };
+}
+
 // 2. Strict SEO Metadata generation
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const slug = await resolveSlug(params);
@@ -337,31 +414,45 @@ export default async function EditorialArticlePage({ params }: PageProps) {
                   </div>
                 </div>
 
-                {/* Streaming Telemetry & Internal Action Links */}
-                <div className="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-slate-800/80 text-xs font-mono">
-                  <div className="flex items-center gap-2">
-                    <span className="text-slate-400">Stream Telemetry:</span>
+                {/* High-Converting Streaming Buttons (Monetization & Watch Links) */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-5 border-t border-slate-800/80 text-xs font-mono">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-slate-400 font-semibold mr-1">Where to Watch:</span>
                     {m.streamingOn && m.streamingOn.length > 0 ? (
-                      m.streamingOn.map((plat) => (
-                        <span key={plat} className="px-2 py-0.5 rounded bg-slate-800 text-slate-300">
-                          {plat}
-                        </span>
-                      ))
+                      m.streamingOn.map((plat) => {
+                        const cfg = getPlatformConfig(plat, m.title);
+                        return (
+                          <a
+                            key={plat}
+                            href={cfg.url}
+                            target="_blank"
+                            rel="noopener noreferrer sponsored"
+                            className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-md border text-xs font-medium transition-all shadow-sm ${cfg.badgeClass}`}
+                          >
+                            <span className={`w-1.5 h-1.5 rounded-full ${cfg.dotClass}`} />
+                            <span>{cfg.label}</span>
+                            <svg className="w-3 h-3 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                            </svg>
+                          </a>
+                        );
+                      })
                     ) : (
-                      <span className="text-slate-500">Check Region</span>
+                      <span className="text-slate-500">Check Local Streaming</span>
                     )}
                   </div>
 
                   <div className="flex items-center gap-3">
                     <Link
                       href={`/movie/${m.slugId}`}
-                      className="px-3 py-1.5 rounded bg-cyan-950/80 hover:bg-cyan-900 border border-cyan-500/40 text-cyan-300 font-semibold transition-colors"
+                      className="px-3.5 py-1.5 rounded-md bg-cyan-950/80 hover:bg-cyan-900 border border-cyan-500/40 text-cyan-300 font-semibold transition-colors inline-flex items-center gap-1.5"
                     >
-                      Inspect Full DNA →
+                      <span>Full DNA</span>
+                      <span>→</span>
                     </Link>
                     <Link
                       href={`/vs?titleA=${encodeURIComponent(m.title)}`}
-                      className="px-3 py-1.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors"
+                      className="px-3 py-1.5 rounded-md bg-slate-800/90 hover:bg-slate-700 text-slate-300 border border-slate-700 transition-colors"
                     >
                       Compare in Vs
                     </Link>

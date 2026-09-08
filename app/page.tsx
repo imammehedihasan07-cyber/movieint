@@ -4,7 +4,6 @@ import { Star, Film, Compass, Dna, Play, Info, ArrowUpRight, Tv, Globe2, Sparkle
 import SearchBar from "@/components/SearchBar";
 import SponsoredSpotlight from "@/components/SponsoredSpotlight";
 import MediaGridSection from "@/components/MediaGridSection";
-import MoviePoster from "@/components/MoviePoster";
 
 async function getGlobalCatalog() {
   const apiKey = process.env.TMDB_API_KEY || "b6b9f5e3a64b6ef32e0b8fade33cfe5a";
@@ -107,7 +106,7 @@ export default async function HomePage() {
                   <span className="px-2.5 py-0.5 rounded-full bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 text-[10px] font-mono uppercase tracking-widest font-semibold flex items-center gap-1">
                     <Film className="w-3 h-3" /> {featuredType} Spotlight
                   </span>
-                  
+
                   {featured.vote_average && featured.vote_average > 0 ? (
                     <div className="flex items-center gap-1.5 bg-black/60 backdrop-blur-md px-2.5 py-0.5 rounded-full text-amber-400 text-xs font-bold border border-white/5">
                       <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
@@ -220,57 +219,13 @@ export default async function HomePage() {
             </Link>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-5">
-            {cultGlobal.map((item: any) => (
-              <Link
-                key={`cult-${item.id}`}
-                href={`/movie/${item.id}`}
-                className="group relative bg-[#090d15] border border-white/[0.06] rounded-2xl overflow-hidden hover:border-emerald-500/40 hover:shadow-2xl hover:shadow-emerald-950/40 transition-all duration-300 flex flex-col"
-              >
-                <div className="aspect-[2/3] relative w-full bg-slate-950 overflow-hidden">
-                  <MoviePoster
-                    src={
-                      item.poster_path
-                        ? `https://image.tmdb.org/t/p/w342${item.poster_path}`
-                        : null
-                    }
-                    alt={item.name || item.title}
-                    fallbackTitle={item.name || item.title}
-                    fill
-                    sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 20vw"
-                    className="object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
-                  />
-
-                  <div className="absolute top-2.5 left-2.5 bg-emerald-950/80 backdrop-blur-md border border-emerald-500/30 px-2 py-0.5 rounded-md text-[9px] font-mono font-bold uppercase tracking-wider text-emerald-300">
-                    MASTERPIECE
-                  </div>
-
-                  <div className="absolute top-2.5 right-2.5 bg-black/80 backdrop-blur-md border border-white/10 px-2 py-0.5 rounded-lg flex items-center gap-1 text-[10px] font-bold text-amber-400 shadow-lg">
-                    <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-                    <span>{item.vote_average.toFixed(1)}</span>
-                  </div>
-                </div>
-
-                <div className="p-3.5 flex flex-col justify-between flex-grow">
-                  <div>
-                    <h3 className="font-bold text-xs sm:text-sm text-slate-200 group-hover:text-emerald-400 transition-colors duration-200 line-clamp-1">
-                      {item.name || item.title}
-                    </h3>
-                    <div className="flex items-center justify-between mt-1">
-                      <span className="text-[10px] font-mono text-slate-400">
-                        {(item.first_air_date || item.release_date || "").split("-")[0] || "Global"}
-                      </span>
-                      {item.origin_country?.[0] && (
-                        <span className="text-[9px] font-mono text-slate-400 uppercase bg-white/[0.04] px-1.5 py-0.5 rounded">
-                          {item.origin_country[0]}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
+          <MediaGridSection
+            initialItems={cultGlobal}
+            type="tv"
+            badgeLabel="Masterpiece"
+            badgeBg="bg-emerald-950/80"
+            accentColor="emerald"
+          />
         </section>
 
         {/* Feature Hubs */}

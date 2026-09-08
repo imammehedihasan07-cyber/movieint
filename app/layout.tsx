@@ -8,11 +8,15 @@ import Footer from "@/components/Footer";
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
+  display: "swap",
+  preload: true,
 });
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+  display: "swap",
+  preload: true,
 });
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.movieint.com";
@@ -118,6 +122,8 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning className="dark">
       <head>
+        <link rel="preconnect" href="https://image.tmdb.org" />
+        <link rel="preconnect" href="https://images.unsplash.com" />
         <Script
           type="application/ld+json"
           id="global-schema"
@@ -143,10 +149,12 @@ export default function RootLayout({
         </Script>
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased bg-[#05070b] text-slate-100 flex flex-col min-h-screen justify-between selection:bg-indigo-600 selection:text-white`}
+        className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased bg-[#05070b] text-slate-100 min-h-screen flex flex-col selection:bg-indigo-600 selection:text-white`}
       >
         <Navbar />
-        <div className="flex-grow flex flex-col">{children}</div>
+        <main className="flex-1 w-full min-h-[calc(100vh-80px)] flex flex-col">
+          {children}
+        </main>
         <Footer />
       </body>
     </html>

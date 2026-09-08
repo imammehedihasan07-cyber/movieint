@@ -1,4 +1,5 @@
 import { MetadataRoute } from "next";
+import { getAllEditorialSlugs } from "@/lib/editorial-data";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.movieint.com";
@@ -22,6 +23,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticRoutes: MetadataRoute.Sitemap = [
     { url: baseUrl, lastModified: now, changeFrequency: "daily", priority: 1.0 },
     { url: `${baseUrl}/search`, lastModified: now, changeFrequency: "daily", priority: 0.9 },
+    { url: `${baseUrl}/editorial`, lastModified: now, changeFrequency: "daily", priority: 0.9 },
     { url: `${baseUrl}/couch-mode`, lastModified: now, changeFrequency: "weekly", priority: 0.9 },
     { url: `${baseUrl}/vs`, lastModified: now, changeFrequency: "weekly", priority: 0.9 },
     { url: `${baseUrl}/dna`, lastModified: now, changeFrequency: "weekly", priority: 0.9 },
@@ -48,6 +50,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     changeFrequency: "weekly",
     priority: 0.8,
   }));
+
+  // 3. Dynamic Editorial Guides routes (/editorial/[slug])
+  let editorialRoutes: MetadataRoute.Sitemap = [];
+  try {
+    const slugs = getAllEditorialSlugs();
+    editorialRoutes = slugs.map((slug) => ({
+      url: `${baseUrl}/editorial/${slug}`,
+      lastModified: now,
+      changeFrequency: "weekly",
+      priority: 0.85,
+    }));
+  } catch (err) {
+    console.error("Editorial slugs extraction fallback:", err);
+  }
 
   try {
     const apiKey = process.env.TMDB_API_KEY || "b6b9f5e3a64b6ef32e0b8fade33cfe5a";
@@ -121,12 +137,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     return [
       ...staticRoutes,
       ...genreRoutes,
+      ...editorialRoutes,
       ...dynamicMediaRoutes,
       ...moviesLikeRoutes,
       ...personRoutes,
     ];
   } catch (e) {
     console.error("Sitemap generation fallback triggered:", e);
-    return [...staticRoutes, ...genreRoutes];
+    return [...staticRoutes, ...genreRoutes, ...editorialRoutes];
   }
 }

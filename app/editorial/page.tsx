@@ -8,39 +8,58 @@ import {
   getAllEditorialSlugs,
   getRelatedArticles,
   EDITORIAL_ARTICLES,
+  EditorialArticle,
 } from '@/lib/editorial-data';
 
 interface PageProps {
-  params: any;
+  params: Promise<{ slug: string }> | { slug: string };
 }
 
-// 1. Static Params Generation
+// 1. Static Params Generation for SSG/ISR
 export async function generateStaticParams() {
-  return EDITORIAL_ARTICLES.map((art) => ({
-    slug: art.slug,
+  const slugs = getAllEditorialSlugs();
+  return slugs.map((slug) => ({
+    slug: slug,
   }));
 }
 
-// 2. Helper to safely extract slug across all Next.js versions
-async function extractSlug(params: any): Promise<string> {
+// 2. Safe Slug Resolver for Next.js
+async function resolveSlug(params: any): Promise<string> {
+  if (!params) return '';
   const resolved = await Promise.resolve(params);
-  return (
-    resolved?.slug ||
-    (Array.isArray(resolved?.slug) ? resolved.slug[0] : '') ||
-    ''
+  const rawSlug = resolved?.slug;
+  if (Array.isArray(rawSlug)) return rawSlug[0] || '';
+  return typeof rawSlug === 'string' ? rawSlug : '';
+}
+
+function findArticle(slug: string): EditorialArticle | undefined {
+  if (!slug) return undefined;
+  const cleanSlug = decodeURIComponent(slug).trim().toLowerCase();
+  
+  // 1. Exact or Case-insensitive match
+  let matched = EDITORIAL_ARTICLES.find(
+    (a) => a.slug.toLowerCase() === cleanSlug
   );
+  if (matched) return matched;
+
+  // 2. Fuzzy match (in case of trailing slash or hyphen mismatch)
+  matched = EDITORIAL_ARTICLES.find(
+    (a) => cleanSlug.includes(a.slug.toLowerCase()) || a.slug.toLowerCase().includes(cleanSlug)
+  );
+  return matched;
 }
 
 // 3. Dynamic SEO Metadata Generation
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const slug = await extractSlug(params);
-  
-  // Case-insensitive fallback lookup
-  const article =
-    getEditorialBySlug(slug) ||
-    EDITORIAL_ARTICLES.find((a) => a.slug.toLowerCase() === (slug || '').toLowerCase());
+  const slug = await resolveSlug(params);
+  const article = findArticle(slug);
 
-  if (!article) return { title: 'Guide Not Found | MovieINT' };
+  if (!article) {
+    return { 
+      title: 'Guide Not Found | MOVIEINT',
+      description: 'The requested cinematic guide could not be retrieved from the telemetry archives.'
+    };
+  }
 
   const url = `https://www.movieint.com/editorial/${article.slug}`;
 
@@ -78,12 +97,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 export default async function EditorialArticlePage({ params }: PageProps) {
-  const slug = await extractSlug(params);
-
-  // Exact or case-insensitive fallback matching
-  const article =
-    getEditorialBySlug(slug) ||
-    EDITORIAL_ARTICLES.find((a) => a.slug.toLowerCase() === (slug || '').toLowerCase());
+  const slug = await resolveSlug(params);
+  const article = findArticle(slug);
 
   if (!article) {
     notFound();

@@ -1,3 +1,4 @@
+// app/sitemap.ts
 import { MetadataRoute } from "next";
 import { getAllEditorialSlugs } from "@/lib/editorial-data";
 
@@ -19,9 +20,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "comedy",
   ];
 
-  // 1. Exact static & editorial routes implemented in the app
+  // 1. Exact static & feature routes implemented in the app
   const staticRoutes: MetadataRoute.Sitemap = [
     { url: baseUrl, lastModified: now, changeFrequency: "daily", priority: 1.0 },
+    { url: `${baseUrl}/advisor`, lastModified: now, changeFrequency: "daily", priority: 0.95 },
     { url: `${baseUrl}/search`, lastModified: now, changeFrequency: "daily", priority: 0.9 },
     { url: `${baseUrl}/editorial`, lastModified: now, changeFrequency: "daily", priority: 0.9 },
     { url: `${baseUrl}/couch-mode`, lastModified: now, changeFrequency: "weekly", priority: 0.9 },

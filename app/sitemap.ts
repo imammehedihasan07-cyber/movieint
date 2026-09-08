@@ -72,12 +72,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
     // Media & Person Endpoints
     const endpoints = [
-      `https://api.themoviedb.org/3/trending/movie/week?api_key=${apiKey}&page=1`,
-      `https://api.themoviedb.org/3/trending/movie/week?api_key=${apiKey}&page=2`,
-      `https://api.themoviedb.org/3/trending/tv/week?api_key=${apiKey}&page=1`,
-      `https://api.themoviedb.org/3/trending/tv/week?api_key=${apiKey}&page=2`,
-      `https://api.themoviedb.org/3/movie/top_rated?api_key=${apiKey}&page=1`,
-      `https://api.themoviedb.org/3/person/popular?api_key=${apiKey}&page=1`,
+      `https://api.themoviedb.org/3/trending/movie/week?api_key=${apiKey}&page=1`, // index 0: Movie
+      `https://api.themoviedb.org/3/trending/movie/week?api_key=${apiKey}&page=2`, // index 1: Movie
+      `https://api.themoviedb.org/3/trending/tv/week?api_key=${apiKey}&page=1`,    // index 2: TV
+      `https://api.themoviedb.org/3/trending/tv/week?api_key=${apiKey}&page=2`,    // index 3: TV
+      `https://api.themoviedb.org/3/movie/top_rated?api_key=${apiKey}&page=1`,     // index 4: Movie
+      `https://api.themoviedb.org/3/person/popular?api_key=${apiKey}&page=1`,      // index 5: Person
     ];
 
     const responses = await Promise.allSettled(
@@ -89,7 +89,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       )
     );
 
-    const allMedia: any[] = [];
+    const cleanMediaList: { routeId: string; poster: string; rating: number }[] = [];
     const allPersons: any[] = [];
 
     responses.forEach((res, index) => {
@@ -97,29 +97,35 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         if (index === 5) {
           allPersons.push(...res.value.results);
         } else {
-          allMedia.push(...res.value.results);
+          const isTvSource = index === 2 || index === 3;
+          res.value.results.forEach((item: any) => {
+            if (item && item.id && (item.poster_path || item.backdrop_path) && (item.vote_average ?? 0) > 0) {
+              const routeId = isTvSource ? `tv-${item.id}` : String(item.id);
+              cleanMediaList.push({
+                routeId,
+                poster: item.poster_path || item.backdrop_path,
+                rating: item.vote_average,
+              });
+            }
+          });
         }
       }
     });
 
-    // Data Hygiene: Only index items with valid visual posters and ratings
-    const cleanMedia = allMedia.filter(
-      (m) => m && m.id && (m.poster_path || m.backdrop_path) && m.vote_average > 0
-    );
+    // Deduplicate media IDs
+    const uniqueRouteIds = Array.from(new Set(cleanMediaList.map((m) => m.routeId)));
 
-    const uniqueMediaIds = Array.from(new Set(cleanMedia.map((m) => m.id)));
-
-    // Dynamic Media Routes: /movie/[id]
-    const dynamicMediaRoutes: MetadataRoute.Sitemap = uniqueMediaIds.map((id) => ({
-      url: `${baseUrl}/movie/${id}`,
+    // Dynamic Media Routes: /movie/[id] (covers both movie and tv-* correctly)
+    const dynamicMediaRoutes: MetadataRoute.Sitemap = uniqueRouteIds.map((routeId) => ({
+      url: `${baseUrl}/movie/${routeId}`,
       lastModified: now,
       changeFrequency: "weekly",
       priority: 0.8,
     }));
 
     // Affinity Routes: /movies-like/[id]
-    const moviesLikeRoutes: MetadataRoute.Sitemap = uniqueMediaIds.slice(0, 40).map((id) => ({
-      url: `${baseUrl}/movies-like/${id}`,
+    const moviesLikeRoutes: MetadataRoute.Sitemap = uniqueRouteIds.slice(0, 40).map((routeId) => ({
+      url: `${baseUrl}/movies-like/${routeId}`,
       lastModified: now,
       changeFrequency: "weekly",
       priority: 0.7,

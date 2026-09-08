@@ -9,7 +9,8 @@ export default function SponsoredSpotlight() {
     image:
       "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=160&q=70&fm=webp",
     streamPlatform: "Prime Video",
-    streamUrl: "https://www.amazon.com/gp/video/storefront",
+    // Verified Amazon Associates Store ID tag appended
+    streamUrl: "https://www.amazon.com/gp/video/storefront?tag=movieint-20",
     year: "2024",
   };
 
@@ -62,7 +63,7 @@ export default function SponsoredSpotlight() {
               href={partner.streamUrl}
               target="_blank"
               rel="noopener noreferrer sponsored"
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black font-black text-xs px-6 py-3.5 rounded-xl transition duration-200 shadow-xl shadow-amber-950/40"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black font-black text-xs px-6 py-3.5 rounded-xl transition duration-200 shadow-xl shadow-amber-950/40 cursor-pointer"
             >
               <span>Watch on {partner.streamPlatform}</span>
               <ExternalLink className="w-3.5 h-3.5" />

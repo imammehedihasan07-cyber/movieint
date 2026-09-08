@@ -11,7 +11,7 @@ interface MovieItem {
   release_date?: string;
   vote_average?: number;
   overview?: string;
-  genres?: { id: number; name: string }[] | string;
+  genres?: any;
   original_language?: string;
 }
 
@@ -31,7 +31,7 @@ interface AffinityTarget {
 }
 
 // Deterministic DNA Telemetry Matrix
-function getHashMetrics(title: string, id: number | string, isAnime: boolean, isKdrama: boolean) {
+function getHashMetrics(title: string, id: number | string, isAnime: boolean, isAnimation: boolean, isKdrama: boolean) {
   let hash = 0;
   const str = `${title}-${id}`;
   for (let i = 0; i < str.length; i++) {
@@ -39,19 +39,23 @@ function getHashMetrics(title: string, id: number | string, isAnime: boolean, is
   }
   const pos = Math.abs(hash);
 
-  const complexities = isAnime ? [85, 92, 88, 96, 82] : [78, 86, 91, 84, 89];
-  const emotions = (isAnime || isKdrama) ? [95, 98, 92, 96, 90] : [82, 88, 91, 85, 94];
-  
+  const complexities = isAnime ? [85, 92, 88, 94] : isAnimation ? [64, 70, 75, 68] : [78, 86, 91, 84, 89];
+  const emotions = (isAnime || isKdrama) ? [94, 98, 91, 95] : isAnimation ? [75, 82, 78, 85] : [82, 88, 91, 85, 94];
+
   const pacings = isAnime
-    ? ['Dynamic Shonen Momentum', 'Contemplative Melancholic Cadence', 'Tactical Psychological Duel', 'Expansive World-Building Pace']
+    ? ['Dynamic Shonen Momentum', 'Tactical Psychological Duel', 'Expansive World-Building Pace', 'Contemplative Melancholic Cadence']
     : isKdrama
     ? ['High-Tension Cliffhanger Pacing', 'Emotional Slow-Burn Escalation', 'Intricate Revenge Tempo']
+    : isAnimation
+    ? ['High-Spirited Comedic Velocity', 'Brisk Kinetic Adventure', 'Whimsical Rhythmic Cadence']
     : ['Atmospheric Deliberate Build', 'Tightening Spiral Thriller', 'Relentless Synchronized Cadence', 'Methodical Procedural Simmer'];
 
   const endings = isAnime
     ? ['Philosophical Catharsis', 'Bittersweet Transcendent Farewell', 'Sublime Emotional Climax']
     : isKdrama
     ? ['Devastating Moral Retribution', 'Poetic Melancholic Closure', 'High-Stakes Resolution']
+    : isAnimation
+    ? ['Triumphant Heartwarming Resolution', 'Celebratory Comedic Payoff', 'Uplifting Solidarity']
     : ['Non-Linear Revelation', 'Ambiguous Equilibrium', 'Existential Resolution', 'Devastating Psychological Climax'];
 
   return {
@@ -65,120 +69,144 @@ function getHashMetrics(title: string, id: number | string, isAnime: boolean, is
 
 async function fetchDynamicAffinity(currentMovie: MovieItem): Promise<AffinityTarget[]> {
   const apiKey = process.env.TMDB_API_KEY || "b6b9f5e3a64b6ef32e0b8fade33cfe5a";
-  const rawId = String(currentMovie.id);
+  const rawId = String(currentMovie.id || '');
   const isTv = rawId.startsWith("tv-") || rawId.startsWith("series-");
   const cleanId = rawId.replace(/^(tv-|series-|movie-)/, "");
   const endpointType = isTv ? "tv" : "movie";
 
-  const genreStr = Array.isArray(currentMovie.genres)
-    ? currentMovie.genres.map((g) => (typeof g === 'string' ? g : g.name)).join(' ').toLowerCase()
-    : String(currentMovie.genres || '').toLowerCase();
+  // 1. Extract genre IDs safely whether string, array of objects, or array of ids
+  const genreIds: number[] = [];
+  let genreStr = '';
+  if (Array.isArray(currentMovie.genres)) {
+    currentMovie.genres.forEach((g: any) => {
+      if (typeof g === 'object' && g !== null) {
+        if (g.id) genreIds.push(Number(g.id));
+        if (g.name) genreStr += ` ${g.name}`;
+      } else if (typeof g === 'number') {
+        genreIds.push(g);
+      } else if (typeof g === 'string') {
+        genreStr += ` ${g}`;
+      }
+    });
+  } else if (typeof currentMovie.genres === 'string') {
+    genreStr = currentMovie.genres;
+  }
+  genreStr = genreStr.toLowerCase();
 
-  const isAnime = genreStr.includes('animation') || currentMovie.original_language === 'ja';
-  const isKdrama = currentMovie.original_language === 'ko' || genreStr.includes('k-drama');
+  const lang = (currentMovie.original_language || '').toLowerCase();
+  const isAnime = lang === 'ja' || (genreIds.includes(16) && lang === 'ja');
+  const isKdrama = lang === 'ko';
+  const isAnimation = genreIds.includes(16) || genreStr.includes('animation');
+
+  let rawList: any[] = [];
 
   try {
-    // 1. Fetch TMDB Recommendations
-    let res = await fetch(
+    // Attempt 1: TMDB Algorithmic Recommendations
+    const recRes = await fetch(
       `https://api.themoviedb.org/3/${endpointType}/${cleanId}/recommendations?api_key=${apiKey}&page=1`,
       { next: { revalidate: 86400 } }
     );
-    let data = await res.json();
+    if (recRes.ok) {
+      const recData = await recRes.json();
+      if (Array.isArray(recData.results) && recData.results.length > 0) {
+        rawList = recData.results;
+      }
+    }
 
-    // 2. Fallback to similar endpoint if sparse
-    if (!data.results || data.results.length < 3) {
-      res = await fetch(
+    // Attempt 2: TMDB Similar Endpoint
+    if (rawList.length < 4) {
+      const simRes = await fetch(
         `https://api.themoviedb.org/3/${endpointType}/${cleanId}/similar?api_key=${apiKey}&page=1`,
         { next: { revalidate: 86400 } }
       );
-      data = await res.json();
-    }
-
-    let cleanResults = (data.results || []).filter(
-      (item: any) => item && item.poster_path && (item.vote_count ?? 0) >= 3
-    );
-
-    // If Anime or KDrama, prioritize same language / animation style
-    if (isAnime) {
-      const animeMatches = cleanResults.filter((m: any) => m.original_language === 'ja' || (m.genre_ids && m.genre_ids.includes(16)));
-      if (animeMatches.length >= 2) cleanResults = animeMatches;
-    } else if (isKdrama) {
-      const kdramaMatches = cleanResults.filter((m: any) => m.original_language === 'ko');
-      if (kdramaMatches.length >= 2) cleanResults = kdramaMatches;
-    }
-
-    if (cleanResults.length > 0) {
-      return cleanResults.slice(0, 4).map((item: any) => {
-        const itemTitle = item.title || item.name;
-        const itemDate = item.release_date || item.first_air_date || '';
-        const itemYear = itemDate.split('-')[0] || 'Recent';
-        const targetId = isTv ? `tv-${item.id}` : item.id;
-        const metrics = getHashMetrics(itemTitle, item.id, isAnime, isKdrama);
-
-        let mediaTypeBadge = isTv ? 'SERIES' : 'FEATURE FILM';
-        if (item.original_language === 'ja' && isTv) mediaTypeBadge = 'ANIME SERIES';
-        if (item.original_language === 'ko' && isTv) mediaTypeBadge = 'K-DRAMA';
-
-        let whyMatches = '';
-        if (isAnime) {
-          whyMatches = `Resonates with ${currentMovie.title}’s thematic world-building, high emotional stakes (${metrics.emotionalDepth}/100), and a ${metrics.pacing.toLowerCase()}.`;
-        } else if (isKdrama) {
-          whyMatches = `Carries ${currentMovie.title}’s gripping suspense and moral depth with a ${metrics.pacing.toLowerCase()} and ${metrics.endingType.toLowerCase()}.`;
-        } else {
-          whyMatches = `Mirrors ${currentMovie.title}’s narrative velocity, pairing ${metrics.complexity}/100 complexity with a ${metrics.pacing.toLowerCase()}.`;
+      if (simRes.ok) {
+        const simData = await simRes.json();
+        if (Array.isArray(simData.results)) {
+          rawList = [...rawList, ...simData.results];
         }
+      }
+    }
 
-        return {
-          id: targetId,
-          title: itemTitle,
-          year: itemYear,
-          posterPath: item.poster_path,
-          affinityScore: metrics.affinityScore,
-          complexity: metrics.complexity,
-          emotionalDepth: metrics.emotionalDepth,
-          pacing: metrics.pacing,
-          endingType: metrics.endingType,
-          primaryHook: item.overview ? item.overview.slice(0, 45) + '...' : 'Profound Narrative DNA Resonance',
-          whyMatches,
-          mediaTypeBadge
-        };
-      });
+    // Attempt 3: TMDB Intelligent Discover (Tailored by Genre & Language)
+    if (rawList.length < 4) {
+      const genreParam = genreIds.length > 0 ? `&with_genres=${genreIds.slice(0, 2).join(',')}` : '';
+      const langParam = isAnime ? '&with_original_language=ja' : isKdrama ? '&with_original_language=ko' : '';
+      
+      const discRes = await fetch(
+        `https://api.themoviedb.org/3/discover/${endpointType}?api_key=${apiKey}&sort_by=popularity.desc&page=1${genreParam}${langParam}`,
+        { next: { revalidate: 86400 } }
+      );
+      if (discRes.ok) {
+        const discData = await discRes.json();
+        if (Array.isArray(discData.results)) {
+          rawList = [...rawList, ...discData.results];
+        }
+      }
     }
   } catch (err) {
-    console.error("Failed to dynamically fetch affinity targets", err);
+    console.error("Affinity fetch network warning:", err);
   }
 
-  // Curated Fallbacks if TMDB returns empty
-  return [
-    {
-      id: isTv ? 'tv-37854' : 329865,
-      title: isAnime ? 'Fullmetal Alchemist: Brotherhood' : isTv ? 'Severance' : 'Arrival',
-      year: isAnime ? '2009' : isTv ? '2022' : '2016',
-      posterPath: isAnime ? '/5ZFUEOULaVml7p19bliq5966Ks9.jpg' : isTv ? '/p990s5V2w7a6HkU1N0c9.jpg' : '/x2O0omcr2Yxegke2ipL9x19Cc4g.jpg',
-      affinityScore: 94,
-      complexity: 89,
-      emotionalDepth: 96,
-      pacing: isAnime ? 'Expansive World-Building Pace' : 'Atmospheric Deliberate Build',
-      endingType: 'Philosophical Catharsis',
-      primaryHook: 'Immaculate Structural Narrative Architecture',
-      whyMatches: `Matches ${currentMovie.title} in narrative economy, character depth, and thematic resonance.`,
-      mediaTypeBadge: isAnime ? 'ANIME SERIES' : isTv ? 'SERIES' : 'FEATURE FILM'
-    },
-    {
-      id: isTv ? 'tv-209867' : 27205,
-      title: isAnime ? 'Frieren: Beyond Journey’s End' : isTv ? 'Dark' : 'Inception',
-      year: isAnime ? '2023' : isTv ? '2017' : '2010',
-      posterPath: isAnime ? '/dqZENchTd7lp5zht7BdlqM7RBPk.jpg' : isTv ? '/apbrbWs8M9lyOpJYU5WXrpFbk1Z.jpg' : '/edv5CZvWj09upOsy2Y6IwDhK8bt.jpg',
-      affinityScore: 91,
-      complexity: 94,
-      emotionalDepth: 92,
-      pacing: isAnime ? 'Contemplative Melancholic Cadence' : 'Tightening Spiral Thriller',
-      endingType: 'Bittersweet Transcendent Farewell',
-      primaryHook: 'Deep Time & Existential Contemplation',
-      whyMatches: `Parallels ${currentMovie.title}’s emotional weight and exceptional craftsmanship.`,
-      mediaTypeBadge: isAnime ? 'ANIME SERIES' : isTv ? 'SERIES' : 'FEATURE FILM'
+  // Strict Hygiene Filter: must have real TMDB poster and avoid self-reference
+  const seenIds = new Set<string | number>([cleanId, rawId]);
+  const cleanList = rawList.filter((item: any) => {
+    if (!item || !item.id || !item.poster_path) return false;
+    if (seenIds.has(String(item.id))) return false;
+    seenIds.add(String(item.id));
+    return true;
+  });
+
+  // Prioritize cultural/genre alignment if anime or kdrama
+  let finalList = cleanList;
+  if (isAnime) {
+    const animeMatches = cleanList.filter((m: any) => m.original_language === 'ja');
+    if (animeMatches.length >= 2) finalList = animeMatches;
+  } else if (isKdrama) {
+    const kdramaMatches = cleanList.filter((m: any) => m.original_language === 'ko');
+    if (kdramaMatches.length >= 2) finalList = kdramaMatches;
+  } else if (isAnimation) {
+    const animMatches = cleanList.filter((m: any) => (m.genre_ids && m.genre_ids.includes(16)) || m.original_language !== 'ja');
+    if (animMatches.length >= 2) finalList = animMatches;
+  }
+
+  const selectedFour = finalList.slice(0, 4);
+
+  return selectedFour.map((item: any) => {
+    const itemTitle = item.title || item.name || 'Cinematic Title';
+    const itemDate = item.release_date || item.first_air_date || '';
+    const itemYear = itemDate.split('-')[0] || 'Recent';
+    const targetId = isTv ? `tv-${item.id}` : item.id;
+    const itemIsAnime = item.original_language === 'ja';
+    const itemIsAnimation = (item.genre_ids && item.genre_ids.includes(16)) || isAnimation;
+    const metrics = getHashMetrics(itemTitle, item.id, itemIsAnime, itemIsAnimation, isKdrama);
+
+    let mediaTypeBadge = isTv ? 'SERIES' : 'FEATURE FILM';
+    if (itemIsAnime) mediaTypeBadge = 'ANIME';
+    else if (item.original_language === 'ko' && isTv) mediaTypeBadge = 'K-DRAMA';
+    else if (itemIsAnimation) mediaTypeBadge = 'ANIMATION';
+
+    let whyMatches = `Shares ${currentMovie.title}'s narrative energy, balancing a ${metrics.pacing.toLowerCase()} with a ${metrics.endingType.toLowerCase()}.`;
+    if (itemIsAnimation && !itemIsAnime) {
+      whyMatches = `Parallels the spirited comedic timing, vibrant animation style, and narrative momentum of ${currentMovie.title}.`;
+    } else if (itemIsAnime) {
+      whyMatches = `Resonates with ${currentMovie.title}'s intricate thematic architecture and high emotional depth (${metrics.emotionalDepth}/100).`;
     }
-  ];
+
+    return {
+      id: targetId,
+      title: itemTitle,
+      year: itemYear,
+      posterPath: item.poster_path,
+      affinityScore: metrics.affinityScore,
+      complexity: metrics.complexity,
+      emotionalDepth: metrics.emotionalDepth,
+      pacing: metrics.pacing,
+      endingType: metrics.endingType,
+      primaryHook: item.overview ? item.overview.slice(0, 52).trim() + '...' : 'Intricate Narrative DNA Resonance',
+      whyMatches,
+      mediaTypeBadge
+    };
+  });
 }
 
 interface DnaAffinityEngineProps {
@@ -187,6 +215,8 @@ interface DnaAffinityEngineProps {
 
 export default async function DnaAffinityEngine({ currentMovie }: DnaAffinityEngineProps) {
   const matchedList = await fetchDynamicAffinity(currentMovie);
+
+  if (!matchedList || matchedList.length === 0) return null;
 
   return (
     <section className="my-14 rounded-2xl bg-gradient-to-b from-[#0b0f19] to-[#06080d] border border-cyan-500/20 p-6 sm:p-8 shadow-2xl relative overflow-hidden text-left">

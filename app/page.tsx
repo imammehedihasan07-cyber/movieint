@@ -29,7 +29,6 @@ async function getGlobalCatalog() {
       animeRes.ok ? animeRes.json() : { results: [] },
     ]);
 
-    // Strict Data Hygiene: Only titles with active posters, positive ratings, and consensus
     const movies = (moviesData.results || []).filter(
       (m: any) => m && m.poster_path && m.vote_average > 0 && (m.vote_count ?? 0) >= 5
     );
@@ -40,7 +39,6 @@ async function getGlobalCatalog() {
       (a: any) => a && a.poster_path && a.vote_average > 0 && (a.vote_count ?? 0) >= 10
     );
 
-    // Guaranteed rated & styled featured banner
     const featured = movies[0] || series[0] || null;
 
     return {
@@ -93,11 +91,11 @@ export default async function HomePage() {
             <div className="relative aspect-[16/8] md:aspect-[21/8] w-full min-h-[340px] max-h-[460px]">
               {featured.backdrop_path && (
                 <Image
-                  src={`https://image.tmdb.org/t/p/original${featured.backdrop_path}`}
+                  src={`https://image.tmdb.org/t/p/w780${featured.backdrop_path}`}
                   alt={featuredTitle}
                   fill
                   priority
-                  sizes="(max-width: 1280px) 100vw, 1280px"
+                  sizes="(max-width: 768px) 100vw, (max-width: 1280px) 90vw, 1200px"
                   className="object-cover object-center opacity-45 group-hover:scale-105 transition-transform duration-1000 ease-out"
                 />
               )}
@@ -233,7 +231,7 @@ export default async function HomePage() {
                   <MoviePoster
                     src={
                       item.poster_path
-                        ? `https://image.tmdb.org/t/p/w500${item.poster_path}`
+                        ? `https://image.tmdb.org/t/p/w342${item.poster_path}`
                         : null
                     }
                     alt={item.name || item.title}

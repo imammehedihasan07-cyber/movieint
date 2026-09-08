@@ -25,7 +25,6 @@ interface MediaGridSectionProps {
   accentColor: "indigo" | "rose" | "emerald";
 }
 
-// Explicit Tailwind mapping to prevent purge-loss during compilation
 const ACCENT_STYLES = {
   indigo: "hover:border-indigo-500/50 hover:shadow-indigo-950/40",
   rose: "hover:border-rose-500/50 hover:shadow-rose-950/40",
@@ -61,8 +60,7 @@ export default function MediaGridSection({
       if (res.ok) {
         const data = await res.json();
         const rawResults: MediaItem[] = data.results || [];
-        
-        // Strict Hygiene: Must have a valid poster and confirmed rating
+
         const newResults = rawResults.filter(
           (m) => m && m.poster_path && m.vote_average > 0 && (m.vote_count ?? 0) >= 5
         );
@@ -92,18 +90,19 @@ export default function MediaGridSection({
           const itemTitle = item.title || item.name || "Untitled";
           const itemYear =
             (item.release_date || item.first_air_date || "").split("-")[0] || "Cinema";
+          const linkHref = type === "tv" ? `/movie/tv-${item.id}` : `/movie/${item.id}`;
 
           return (
             <Link
               key={`${item.id}-${idx}`}
-              href={`/movie/${item.id}`}
+              href={linkHref}
               className={`group relative bg-[#090d15] border border-white/[0.06] rounded-2xl overflow-hidden ${borderAccent} hover:shadow-2xl transition-all duration-300 flex flex-col`}
             >
               <div className="aspect-[2/3] relative w-full bg-slate-950 overflow-hidden">
                 <MoviePoster
                   src={
                     item.poster_path
-                      ? `https://image.tmdb.org/t/p/w500${item.poster_path}`
+                      ? `https://image.tmdb.org/t/p/w342${item.poster_path}`
                       : null
                   }
                   alt={itemTitle}

@@ -7,11 +7,12 @@ import {
   getEditorialBySlug,
   getAllEditorialSlugs,
   getRelatedArticles,
-  EditorialArticle
+  EDITORIAL_ARTICLES,
+  EditorialArticle,
 } from '@/lib/editorial-data';
 
 interface PageProps {
-  params: { slug: string };
+  params: Promise<{ slug: string }> | { slug: string };
 }
 
 // 1. Static Generation for speed & SEO indexing
@@ -20,10 +21,32 @@ export async function generateStaticParams() {
   return slugs.map((slug) => ({ slug }));
 }
 
+// Helper: Safely resolve slug across Next.js 14 and 15
+async function resolveSlug(params: any): Promise<string> {
+  if (!params) return '';
+  const resolved = await Promise.resolve(params);
+  const raw = resolved?.slug;
+  if (Array.isArray(raw)) return raw[0] || '';
+  return typeof raw === 'string' ? raw : '';
+}
+
+// Helper: Resilient article matching
+function findArticle(rawSlug: string): EditorialArticle | undefined {
+  if (!rawSlug) return undefined;
+  const clean = decodeURIComponent(rawSlug).trim().toLowerCase();
+  return (
+    getEditorialBySlug(clean) ||
+    EDITORIAL_ARTICLES.find((a) => a.slug.toLowerCase() === clean) ||
+    EDITORIAL_ARTICLES.find((a) => a.slug.toLowerCase().includes(clean) || clean.includes(a.slug.toLowerCase()))
+  );
+}
+
 // 2. Strict SEO Metadata generation
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const article = getEditorialBySlug(params.slug);
-  if (!article) return { title: 'Guide Not Found | MovieINT' };
+  const slug = await resolveSlug(params);
+  const article = findArticle(slug);
+
+  if (!article) return { title: 'Guide Not Found | MOVIEINT' };
 
   const url = `https://www.movieint.com/editorial/${article.slug}`;
 
@@ -31,7 +54,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     title: article.seoTitle,
     description: article.metaDescription,
     alternates: {
-      canonical: url
+      canonical: url,
     },
     openGraph: {
       title: article.seoTitle,
@@ -47,22 +70,26 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
           url: article.coverImage,
           width: 1200,
           height: 630,
-          alt: article.title
-        }
-      ]
+          alt: article.title,
+        },
+      ],
     },
     twitter: {
       card: 'summary_large_image',
       title: article.seoTitle,
       description: article.metaDescription,
-      images: [article.coverImage]
-    }
+      images: [article.coverImage],
+    },
   };
 }
 
-export default function EditorialArticlePage({ params }: PageProps) {
-  const article = getEditorialBySlug(params.slug);
-  if (!article) notFound();
+export default async function EditorialArticlePage({ params }: PageProps) {
+  const slug = await resolveSlug(params);
+  const article = findArticle(slug);
+
+  if (!article) {
+    notFound();
+  }
 
   const relatedArticles = getRelatedArticles(article.slug, 3);
   const canonicalUrl = `https://www.movieint.com/editorial/${article.slug}`;
@@ -76,21 +103,21 @@ export default function EditorialArticlePage({ params }: PageProps) {
         '@type': 'ListItem',
         position: 1,
         name: 'Home',
-        item: 'https://www.movieint.com'
+        item: 'https://www.movieint.com',
       },
       {
         '@type': 'ListItem',
         position: 2,
         name: 'Editorial Guides',
-        item: 'https://www.movieint.com/editorial'
+        item: 'https://www.movieint.com/editorial',
       },
       {
         '@type': 'ListItem',
         position: 3,
         name: article.title,
-        item: canonicalUrl
-      }
-    ]
+        item: canonicalUrl,
+      },
+    ],
   };
 
   const articleSchema = {
@@ -103,21 +130,21 @@ export default function EditorialArticlePage({ params }: PageProps) {
     dateModified: article.modifiedDate,
     mainEntityOfPage: {
       '@type': 'WebPage',
-      '@id': canonicalUrl
+      '@id': canonicalUrl,
     },
     author: {
       '@type': 'Organization',
       name: article.author.name,
-      url: 'https://www.movieint.com/about'
+      url: 'https://www.movieint.com/about',
     },
     publisher: {
       '@type': 'Organization',
       name: 'MOVIEINT',
       logo: {
         '@type': 'ImageObject',
-        url: 'https://www.movieint.com/favicon.ico'
-      }
-    }
+        url: 'https://www.movieint.com/favicon.ico',
+      },
+    },
   };
 
   const faqSchema =
@@ -130,9 +157,9 @@ export default function EditorialArticlePage({ params }: PageProps) {
             name: faq.question,
             acceptedAnswer: {
               '@type': 'Answer',
-              text: faq.answer
-            }
-          }))
+              text: faq.answer,
+            },
+          })),
         }
       : null;
 
@@ -344,7 +371,7 @@ export default function EditorialArticlePage({ params }: PageProps) {
             ))}
           </section>
 
-          {/* Genuine Visible FAQ Section (Eligible for FAQPage Schema) */}
+          {/* Genuine Visible FAQ Section */}
           {article.faqs && article.faqs.length > 0 && (
             <section className="mt-16 pt-12 border-t border-slate-800">
               <h2 className="text-2xl font-bold text-white mb-6">Frequently Asked Questions</h2>
@@ -359,7 +386,7 @@ export default function EditorialArticlePage({ params }: PageProps) {
             </section>
           )}
 
-          {/* Related Discovery Guides (Internal Linking Engine) */}
+          {/* Related Discovery Guides */}
           <section className="mt-16 pt-12 border-t border-slate-800">
             <h2 className="text-2xl font-bold text-white mb-6">Related Editorial Guides</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -392,7 +419,7 @@ export default function EditorialArticlePage({ params }: PageProps) {
             </Link>
             <div className="flex items-center gap-4">
               <Link href="/roulette" className="hover:text-slate-200">Cine-Roulette</Link>
-              <Link href="/couch" className="hover:text-slate-200">Couch Mode</Link>
+              <Link href="/couch-mode" className="hover:text-slate-200">Couch Mode</Link>
               <Link href="/rankings" className="hover:text-slate-200">Global Rankings</Link>
             </div>
           </div>

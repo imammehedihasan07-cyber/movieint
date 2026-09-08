@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   Compass,
+  BookOpen,
   Dna,
   Flame,
   Bookmark,
@@ -197,6 +198,15 @@ export default function Navbar() {
             <span>Discover</span>
           </Link>
 
+          {/* Integrated Editorial Guide Section */}
+          <Link
+            href="/editorial"
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-cyan-300 bg-cyan-500/10 border border-cyan-500/30 hover:bg-cyan-500/20 transition duration-200"
+          >
+            <BookOpen className="w-3.5 h-3.5 text-cyan-400" />
+            <span>Editorial</span>
+          </Link>
+
           <Link
             href="/couch-mode"
             className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-indigo-300 bg-indigo-500/10 border border-indigo-500/30 hover:bg-indigo-500/20 transition duration-300"
@@ -326,6 +336,16 @@ export default function Navbar() {
             >
               <Compass className="w-4 h-4 text-slate-400" />
               <span>Discover</span>
+            </Link>
+
+            {/* Mobile Editorial Link */}
+            <Link
+              href="/editorial"
+              onClick={() => setMobileMenuOpen(false)}
+              className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-bold text-cyan-300 bg-cyan-500/10 border border-cyan-500/20 transition"
+            >
+              <BookOpen className="w-4 h-4 text-cyan-400" />
+              <span>Editorial Guides</span>
             </Link>
 
             <Link

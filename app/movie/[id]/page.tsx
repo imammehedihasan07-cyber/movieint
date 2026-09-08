@@ -16,7 +16,7 @@ import DnaAffinityEngine from "@/components/DnaAffinityEngine";
 import { EDITORIAL_ARTICLES } from "@/lib/editorial-data";
 
 interface MovieDetailProps {
-  params: Promise<{ id: string }>;
+  params: Promise<{ id: string }> | { id: string };
 }
 
 async function getMediaDetails(rawId: string) {
@@ -89,7 +89,6 @@ async function getMediaDetails(rawId: string) {
         ? await tvRes.value.json()
         : null;
 
-    // Resolve collision using weighted popularity score
     if (movieData && tvData) {
       const tvScore = (tvData.vote_count || 0) * (tvData.popularity || 1);
       const movieScore = (movieData.vote_count || 0) * (movieData.popularity || 1);
@@ -131,7 +130,8 @@ async function getMediaDetails(rawId: string) {
 }
 
 export async function generateMetadata({ params }: MovieDetailProps): Promise<Metadata> {
-  const { id } = await params;
+  const resolved = await Promise.resolve(params);
+  const id = resolved.id;
   const media = await getMediaDetails(id);
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.movieint.com";
 
@@ -192,7 +192,8 @@ export async function generateMetadata({ params }: MovieDetailProps): Promise<Me
 }
 
 export default async function MediaDetailPage({ params }: MovieDetailProps) {
-  const { id } = await params;
+  const resolved = await Promise.resolve(params);
+  const id = resolved.id;
   const media = await getMediaDetails(id);
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.movieint.com";
 
@@ -210,7 +211,7 @@ export default async function MediaDetailPage({ params }: MovieDetailProps) {
   const title = media.title || media.name;
   const releaseDate = media.release_date || media.first_air_date || "TBA";
   const year = releaseDate.split("-")[0];
-  const isTv = media.media_type === "tv";
+  const isTv = media.media_type === "tv" || id.startsWith("tv-") || id.startsWith("series-");
   const genreList = media.genres?.map((g: { name: string }) => g.name).join(", ") || "Cinema";
 
   const cast = (media.credits?.cast || [])
@@ -229,7 +230,6 @@ export default async function MediaDetailPage({ params }: MovieDetailProps) {
     media["watch/providers"]?.results?.US ||
     (Object.values(media["watch/providers"]?.results || {})[0] as any);
 
-  // Match Related Editorial Guides contextually
   const cleanId = id.replace(/^(tv-|series-|movie-)/, "");
   const directGuides = EDITORIAL_ARTICLES.filter((article) =>
     article.movies.some(
@@ -396,16 +396,17 @@ export default async function MediaDetailPage({ params }: MovieDetailProps) {
           overview={media.overview}
         />
 
-        {/* 6-Vector Neural DNA Affinity Engine ("Because You Liked...") */}
+        {/* 6-Vector Neural DNA Affinity Engine (Fixed Parameter Contract) */}
         <DnaAffinityEngine
           currentMovie={{
-            id: media.id,
+            id: id,
             title: title,
             poster_path: media.poster_path,
             release_date: releaseDate,
             vote_average: media.vote_average,
             overview: media.overview,
             genres: media.genres,
+            original_language: media.original_language,
           }}
         />
 

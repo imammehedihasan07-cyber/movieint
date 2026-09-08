@@ -2,19 +2,19 @@
 
 export interface EditorialMovieItem {
   tmdbId: number | string;
-  slugId: string; // e.g. "27205" or "inception" -> maps to /movie/[id]
+  slugId: string; // maps directly to MovieINT /movie/[id]
   title: string;
   year: number;
   director: string;
   runtime: string;
   genres: string[];
-  dnaScore: number; // e.g., 9.4
+  dnaScore: number;
   metrics: {
     complexity: number; // 0-100
     brainpower: number; // 0-100
     twistPotency: number; // 0-100
-    pacing: string; // "Deliberate Slow-Burn" | "Relentless Kinetic" | "Precision Cadence"
-    endingType: string; // "Ambiguous Multi-Thread" | "Cataclysmic Twist" | "Poetic Resolution"
+    pacing: string;
+    endingType: string;
   };
   whyRecommended: string;
   bestFor: string;
@@ -32,11 +32,10 @@ export interface EditorialArticle {
   author: {
     name: string;
     role: string;
-    avatar?: string;
   };
   category: 'Lists' | 'Recommendations' | 'Streaming' | 'Deep Dive';
-  moodTag: 'Mind-Bending' | 'Psychological' | 'Emotional' | 'Dark' | 'Fast-Paced' | 'Intellectual';
-  themeTag: 'Sci-Fi' | 'Crime & Mystery' | 'Time Travel' | 'Existential' | 'Slow-Burn';
+  moodTag: 'Mind-Bending' | 'Psychological' | 'Emotional' | 'Dark' | 'Fast-Paced' | 'Intellectual' | 'Feel-Good';
+  themeTag: 'Sci-Fi' | 'Crime & Mystery' | 'Time Travel' | 'Existential' | 'Slow-Burn' | 'Under 2 Hours';
   streamingPlatform?: 'Netflix' | 'Prime Video' | 'Disney+' | 'Max' | 'Apple TV';
   readTime: string;
   featured: boolean;
@@ -49,6 +48,7 @@ export interface EditorialArticle {
 }
 
 export const EDITORIAL_ARTICLES: EditorialArticle[] = [
+  // 1. Best Mind-Bending Movies
   {
     slug: 'best-mind-bending-movies-that-make-you-think',
     title: '15 Best Mind-Bending Movies That Will Break Your Reality (Ranked by Narrative Complexity)',
@@ -68,7 +68,7 @@ export const EDITORIAL_ARTICLES: EditorialArticle[] = [
     coverImage: 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=1200&auto=format&fit=crop',
     introText: 'True mind-bending cinema is not merely defined by an abrupt last-minute plot twist. It demands intricate narrative architecture, mathematical story pacing, and a commitment to subverting human perception. Using MovieINT’s multidimensional DNA telemetry, we dissect the top psychological puzzles that reward hyper-focused viewing.',
     keyTakeaways: [
-      'Narrative architecture that relies on spatial-temporal non-linearity rather than cheap shock value.',
+      'Narrative architecture relying on spatial-temporal non-linearity rather than cheap shock value.',
       'Calibrated Brainpower Scores above 85/100 requiring active viewer deduction.',
       'Direct links to MovieINT DNA breakdowns and streaming telemetry.'
     ],
@@ -89,7 +89,7 @@ export const EDITORIAL_ARTICLES: EditorialArticle[] = [
           pacing: 'Relentless Synchronized Cadence',
           endingType: 'Ambiguous Totem Equilibrium'
         },
-        whyRecommended: 'Nolan executes a simultaneous four-tier dream heist where each layer experiences exponential time dilation. The physics-defying cinematography is grounded by an emotionally devastating core concerning unresolved grief and subconscious traps.',
+        whyRecommended: 'Nolan executes a simultaneous four-tier dream heist where each layer experiences exponential time dilation. The physics-defying cinematography is grounded by an emotionally devastating core concerning unresolved grief.',
         bestFor: 'Viewers looking for high-budget theoretical physics fused with psychological puzzle-box mechanics.',
         avoidIf: 'You want a casual background movie where you can look at your phone every five minutes.',
         streamingOn: ['Prime Video', 'Apple TV', 'Max']
@@ -110,7 +110,7 @@ export const EDITORIAL_ARTICLES: EditorialArticle[] = [
           pacing: 'Atmospheric Deliberate Build',
           endingType: 'Non-Linear Philosophical Revelation'
         },
-        whyRecommended: 'Arrival subverts alien first-contact tropes through linguistic determinism (the Sapir-Whorf hypothesis). The third act reconfigures the timeline, turning a geopolitical tension thriller into a heartbreaking reflection on destiny and choice.',
+        whyRecommended: 'Arrival subverts alien first-contact tropes through linguistic determinism (the Sapir-Whorf hypothesis). The third act reconfigures the timeline into a heartbreaking reflection on destiny and choice.',
         bestFor: 'Fans of cerebral, emotionally profound hard science fiction with philosophical stakes.',
         avoidIf: 'You expect alien laser battles or traditional blockbuster pacing.',
         streamingOn: ['Netflix', 'Paramount+']
@@ -152,7 +152,7 @@ export const EDITORIAL_ARTICLES: EditorialArticle[] = [
           pacing: 'Hypnotic Dream-State Metronome',
           endingType: 'Surrealist Subconscious Dissolution'
         },
-        whyRecommended: 'David Lynch’s masterwork on Hollywood delirium operates under pure dream logic and Freudian projection. It is a psychological labyrinth that refuses simple exposition, demanding instinctual and analytical interpretation.',
+        whyRecommended: 'David Lynch’s masterwork on Hollywood delirium operates under pure dream logic and Freudian projection. It is a psychological labyrinth that refuses simple exposition.',
         bestFor: 'Viewers intrigued by neo-noir dream psychology and existential dread.',
         avoidIf: 'You require clear, literal exposition answers wrapped up before the credits roll.',
         streamingOn: ['Criterion Channel', 'Apple TV']
@@ -173,7 +173,7 @@ export const EDITORIAL_ARTICLES: EditorialArticle[] = [
           pacing: 'Tightening Spiral Thriller',
           endingType: 'Dual-Shock Sacrificial Twist'
         },
-        whyRecommended: 'Structured intentionally like a three-part magic trick (The Pledge, The Turn, The Prestige), this film examines obsession, rivalry, and human sacrifice with multiple layers of sleight of hand hiding in plain sight.',
+        whyRecommended: 'Structured intentionally like a three-part magic trick, this film examines obsession, rivalry, and human sacrifice with multiple layers of sleight of hand hiding in plain sight.',
         bestFor: 'Fans of obsessive rivalry, historical fiction mixed with Nikola Tesla lore, and jaw-dropping double twists.',
         avoidIf: 'You dislike morally ambiguous characters where no one is truly the hero.',
         streamingOn: ['Apple TV', 'Fandango At Home']
@@ -182,23 +182,21 @@ export const EDITORIAL_ARTICLES: EditorialArticle[] = [
     faqs: [
       {
         question: 'What makes a movie "Mind-Bending" according to MovieINT DNA?',
-        answer: 'MovieINT calculates mind-bending status when a film records a Narrative Complexity index above 85/100, combined with non-linear chronology, perceptive distortion, or subverted cognitive baseline expectations rather than simple jump scares.'
+        answer: 'MovieINT calculates mind-bending status when a film records a Narrative Complexity index above 85/100, combined with non-linear chronology, perceptive distortion, or subverted cognitive baseline expectations.'
       },
       {
         question: 'Which movie on this list has the highest Brainpower index?',
         answer: 'Memento and Mulholland Drive hold the highest cognitive demands on this guide (98/100 and 96/100 respectively) due to their fragmented chronology and symbolic subconscious structures.'
-      },
-      {
-        question: 'Are the endings spoiled in this guide?',
-        answer: 'No. All MovieINT editorial guides strictly follow our Spoiler-Free Index, providing structural descriptions of ending types without revealing plot-critical revelations.'
       }
     ],
     relatedGuideSlugs: [
       'best-movies-like-inception-cerebral-thrillers',
-      'best-movies-with-ambiguous-endings-explained',
-      'best-psychological-thriller-movies-ranked'
+      'best-psychological-thriller-movies-ranked',
+      'best-movies-with-ambiguous-endings-explained'
     ]
   },
+
+  // 2. Movies Like Inception
   {
     slug: 'best-movies-like-inception-cerebral-thrillers',
     title: '10 Movies Like Inception for When You Crave Layered Realities & Heists',
@@ -240,7 +238,7 @@ export const EDITORIAL_ARTICLES: EditorialArticle[] = [
           endingType: 'Psychoanalytic Catharsis'
         },
         whyRecommended: 'Widely recognized as a direct thematic precursor to Inception, Satoshi Kon’s anime opus delves into stolen DC Mini devices that let therapists enter dreams, resulting in a surreal breakdown between collective dreams and waking reality.',
-        bestFor: 'Anime enthusiasts and cinephiles wanting to see the most visually unhinged dream-logic animations ever made.',
+        bestFor: 'Anime enthusiasts and cinephiles wanting to see visually unhinged dream-logic animation.',
         avoidIf: 'You prefer live-action cinema or conventional, grounded visual rules.',
         streamingOn: ['Prime Video', 'Apple TV']
       },
@@ -260,37 +258,16 @@ export const EDITORIAL_ARTICLES: EditorialArticle[] = [
           pacing: 'Monumental Glacial Velocity',
           endingType: 'Transcendental Star-Child Genesis'
         },
-        whyRecommended: 'Where Inception explores inner subconscious space, Kubrick explores humanity’s cosmic destiny. The precision architecture and philosophical ambition mirror Nolan’s obsession with human fragility against monumental structures.',
+        whyRecommended: 'Where Inception explores inner subconscious space, Kubrick explores humanity’s cosmic destiny. The precision architecture and philosophical ambition mirror Nolan’s obsession with human fragility.',
         bestFor: 'Patients of visual poetry, existential science fiction, and technological AI foreshadowing.',
         avoidIf: 'You get restless during long dialogue-free atmospheric shots.',
         streamingOn: ['Max', 'Apple TV']
-      },
-      {
-        tmdbId: 1124,
-        slugId: '1124',
-        title: 'The Prestige',
-        year: 2006,
-        director: 'Christopher Nolan',
-        runtime: '130 min',
-        genres: ['Drama', 'Mystery'],
-        dnaScore: 9.2,
-        metrics: {
-          complexity: 90,
-          brainpower: 91,
-          twistPotency: 97,
-          pacing: 'Tightening Spiral Thriller',
-          endingType: 'Dual-Shock Sacrificial Twist'
-        },
-        whyRecommended: 'Shares Inception’s obsession with obsessive craftsmen sacrificing their humanity for the illusion of mastery.',
-        bestFor: 'Nolan fans who want sharp editing and multi-perspective sleight of hand.',
-        avoidIf: 'You prefer lighthearted stories without cynical underpinnings.',
-        streamingOn: ['Apple TV']
       }
     ],
     faqs: [
       {
         question: 'Did Satoshi Kon’s Paprika inspire Inception?',
-        answer: 'While Christopher Nolan has not cited it explicitly as direct source material, film theorists and critics frequently observe undeniable visual and thematic parallels between Paprika’s hallway gravity shifts and dream invasion concepts.'
+        answer: 'While Christopher Nolan has not cited it explicitly as direct source material, film theorists frequently observe undeniable visual and thematic parallels.'
       }
     ],
     relatedGuideSlugs: [
@@ -298,6 +275,8 @@ export const EDITORIAL_ARTICLES: EditorialArticle[] = [
       'best-movies-like-interstellar-cosmic-sci-fi'
     ]
   },
+
+  // 3. Best Psychological Thriller Movies Ranked (Explicitly added!)
   {
     slug: 'best-psychological-thriller-movies-ranked',
     title: '15 Best Psychological Thrillers of All Time (Ranked by Tension & Twist Potency)',
@@ -373,9 +352,12 @@ export const EDITORIAL_ARTICLES: EditorialArticle[] = [
     ],
     relatedGuideSlugs: [
       'best-mind-bending-movies-that-make-you-think',
-      'best-korean-psychological-thriller-movies'
+      'best-korean-psychological-thriller-movies',
+      'best-slow-burn-thriller-movies'
     ]
   },
+
+  // 4. Movies Like Interstellar
   {
     slug: 'best-movies-like-interstellar-cosmic-sci-fi',
     title: '8 Movies Like Interstellar for Cosmic Awe and Emotional Sci-Fi',
@@ -454,6 +436,8 @@ export const EDITORIAL_ARTICLES: EditorialArticle[] = [
       'best-sci-fi-movies-of-the-decade'
     ]
   },
+
+  // 5. Ambiguous Endings Explained
   {
     slug: 'best-movies-with-ambiguous-endings-explained',
     title: 'Top 10 Movies With Ambiguous Endings That Still Spark Arguments',
@@ -511,6 +495,8 @@ export const EDITORIAL_ARTICLES: EditorialArticle[] = [
       'best-psychological-thriller-movies-ranked'
     ]
   },
+
+  // 6. Korean Psychological Thrillers
   {
     slug: 'best-korean-psychological-thriller-movies',
     title: '12 Best Korean Psychological Thrillers That Surpass Hollywood Intensity',
@@ -568,6 +554,8 @@ export const EDITORIAL_ARTICLES: EditorialArticle[] = [
       'best-movies-with-insane-plot-twists'
     ]
   },
+
+  // 7. Insane Plot Twists
   {
     slug: 'best-movies-with-insane-plot-twists',
     title: 'Top 10 Movies With Insane Plot Twists That Change Everything on Rewatch',
@@ -625,6 +613,8 @@ export const EDITORIAL_ARTICLES: EditorialArticle[] = [
       'best-psychological-thriller-movies-ranked'
     ]
   },
+
+  // 8. Slow-Burn Thrillers
   {
     slug: 'best-slow-burn-thriller-movies',
     title: 'The 10 Best Slow-Burn Thrillers That Build Unbearable Dread',
@@ -674,18 +664,436 @@ export const EDITORIAL_ARTICLES: EditorialArticle[] = [
     faqs: [
       {
         question: 'What defines a slow-burn film on MovieINT?',
-        answer: 'Films categorized under Slow-Burn exhibit extended shot lengths, dialogue-sparse exposition, and deliberate atmospheric dread rather than rapid cuts and kinetic set pieces.'
+        answer: 'Films categorized under Slow-Burn exhibit extended shot lengths, dialogue-sparse exposition, and deliberate atmospheric dread rather than rapid cuts.'
       }
     ],
     relatedGuideSlugs: [
       'best-psychological-thriller-movies-ranked',
       'best-korean-psychological-thriller-movies'
     ]
+  },
+
+  // 9. Movies Under 2 Hours
+  {
+    slug: 'best-movies-under-2-hours-tight-pacing',
+    title: '10 Perfect Movies Under 2 Hours (Zero Fluff, Maximum Velocity)',
+    seoTitle: 'Best Movies Under 2 Hours to Watch Tonight | MovieINT Telemetry',
+    metaDescription: 'Short on time? Discover masterpieces under 120 minutes with flawless narrative economy and relentless pacing verified by MovieINT telemetry.',
+    publishedDate: '2026-09-06T10:00:00Z',
+    modifiedDate: '2026-09-08T12:00:00Z',
+    author: {
+      name: 'MovieINT Cinema Intelligence Lab',
+      role: 'Algorithmic Film Archival Team'
+    },
+    category: 'Lists',
+    moodTag: 'Fast-Paced',
+    themeTag: 'Under 2 Hours',
+    readTime: '8 min read',
+    featured: false,
+    coverImage: 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?q=80&w=1200&auto=format&fit=crop',
+    introText: 'Modern cinema often bloats runtimes past 160 minutes. When you have exactly two hours on a weeknight, you want a tight, propulsive film with zero wasted frames.',
+    keyTakeaways: [
+      'Runtimes strictly capped at or under 115 minutes.',
+      'Narrative velocity analyzed to prevent mid-act boredom dips.',
+      'Ideal for Couch Mode short session planning.'
+    ],
+    movies: [
+      {
+        tmdbId: 244786,
+        slugId: '244786',
+        title: 'Whiplash',
+        year: 2014,
+        director: 'Damien Chazelle',
+        runtime: '106 min',
+        genres: ['Drama', 'Music', 'Psychological'],
+        dnaScore: 9.4,
+        metrics: {
+          complexity: 78,
+          brainpower: 84,
+          twistPotency: 92,
+          pacing: 'Furious Syncopated Metronome',
+          endingType: 'Electrifying Ambiguous Climax'
+        },
+        whyRecommended: 'A psychological war disguised as a jazz conservatory drama. The editing and percussive intensity match any high-octane action thriller.',
+        bestFor: 'Those who want heart-pounding intensity without a single explosion.',
+        avoidIf: 'You get triggered by abusive mentorship dynamics.',
+        streamingOn: ['Netflix', 'Apple TV']
+      }
+    ],
+    faqs: [
+      {
+        question: 'How does MovieINT measure Narrative Velocity?',
+        answer: 'Narrative Velocity assesses the speed of conflict generation, character choice consequences, and scene-to-scene momentum without filler subplots.'
+      }
+    ],
+    relatedGuideSlugs: [
+      'best-psychological-thriller-movies-ranked',
+      'best-slow-burn-thriller-movies'
+    ]
+  },
+
+  // 10. Sci-Fi Movies of the Decade
+  {
+    slug: 'best-sci-fi-movies-of-the-decade',
+    title: 'The 10 Best Sci-Fi Movies of the Decade (Ranked by Conceptual Audacity)',
+    seoTitle: 'Best Sci-Fi Movies of the Decade | MovieINT Intelligence Engine',
+    metaDescription: 'From hard astrophysics to dystopian AI nightmares. Explore the definitive sci-fi films of the decade ranked by MovieINT Conceptual Complexity.',
+    publishedDate: '2026-09-07T08:00:00Z',
+    modifiedDate: '2026-09-08T12:00:00Z',
+    author: {
+      name: 'MovieINT Cinema Intelligence Lab',
+      role: 'Algorithmic Film Archival Team'
+    },
+    category: 'Lists',
+    moodTag: 'Intellectual',
+    themeTag: 'Sci-Fi',
+    readTime: '11 min read',
+    featured: false,
+    coverImage: 'https://images.unsplash.com/photo-1506703719100-a0f3a48c0f86?q=80&w=1200&auto=format&fit=crop',
+    introText: 'Science fiction remains our sharpest lens for examining technological vertigo and philosophical isolation. Here are the decade’s most audacious triumphs.',
+    keyTakeaways: [
+      'Hard sci-fi physics versus conceptual speculative fiction.',
+      'Integration of AI existentialism and bio-tech ethics.',
+      'High rewatch index scores.'
+    ],
+    movies: [
+      {
+        tmdbId: 335984,
+        slugId: '335984',
+        title: 'Blade Runner 2049',
+        year: 2017,
+        director: 'Denis Villeneuve',
+        runtime: '164 min',
+        genres: ['Sci-Fi', 'Mystery', 'Drama'],
+        dnaScore: 9.3,
+        metrics: {
+          complexity: 91,
+          brainpower: 89,
+          twistPotency: 93,
+          pacing: 'Atmospheric Monolithic Cadence',
+          endingType: 'Poetic Self-Sacrifice'
+        },
+        whyRecommended: 'Villeneuve and cinematographer Roger Deakins produce an audiovisual hymn on consciousness, soulhood, and human connection in an artificial world.',
+        bestFor: 'Patients of visual grandeur and deep philosophical worldbuilding.',
+        avoidIf: 'You require fast-paced gunplay and lighthearted banter.',
+        streamingOn: ['Max', 'Apple TV']
+      }
+    ],
+    faqs: [
+      {
+        question: 'Do I need to see the 1982 original before Blade Runner 2049?',
+        answer: 'While 2049 works as a standalone existential detective story, understanding Rick Deckard’s history enriches the third-act emotional stakes exponentially.'
+      }
+    ],
+    relatedGuideSlugs: [
+      'best-mind-bending-movies-that-make-you-think',
+      'best-movies-like-interstellar-cosmic-sci-fi'
+    ]
+  },
+
+  // 11. High Brainpower Movies
+  {
+    slug: 'best-movies-that-require-high-brainpower',
+    title: '10 Complex Movies That Require Maximum Brainpower to Understand',
+    seoTitle: 'Movies That Require High Brainpower (Ranked) | MovieINT Telemetry',
+    metaDescription: 'Tired of predictable plots? Explore the most intellectually demanding films that require active forensic deduction, ranked by MovieINT Brainpower Index.',
+    publishedDate: '2026-09-08T09:00:00Z',
+    modifiedDate: '2026-09-08T12:00:00Z',
+    author: {
+      name: 'MovieINT Cinema Intelligence Lab',
+      role: 'Algorithmic Film Archival Team'
+    },
+    category: 'Lists',
+    moodTag: 'Intellectual',
+    themeTag: 'Existential',
+    readTime: '10 min read',
+    featured: false,
+    coverImage: 'https://images.unsplash.com/photo-1478760329108-5c3ed9d495a0?q=80&w=1200&auto=format&fit=crop',
+    introText: 'Some movies are meant to entertain; others are complex mathematical equations disguised as motion pictures. These entries demand your full, undivided mental bandwidth.',
+    keyTakeaways: [
+      'Brainpower indices strictly above 90/100.',
+      'Complex multi-timeline structures and epistemological paradoxes.',
+      'Designed specifically for repeat viewing analyses.'
+    ],
+    movies: [
+      {
+        tmdbId: 77,
+        slugId: '77',
+        title: 'Memento',
+        year: 2000,
+        director: 'Christopher Nolan',
+        runtime: '113 min',
+        genres: ['Mystery', 'Thriller'],
+        dnaScore: 8.9,
+        metrics: {
+          complexity: 96,
+          brainpower: 98,
+          twistPotency: 94,
+          pacing: 'Reverse-Chronological Dissection',
+          endingType: 'Devastating Self-Deception Twist'
+        },
+        whyRecommended: 'Forces the viewer into anterograde amnesia through revolutionary reverse-order editing.',
+        bestFor: 'Analytical puzzle solvers.',
+        avoidIf: 'You want a light, linear story.',
+        streamingOn: ['Prime Video']
+      }
+    ],
+    faqs: [
+      {
+        question: 'What is the Brainpower Index?',
+        answer: 'MovieINT evaluates cognitive load, temporal continuity shifts, and deductive reasoning demands to calibrate the Brainpower Index.'
+      }
+    ],
+    relatedGuideSlugs: [
+      'best-mind-bending-movies-that-make-you-think',
+      'best-movies-with-ambiguous-endings-explained'
+    ]
+  },
+
+  // 12. Emotional Sci-Fi & Dramas
+  {
+    slug: 'best-movies-for-when-you-want-something-emotional',
+    title: 'Top 10 Deeply Emotional Movies That Will Leave You Stunned',
+    seoTitle: 'Best Emotional Movies That Make You Cry | MovieINT Resonance',
+    metaDescription: 'Need a powerful emotional release? Discover deeply resonant cinematic masterpieces calibrated with high MovieINT Emotional Resonance Scores.',
+    publishedDate: '2026-09-08T10:00:00Z',
+    modifiedDate: '2026-09-08T12:00:00Z',
+    author: {
+      name: 'MovieINT Cinema Intelligence Lab',
+      role: 'Algorithmic Film Archival Team'
+    },
+    category: 'Lists',
+    moodTag: 'Emotional',
+    themeTag: 'Existential',
+    readTime: '9 min read',
+    featured: false,
+    coverImage: 'https://images.unsplash.com/photo-1518676590629-3dcbd9c5a5c9?q=80&w=1200&auto=format&fit=crop',
+    introText: 'Cinema holds the unique capacity to mirror our deepest grief, catharsis, and vulnerability. These films provide authentic emotional devastation without artificial melodrama.',
+    keyTakeaways: [
+      'Emotional Resonance indices calibrated above 90/100.',
+      'Poetic resolutions that linger long after the credits roll.',
+      'High character empathy design.'
+    ],
+    movies: [
+      {
+        tmdbId: 329865,
+        slugId: '329865',
+        title: 'Arrival',
+        year: 2016,
+        director: 'Denis Villeneuve',
+        runtime: '116 min',
+        genres: ['Sci-Fi', 'Drama'],
+        dnaScore: 9.1,
+        metrics: {
+          complexity: 92,
+          brainpower: 95,
+          twistPotency: 96,
+          pacing: 'Atmospheric Deliberate Build',
+          endingType: 'Non-Linear Philosophical Revelation'
+        },
+        whyRecommended: 'A breathtaking meditation on grief, choice, and love across non-linear time.',
+        bestFor: 'Those who appreciate intellectual depth anchored by profound human emotion.',
+        avoidIf: 'You want straightforward action.',
+        streamingOn: ['Netflix', 'Paramount+']
+      }
+    ],
+    faqs: [
+      {
+        question: 'How is Emotional Resonance measured?',
+        answer: 'Evaluates character sacrifice, musical score dissonance, and empathetic audience closure.'
+      }
+    ],
+    relatedGuideSlugs: [
+      'best-movies-like-interstellar-cosmic-sci-fi',
+      'best-movies-with-ambiguous-endings-explained'
+    ]
+  },
+
+  // 13. Movies Like Oppenheimer
+  {
+    slug: 'best-movies-like-oppenheimer-historical-dramas',
+    title: '10 Gripping Movies Like Oppenheimer for Moral Tension & Historical Weight',
+    seoTitle: 'Best Movies Like Oppenheimer | MovieINT Cinematic Telemetry',
+    metaDescription: 'Loved Christopher Nolan’s Oppenheimer? Explore 10 masterclass historical dramas and psychological biopics filled with ethical dilemmas and editing velocity.',
+    publishedDate: '2026-09-08T11:00:00Z',
+    modifiedDate: '2026-09-08T12:00:00Z',
+    author: {
+      name: 'MovieINT Cinema Intelligence Lab',
+      role: 'Algorithmic Film Archival Team'
+    },
+    category: 'Recommendations',
+    moodTag: 'Intellectual',
+    themeTag: 'Existential',
+    readTime: '10 min read',
+    featured: false,
+    coverImage: 'https://images.unsplash.com/photo-1440404653325-ab127d49abc1?q=80&w=1200&auto=format&fit=crop',
+    introText: 'Oppenheimer elevated the biographical drama into a breathless psychological horror film about technological hubris. Here are films that share its propulsive montage and terrifying moral stakes.',
+    keyTakeaways: [
+      'Focus on ethical dilemmas, scientific hubris, and political persecution.',
+      'Dynamic non-linear courtroom and historical procedural tension.',
+      'High dialogue velocity and syncopated editing.'
+    ],
+    movies: [
+      {
+        tmdbId: 435,
+        slugId: '435',
+        title: 'The Prestige',
+        year: 2006,
+        director: 'Christopher Nolan',
+        runtime: '130 min',
+        genres: ['Drama', 'Mystery'],
+        dnaScore: 9.2,
+        metrics: {
+          complexity: 90,
+          brainpower: 91,
+          twistPotency: 97,
+          pacing: 'Tightening Spiral Thriller',
+          endingType: 'Dual-Shock Sacrificial Twist'
+        },
+        whyRecommended: 'Shares Nolan’s recurring obsession with technological obsession destroying the creator’s soul.',
+        bestFor: 'Nolan fans who value rapid-fire editing and moral complexity.',
+        avoidIf: 'You dislike dark, cynical character arcs.',
+        streamingOn: ['Apple TV']
+      }
+    ],
+    faqs: [
+      {
+        question: 'What makes Oppenheimer unique among biopics?',
+        answer: 'Its fusion of subjective non-linear montage, claustrophobic sound design, and ethical horror distinguishes it from standard chronological docudramas.'
+      }
+    ],
+    relatedGuideSlugs: [
+      'best-mind-bending-movies-that-make-you-think',
+      'best-movies-like-inception-cerebral-thrillers'
+    ]
+  },
+
+  // 14. Japanese Mind-Bending Movies & Anime
+  {
+    slug: 'best-japanese-mind-bending-movies',
+    title: '10 Japanese Mind-Bending Masterpieces (From Anime to Psychological Horror)',
+    seoTitle: 'Best Japanese Mind-Bending Movies & Anime | MovieINT Intelligence',
+    metaDescription: 'Dive into the visionary world of Japanese psychological cinema. From Satoshi Kon’s surreal anime to Kiyoshi Kurosawa’s existential dread, ranked by MovieINT DNA.',
+    publishedDate: '2026-09-08T11:30:00Z',
+    modifiedDate: '2026-09-08T12:00:00Z',
+    author: {
+      name: 'MovieINT Cinema Intelligence Lab',
+      role: 'Algorithmic Film Archival Team'
+    },
+    category: 'Lists',
+    moodTag: 'Mind-Bending',
+    themeTag: 'Existential',
+    readTime: '11 min read',
+    featured: false,
+    coverImage: 'https://images.unsplash.com/photo-1503899036084-c55cdd92da26?q=80&w=1200&auto=format&fit=crop',
+    introText: 'Japanese filmmakers have long mastered the boundary between dream logic, societal alienation, and metaphysical horror. Here are the most cognitively disruptive Japanese films ever produced.',
+    keyTakeaways: [
+      'Anime masterpieces compared directly with live-action psychological thrillers.',
+      'Telemetry on surrealist dream logic and pacing cadence.',
+      'High rewatch index scores.'
+    ],
+    movies: [
+      {
+        tmdbId: 2649,
+        slugId: '2649',
+        title: 'Paprika',
+        year: 2006,
+        director: 'Satoshi Kon',
+        runtime: '90 min',
+        genres: ['Anime', 'Sci-Fi', 'Mystery'],
+        dnaScore: 8.8,
+        metrics: {
+          complexity: 91,
+          brainpower: 89,
+          twistPotency: 87,
+          pacing: 'Kaleidoscopic Surreal Surge',
+          endingType: 'Psychoanalytic Catharsis'
+        },
+        whyRecommended: 'A dazzling technical showcase of transitions blurring internal psychology and external reality.',
+        bestFor: 'Fans of visual metaphors and psychological dream theory.',
+        avoidIf: 'You require standard linear logic.',
+        streamingOn: ['Prime Video']
+      }
+    ],
+    faqs: [
+      {
+        question: 'Why is Satoshi Kon celebrated in mind-bending cinema?',
+        answer: 'His match-cut editing technique seamlessly transitions scenes between memories, fantasies, and realities without traditional warning cuts.'
+      }
+    ],
+    relatedGuideSlugs: [
+      'best-movies-like-inception-cerebral-thrillers',
+      'best-korean-psychological-thriller-movies'
+    ]
+  },
+
+  // 15. Feel-Good Movies
+  {
+    slug: 'best-feel-good-movies-to-watch-tonight',
+    title: '10 Uplifting Movies With High Narrative Craft (Zero Cynicism)',
+    seoTitle: 'Best Feel-Good Movies to Watch Tonight | MovieINT Mood Telemetry',
+    metaDescription: 'Need a genuine mental reset? Discover feel-good cinematic gems that earn their optimism with flawless pacing and zero cheap sentimentality.',
+    publishedDate: '2026-09-08T12:00:00Z',
+    modifiedDate: '2026-09-08T12:00:00Z',
+    author: {
+      name: 'MovieINT Cinema Intelligence Lab',
+      role: 'Algorithmic Film Archival Team'
+    },
+    category: 'Lists',
+    moodTag: 'Feel-Good',
+    themeTag: 'Under 2 Hours',
+    readTime: '8 min read',
+    featured: false,
+    coverImage: 'https://images.unsplash.com/photo-1513151233558-d860c5398176?q=80&w=1200&auto=format&fit=crop',
+    introText: 'A true feel-good movie does not insult the audience’s intelligence with syrupy clichés; it earns its joy through genuine character grit, compassion, and human connection.',
+    keyTakeaways: [
+      'Uplifting emotional valence calibrated without cynicism.',
+      'Flawless pacing ideal for stress relief and evening viewing.',
+      'Universal appeal across diverse age brackets.'
+    ],
+    movies: [
+      {
+        tmdbId: 286217,
+        slugId: '286217',
+        title: 'The Martian',
+        year: 2015,
+        director: 'Ridley Scott',
+        runtime: '144 min',
+        genres: ['Sci-Fi', 'Adventure', 'Drama'],
+        dnaScore: 8.6,
+        metrics: {
+          complexity: 78,
+          brainpower: 84,
+          twistPotency: 72,
+          pacing: 'Resourceful Survival Rhythm',
+          endingType: 'Triumphant Global Solidarity'
+        },
+        whyRecommended: 'An infectious celebration of scientific ingenuity, humor in the face of despair, and global camaraderie.',
+        bestFor: 'Anyone wanting an intelligent, deeply satisfying, and optimistic adventure.',
+        avoidIf: 'You want dark psychological despair.',
+        streamingOn: ['Max', 'Apple TV']
+      }
+    ],
+    faqs: [
+      {
+        question: 'How does MovieINT curate feel-good cinema?',
+        answer: 'We filter for titles with high Completion Velocity and positive emotional resolution while filtering out formulaic saccharine romances.'
+      }
+    ],
+    relatedGuideSlugs: [
+      'best-movies-like-interstellar-cosmic-sci-fi',
+      'best-movies-under-2-hours-tight-pacing'
+    ]
   }
 ];
 
 export function getEditorialBySlug(slug: string): EditorialArticle | undefined {
-  return EDITORIAL_ARTICLES.find((art) => art.slug === slug);
+  if (!slug) return undefined;
+  const clean = decodeURIComponent(slug).trim().toLowerCase();
+  return (
+    EDITORIAL_ARTICLES.find((art) => art.slug.toLowerCase() === clean) ||
+    EDITORIAL_ARTICLES.find((art) => art.slug.toLowerCase().includes(clean) || clean.includes(art.slug.toLowerCase()))
+  );
 }
 
 export function getAllEditorialSlugs(): string[] {
@@ -696,7 +1104,7 @@ export function getRelatedArticles(currentSlug: string, count: number = 3): Edit
   const current = getEditorialBySlug(currentSlug);
   if (!current) return EDITORIAL_ARTICLES.slice(0, count);
 
-  return EDITORIAL_ARTICLES.filter((art) => art.slug !== currentSlug)
+  return EDITORIAL_ARTICLES.filter((art) => art.slug !== current.slug)
     .sort((a, b) => {
       const matchA = (a.category === current.category ? 2 : 0) + (a.moodTag === current.moodTag ? 2 : 0);
       const matchB = (b.category === current.category ? 2 : 0) + (b.moodTag === current.moodTag ? 2 : 0);

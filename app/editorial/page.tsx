@@ -7,23 +7,38 @@ import {
   getEditorialBySlug,
   getAllEditorialSlugs,
   getRelatedArticles,
+  EDITORIAL_ARTICLES,
 } from '@/lib/editorial-data';
 
 interface PageProps {
-  params: Promise<{ slug: string }> | { slug: string };
+  params: any;
 }
 
 // 1. Static Params Generation
 export async function generateStaticParams() {
-  const slugs = getAllEditorialSlugs();
-  return slugs.map((slug) => ({ slug }));
+  return EDITORIAL_ARTICLES.map((art) => ({
+    slug: art.slug,
+  }));
 }
 
-// 2. Dynamic SEO Metadata Generation
+// 2. Helper to safely extract slug across all Next.js versions
+async function extractSlug(params: any): Promise<string> {
+  const resolved = await Promise.resolve(params);
+  return (
+    resolved?.slug ||
+    (Array.isArray(resolved?.slug) ? resolved.slug[0] : '') ||
+    ''
+  );
+}
+
+// 3. Dynamic SEO Metadata Generation
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const resolvedParams = await Promise.resolve(params);
-  const slug = resolvedParams?.slug;
-  const article = getEditorialBySlug(slug);
+  const slug = await extractSlug(params);
+  
+  // Case-insensitive fallback lookup
+  const article =
+    getEditorialBySlug(slug) ||
+    EDITORIAL_ARTICLES.find((a) => a.slug.toLowerCase() === (slug || '').toLowerCase());
 
   if (!article) return { title: 'Guide Not Found | MovieINT' };
 
@@ -63,9 +78,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 export default async function EditorialArticlePage({ params }: PageProps) {
-  const resolvedParams = await Promise.resolve(params);
-  const slug = resolvedParams?.slug;
-  const article = getEditorialBySlug(slug);
+  const slug = await extractSlug(params);
+
+  // Exact or case-insensitive fallback matching
+  const article =
+    getEditorialBySlug(slug) ||
+    EDITORIAL_ARTICLES.find((a) => a.slug.toLowerCase() === (slug || '').toLowerCase());
 
   if (!article) {
     notFound();
@@ -74,7 +92,7 @@ export default async function EditorialArticlePage({ params }: PageProps) {
   const relatedArticles = getRelatedArticles(article.slug, 3);
   const canonicalUrl = `https://www.movieint.com/editorial/${article.slug}`;
 
-  // Structured Data (Schema.org)
+  // Structured Data (JSON-LD)
   const breadcrumbSchema = {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
@@ -162,7 +180,7 @@ export default async function EditorialArticlePage({ params }: PageProps) {
 
       <article className="min-h-screen bg-[#07090e] text-slate-200 selection:bg-cyan-500/20 selection:text-cyan-300">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-24">
-          {/* Breadcrumb */}
+          {/* Breadcrumb Navigation */}
           <nav aria-label="Breadcrumb" className="mb-6 flex items-center space-x-2 text-xs font-mono text-slate-400">
             <Link href="/" className="hover:text-cyan-400 transition-colors">
               HOME
@@ -177,7 +195,7 @@ export default async function EditorialArticlePage({ params }: PageProps) {
             </span>
           </nav>
 
-          {/* Header */}
+          {/* Article Header */}
           <header className="space-y-4 border-b border-slate-800 pb-8 mb-8">
             <div className="flex flex-wrap items-center gap-3">
               <span className="px-2.5 py-1 rounded bg-cyan-950/70 border border-cyan-500/30 text-cyan-400 text-xs font-mono uppercase tracking-wider">

@@ -3,6 +3,8 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import MoviePoster from '@/components/MoviePoster';
+import { ArrowRight, Sparkles } from 'lucide-react';
 
 interface AdvisorResult {
   title: string;
@@ -10,6 +12,7 @@ interface AdvisorResult {
   year: number;
   director: string;
   runtime: string;
+  posterPath?: string;
   dnaScore: number;
   complexity: number;
   emotionalIntensity: number;
@@ -58,7 +61,7 @@ export default function NeuralAdvisor() {
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto my-12 p-6 sm:p-8 rounded-2xl bg-gradient-to-b from-[#0e1424] to-[#07090e] border border-cyan-500/30 shadow-2xl relative overflow-hidden">
+    <div className="w-full max-w-4xl mx-auto my-12 p-6 sm:p-8 rounded-2xl bg-gradient-to-b from-[#0e1424] to-[#07090e] border border-cyan-500/30 shadow-2xl relative overflow-hidden text-left">
       <div className="absolute top-0 right-0 w-80 h-80 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none -z-0" />
 
       {/* Header */}
@@ -126,84 +129,105 @@ export default function NeuralAdvisor() {
             <span className="text-slate-500">Sorted by Vector Alignment</span>
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-5">
             {results.map((item, idx) => (
               <div
                 key={item.tmdbId}
-                className="p-5 sm:p-6 rounded-xl bg-slate-950/80 border border-slate-800 hover:border-cyan-500/50 transition-all shadow-lg flex flex-col gap-4"
+                className="p-5 sm:p-6 rounded-xl bg-slate-950/80 border border-slate-800 hover:border-cyan-500/50 transition-all shadow-lg flex flex-col sm:flex-row gap-5 group"
               >
-                {/* Title & Match Badge */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800/80 pb-3">
-                  <div>
-                    <div className="flex items-center gap-2 text-xs font-mono text-slate-400">
-                      <span className="text-cyan-400 font-bold">#{idx + 1} RECOMMENDED</span>
-                      <span>•</span>
-                      <span>{item.year}</span>
-                      <span>•</span>
-                      <span>{item.runtime}</span>
-                      <span>•</span>
-                      <span>Dir. {item.director}</span>
+                {/* Poster Thumbnail */}
+                <Link
+                  href={`/movie/${item.tmdbId}`}
+                  className="w-24 sm:w-28 h-36 sm:h-40 rounded-xl overflow-hidden shrink-0 relative bg-slate-900 border border-slate-800 group-hover:border-cyan-500/40 transition shadow-md"
+                >
+                  <MoviePoster
+                    src={item.posterPath ? `https://image.tmdb.org/t/p/w300${item.posterPath}` : null}
+                    alt={item.title}
+                    fallbackTitle={item.title}
+                    fill
+                    sizes="112px"
+                    className="object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                </Link>
+
+                {/* Content Side */}
+                <div className="flex-1 flex flex-col justify-between gap-3 min-w-0">
+                  {/* Title & Match Header */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800/80 pb-2.5">
+                    <div>
+                      <div className="flex items-center gap-2 text-xs font-mono text-slate-400">
+                        <span className="text-cyan-400 font-bold">#{idx + 1} RECOMMENDED</span>
+                        <span>•</span>
+                        <span>{item.year}</span>
+                        <span>•</span>
+                        <span>{item.runtime}</span>
+                        <span>•</span>
+                        <span>Dir. {item.director}</span>
+                      </div>
+                      <h3 className="text-xl sm:text-2xl font-bold text-white mt-1 group-hover:text-cyan-300 transition-colors truncate">
+                        <Link href={`/movie/${item.tmdbId}`}>
+                          {item.title}
+                        </Link>
+                      </h3>
                     </div>
-                    <h3 className="text-xl sm:text-2xl font-bold text-white mt-1">
-                      <Link href={`/movie/${item.tmdbId}`} className="hover:text-cyan-300 transition-colors">
-                        {item.title}
-                      </Link>
-                    </h3>
-                  </div>
 
-                  <div className="flex items-center gap-2 font-mono">
-                    <div className="px-3 py-1.5 rounded-lg bg-cyan-950/80 border border-cyan-500/40 text-cyan-300 text-sm font-bold">
-                      {item.matchPercent}% Match
-                    </div>
-                    <div className="px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-amber-400 text-xs font-bold">
-                      DNA {item.dnaScore}
+                    <div className="flex items-center gap-2 font-mono shrink-0">
+                      <div className="px-3 py-1 rounded-lg bg-cyan-950/80 border border-cyan-500/40 text-cyan-300 text-xs sm:text-sm font-bold">
+                        {item.matchPercent}% Match
+                      </div>
+                      <div className="px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-amber-400 text-xs font-bold">
+                        DNA {item.dnaScore}
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                {/* Telemetry Vectors */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs font-mono bg-slate-900/60 p-3 rounded-lg border border-slate-800/80">
-                  <div>
-                    <span className="text-slate-500 block text-[10px]">COMPLEXITY</span>
-                    <span className="text-white font-bold">{item.complexity} / 100</span>
-                  </div>
-                  <div>
-                    <span className="text-slate-500 block text-[10px]">EMOTIONAL DEPTH</span>
-                    <span className="text-indigo-300 font-bold">{item.emotionalIntensity} / 100</span>
-                  </div>
-                  <div>
-                    <span className="text-slate-500 block text-[10px]">PACING</span>
-                    <span className="text-slate-300 truncate block">{item.pacing}</span>
-                  </div>
-                  <div>
-                    <span className="text-slate-500 block text-[10px]">ENDING TYPE</span>
-                    <span className="text-cyan-300 truncate block">{item.endingType}</span>
-                  </div>
-                </div>
-
-                {/* Why It Matches Rationale */}
-                <p className="text-xs sm:text-sm text-slate-300 leading-relaxed font-sans">
-                  <strong className="text-cyan-400 font-mono text-xs uppercase tracking-wider block mb-0.5">Why it matches:</strong>
-                  {item.whyItMatches}
-                </p>
-
-                {/* Actions & Streaming */}
-                <div className="flex flex-wrap items-center justify-between gap-3 pt-2 text-xs font-mono border-t border-slate-800/60">
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-slate-500">Stream on:</span>
-                    {item.streamingOn.map((st) => (
-                      <span key={st} className="px-2 py-0.5 rounded bg-slate-900 text-slate-300 border border-slate-800">
-                        {st}
-                      </span>
-                    ))}
+                  {/* Telemetry Vector Metrics */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs font-mono bg-slate-900/60 p-2.5 rounded-lg border border-slate-800/80">
+                    <div>
+                      <span className="text-slate-500 block text-[10px]">COMPLEXITY</span>
+                      <span className="text-white font-bold">{item.complexity} / 100</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-500 block text-[10px]">EMOTIONAL DEPTH</span>
+                      <span className="text-indigo-300 font-bold">{item.emotionalIntensity} / 100</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-500 block text-[10px]">PACING</span>
+                      <span className="text-slate-300 truncate block">{item.pacing}</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-500 block text-[10px]">ENDING TYPE</span>
+                      <span className="text-cyan-300 truncate block">{item.endingType}</span>
+                    </div>
                   </div>
 
-                  <Link
-                    href={`/movie/${item.tmdbId}`}
-                    className="text-cyan-400 hover:text-cyan-300 font-semibold inline-flex items-center gap-1"
-                  >
-                    View Full DNA Telemetry →
-                  </Link>
+                  {/* Why It Matches */}
+                  <p className="text-xs text-slate-300 leading-relaxed font-sans">
+                    <strong className="text-cyan-400 font-mono text-[10px] uppercase tracking-wider block mb-0.5">
+                      Why it matches:
+                    </strong>
+                    {item.whyItMatches}
+                  </p>
+
+                  {/* Footer Streaming & Links */}
+                  <div className="flex flex-wrap items-center justify-between gap-3 pt-2 text-xs font-mono border-t border-slate-800/60">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-slate-500">Stream on:</span>
+                      {item.streamingOn.map((st) => (
+                        <span key={st} className="px-2 py-0.5 rounded bg-slate-900 text-slate-300 border border-slate-800 text-[11px]">
+                          {st}
+                        </span>
+                      ))}
+                    </div>
+
+                    <Link
+                      href={`/movie/${item.tmdbId}`}
+                      className="text-cyan-400 hover:text-cyan-300 font-semibold inline-flex items-center gap-1 group-hover:translate-x-1 transition-transform"
+                    >
+                      <span>View Full DNA Telemetry</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </Link>
+                  </div>
                 </div>
               </div>
             ))}

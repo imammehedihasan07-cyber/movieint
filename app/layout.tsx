@@ -129,14 +129,14 @@ export default function RootLayout({
           id="global-schema"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
-        {/* Google Analytics (GA4) */}
+        {/* Google Analytics (GA4) - Lazy loaded to prevent main-thread blocking */}
         <Script
-          strategy="afterInteractive"
+          strategy="lazyOnload"
           src="https://www.googletagmanager.com/gtag/js?id=G-84GR311JNK"
         />
         <Script
           id="google-analytics"
-          strategy="afterInteractive"
+          strategy="lazyOnload"
         >
           {`
             window.dataLayer = window.dataLayer || [];

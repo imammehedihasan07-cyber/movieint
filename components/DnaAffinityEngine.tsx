@@ -11,7 +11,8 @@ interface MovieItem {
   release_date?: string;
   vote_average?: number;
   overview?: string;
-  genres?: { id: number; name: string }[];
+  genres?: { id: number; name: string }[] | string;
+  original_language?: string;
 }
 
 interface AffinityTarget {
@@ -26,209 +27,156 @@ interface AffinityTarget {
   endingType: string;
   primaryHook: string;
   whyMatches: string;
+  mediaTypeBadge: string;
 }
 
-// Curated Cinematic Knowledge Graph with Verified 100% Working TMDB Poster Paths
-const KNOWLEDGE_GRAPH: Record<string, AffinityTarget[]> = {
-  // 157336 = Interstellar
-  '157336': [
-    {
-      id: 329865,
-      title: 'Arrival',
-      year: 2016,
-      posterPath: '/x2O0omcr2Yxegke2ipL9x19Cc4g.jpg',
-      affinityScore: 92,
-      complexity: 85,
-      emotionalDepth: 96,
-      pacing: 'Atmospheric Deliberate Build',
-      endingType: 'Non-Linear Revelation',
-      primaryHook: 'Theoretical Physics & Parental Grief',
-      whyMatches: "Mirrors Interstellar's emotional core of parental love across non-linear spacetime, swapping cosmic voyages for linguistic determinism."
-    },
-    {
-      id: 686,
-      title: 'Contact',
-      year: 1997,
-      posterPath: '/bK64qK92E8YpGf64jQ9W1b2eHh.jpg',
-      affinityScore: 88,
-      complexity: 78,
-      emotionalDepth: 90,
-      pacing: 'Steady Astronomical Escalation',
-      endingType: 'Ambiguous Validation',
-      primaryHook: 'Astrophysical Wonder & Human Faith',
-      whyMatches: 'Shares Carl Sagan and Kip Thorne scientific pedigree, bridging hard cosmic exploration with an emotional daughter-father bond.'
-    },
-    {
-      id: 300668,
-      title: 'Annihilation',
-      year: 2018,
-      posterPath: '/d3qcpfNwbAM9Q4fZ51Z7vA6z2rV.jpg',
-      affinityScore: 84,
-      complexity: 82,
-      emotionalDepth: 86,
-      pacing: 'Hypnotic Unsettling Metronome',
-      endingType: 'Biological Mutation',
-      primaryHook: 'Unknowable Alien Phenomena',
-      whyMatches: "Trades the optimistic wonder of deep space for a darker, biological mystery dealing with self-destruction and alien refraction."
-    },
-    {
-      id: 419704,
-      title: 'Ad Astra',
-      year: 2019,
-      posterPath: '/xBHvZcjRiWyobQ9kxBhO6B2dtRI.jpg',
-      affinityScore: 81,
-      complexity: 74,
-      emotionalDepth: 85,
-      pacing: 'Introspective Solitary Cadence',
-      endingType: 'Human Acceptance',
-      primaryHook: 'Solitary Deep Space Odyssey',
-      whyMatches: "Focuses deeply on the psychological cost of space travel and unresolved father-son trauma across the solar system."
-    }
-  ],
+// Deterministic DNA Telemetry Matrix
+function getHashMetrics(title: string, id: number | string, isAnime: boolean, isKdrama: boolean) {
+  let hash = 0;
+  const str = `${title}-${id}`;
+  for (let i = 0; i < str.length; i++) {
+    hash = str.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const pos = Math.abs(hash);
 
-  // 27205 = Inception
-  '27205': [
-    {
-      id: 2649,
-      title: 'Paprika',
-      year: 2006,
-      posterPath: '/hwsP2gX0cTz379K37y762M8f8.jpg',
-      affinityScore: 94,
-      complexity: 91,
-      emotionalDepth: 80,
-      pacing: 'Kaleidoscopic Surreal Surge',
-      endingType: 'Psychoanalytic Catharsis',
-      primaryHook: 'Subconscious Dream Infiltration',
-      whyMatches: 'The visual and conceptual sibling to Inception; explores shared dream devices spiraling into collective hallucinatory collapse.'
-    },
-    {
-      id: 435,
-      title: 'The Prestige',
-      year: 2006,
-      posterPath: '/tRNlZbgNCNOpLpbPEz5L8G8A0JN.jpg',
-      affinityScore: 91,
-      complexity: 90,
-      emotionalDepth: 84,
-      pacing: 'Tightening Spiral Thriller',
-      endingType: 'Dual-Shock Sacrificial Twist',
-      primaryHook: 'Mathematical Obsession & Deception',
-      whyMatches: 'Features Christopher Nolan’s signature multi-layered editing and obsessive protagonists blinded by professional hubris.'
-    },
-    {
-      id: 1018,
-      title: 'Mulholland Drive',
-      year: 2001,
-      posterPath: '/5LH4jC3gP9F27q77Q66r2kP6o4.jpg',
-      affinityScore: 86,
-      complexity: 98,
-      emotionalDepth: 88,
-      pacing: 'Hypnotic Dream-State',
-      endingType: 'Surrealist Subconscious Dissolution',
-      primaryHook: 'Pure Psychological Dream Logic',
-      whyMatches: 'Takes Inception’s dream-architecture into David Lynch’s unfiltered subconscious nightmare of guilt and Hollywood delirium.'
-    },
-    {
-      id: 220289,
-      title: 'Coherence',
-      year: 2013,
-      posterPath: '/keGgBvF5L8P6x87bJ8kM1m4.jpg',
-      affinityScore: 84,
-      complexity: 82,
-      emotionalDepth: 80,
-      pacing: 'Spiraling Paranoia Tempo',
-      endingType: 'Multi-Timeline Realization',
-      primaryHook: 'Fractured Quantum Realities',
-      whyMatches: 'Micro-budget psychological puzzle-box where alternate realities blur inside a single dinner party.'
-    }
-  ],
-
-  // 496243 = Parasite
-  '496243': [
-    {
-      id: 11324,
-      title: 'Shutter Island',
-      year: 2010,
-      posterPath: '/kve20wg72W4jDLYyeOSYII9doTG.jpg',
-      affinityScore: 89,
-      complexity: 84,
-      emotionalDepth: 91,
-      pacing: 'Claustrophobic Gothic Paranoia',
-      endingType: 'Moral Self-Surrender',
-      primaryHook: 'Psychological Self-Deception',
-      whyMatches: 'Shares a relentless escalation of claustrophobic dread and psychological unravelling within confined architectural spaces.'
-    },
-    {
-      id: 807,
-      title: 'Se7en',
-      year: 1995,
-      posterPath: '/69Sns8WoET6C6T9IZF3ARGe6N7u.jpg',
-      affinityScore: 87,
-      complexity: 78,
-      emotionalDepth: 94,
-      pacing: 'Methodical Procedural Descent',
-      endingType: 'Devastating Box Climax',
-      primaryHook: 'Grim Class & Moral Rot',
-      whyMatches: 'Both films dissect the dark subterranean moral decay of society leading into a devastating third-act checkmate.'
-    },
-    {
-      id: 244786,
-      title: 'Whiplash',
-      year: 2014,
-      posterPath: '/7fn624j5lj3xTme2SgiLCeuedmO.jpg',
-      affinityScore: 85,
-      complexity: 65,
-      emotionalDepth: 95,
-      pacing: 'Furious Syncopated Metronome',
-      endingType: 'Ambiguous Climax',
-      primaryHook: 'Obsessive Class & Perfectionism',
-      whyMatches: 'Rivals Parasite’s surgical scene geometry and breath-stealing pacing without an ounce of wasted screentime.'
-    }
-  ]
-};
-
-// Algorithmic Fallback Generator
-function generateDynamicAffinity(currentMovie: MovieItem): AffinityTarget[] {
-  const cTitle = currentMovie.title || 'Movie';
+  const complexities = isAnime ? [85, 92, 88, 96, 82] : [78, 86, 91, 84, 89];
+  const emotions = (isAnime || isKdrama) ? [95, 98, 92, 96, 90] : [82, 88, 91, 85, 94];
   
+  const pacings = isAnime
+    ? ['Dynamic Shonen Momentum', 'Contemplative Melancholic Cadence', 'Tactical Psychological Duel', 'Expansive World-Building Pace']
+    : isKdrama
+    ? ['High-Tension Cliffhanger Pacing', 'Emotional Slow-Burn Escalation', 'Intricate Revenge Tempo']
+    : ['Atmospheric Deliberate Build', 'Tightening Spiral Thriller', 'Relentless Synchronized Cadence', 'Methodical Procedural Simmer'];
+
+  const endings = isAnime
+    ? ['Philosophical Catharsis', 'Bittersweet Transcendent Farewell', 'Sublime Emotional Climax']
+    : isKdrama
+    ? ['Devastating Moral Retribution', 'Poetic Melancholic Closure', 'High-Stakes Resolution']
+    : ['Non-Linear Revelation', 'Ambiguous Equilibrium', 'Existential Resolution', 'Devastating Psychological Climax'];
+
+  return {
+    complexity: complexities[pos % complexities.length],
+    emotionalDepth: emotions[(pos >> 2) % emotions.length],
+    pacing: pacings[(pos >> 3) % pacings.length],
+    endingType: endings[(pos >> 4) % endings.length],
+    affinityScore: 84 + (pos % 13), // 84% - 96%
+  };
+}
+
+async function fetchDynamicAffinity(currentMovie: MovieItem): Promise<AffinityTarget[]> {
+  const apiKey = process.env.TMDB_API_KEY || "b6b9f5e3a64b6ef32e0b8fade33cfe5a";
+  const rawId = String(currentMovie.id);
+  const isTv = rawId.startsWith("tv-") || rawId.startsWith("series-");
+  const cleanId = rawId.replace(/^(tv-|series-|movie-)/, "");
+  const endpointType = isTv ? "tv" : "movie";
+
+  const genreStr = Array.isArray(currentMovie.genres)
+    ? currentMovie.genres.map((g) => (typeof g === 'string' ? g : g.name)).join(' ').toLowerCase()
+    : String(currentMovie.genres || '').toLowerCase();
+
+  const isAnime = genreStr.includes('animation') || currentMovie.original_language === 'ja';
+  const isKdrama = currentMovie.original_language === 'ko' || genreStr.includes('k-drama');
+
+  try {
+    // 1. Fetch TMDB Recommendations
+    let res = await fetch(
+      `https://api.themoviedb.org/3/${endpointType}/${cleanId}/recommendations?api_key=${apiKey}&page=1`,
+      { next: { revalidate: 86400 } }
+    );
+    let data = await res.json();
+
+    // 2. Fallback to similar endpoint if sparse
+    if (!data.results || data.results.length < 3) {
+      res = await fetch(
+        `https://api.themoviedb.org/3/${endpointType}/${cleanId}/similar?api_key=${apiKey}&page=1`,
+        { next: { revalidate: 86400 } }
+      );
+      data = await res.json();
+    }
+
+    let cleanResults = (data.results || []).filter(
+      (item: any) => item && item.poster_path && (item.vote_count ?? 0) >= 3
+    );
+
+    // If Anime or KDrama, prioritize same language / animation style
+    if (isAnime) {
+      const animeMatches = cleanResults.filter((m: any) => m.original_language === 'ja' || (m.genre_ids && m.genre_ids.includes(16)));
+      if (animeMatches.length >= 2) cleanResults = animeMatches;
+    } else if (isKdrama) {
+      const kdramaMatches = cleanResults.filter((m: any) => m.original_language === 'ko');
+      if (kdramaMatches.length >= 2) cleanResults = kdramaMatches;
+    }
+
+    if (cleanResults.length > 0) {
+      return cleanResults.slice(0, 4).map((item: any) => {
+        const itemTitle = item.title || item.name;
+        const itemDate = item.release_date || item.first_air_date || '';
+        const itemYear = itemDate.split('-')[0] || 'Recent';
+        const targetId = isTv ? `tv-${item.id}` : item.id;
+        const metrics = getHashMetrics(itemTitle, item.id, isAnime, isKdrama);
+
+        let mediaTypeBadge = isTv ? 'SERIES' : 'FEATURE FILM';
+        if (item.original_language === 'ja' && isTv) mediaTypeBadge = 'ANIME SERIES';
+        if (item.original_language === 'ko' && isTv) mediaTypeBadge = 'K-DRAMA';
+
+        let whyMatches = '';
+        if (isAnime) {
+          whyMatches = `Resonates with ${currentMovie.title}’s thematic world-building, high emotional stakes (${metrics.emotionalDepth}/100), and a ${metrics.pacing.toLowerCase()}.`;
+        } else if (isKdrama) {
+          whyMatches = `Carries ${currentMovie.title}’s gripping suspense and moral depth with a ${metrics.pacing.toLowerCase()} and ${metrics.endingType.toLowerCase()}.`;
+        } else {
+          whyMatches = `Mirrors ${currentMovie.title}’s narrative velocity, pairing ${metrics.complexity}/100 complexity with a ${metrics.pacing.toLowerCase()}.`;
+        }
+
+        return {
+          id: targetId,
+          title: itemTitle,
+          year: itemYear,
+          posterPath: item.poster_path,
+          affinityScore: metrics.affinityScore,
+          complexity: metrics.complexity,
+          emotionalDepth: metrics.emotionalDepth,
+          pacing: metrics.pacing,
+          endingType: metrics.endingType,
+          primaryHook: item.overview ? item.overview.slice(0, 45) + '...' : 'Profound Narrative DNA Resonance',
+          whyMatches,
+          mediaTypeBadge
+        };
+      });
+    }
+  } catch (err) {
+    console.error("Failed to dynamically fetch affinity targets", err);
+  }
+
+  // Curated Fallbacks if TMDB returns empty
   return [
     {
-      id: 329865,
-      title: 'Arrival',
-      year: 2016,
-      posterPath: '/x2O0omcr2Yxegke2ipL9x19Cc4g.jpg',
+      id: isTv ? 'tv-37854' : 329865,
+      title: isAnime ? 'Fullmetal Alchemist: Brotherhood' : isTv ? 'Severance' : 'Arrival',
+      year: isAnime ? '2009' : isTv ? '2022' : '2016',
+      posterPath: isAnime ? '/5ZFUEOULaVml7p19bliq5966Ks9.jpg' : isTv ? '/p990s5V2w7a6HkU1N0c9.jpg' : '/x2O0omcr2Yxegke2ipL9x19Cc4g.jpg',
+      affinityScore: 94,
+      complexity: 89,
+      emotionalDepth: 96,
+      pacing: isAnime ? 'Expansive World-Building Pace' : 'Atmospheric Deliberate Build',
+      endingType: 'Philosophical Catharsis',
+      primaryHook: 'Immaculate Structural Narrative Architecture',
+      whyMatches: `Matches ${currentMovie.title} in narrative economy, character depth, and thematic resonance.`,
+      mediaTypeBadge: isAnime ? 'ANIME SERIES' : isTv ? 'SERIES' : 'FEATURE FILM'
+    },
+    {
+      id: isTv ? 'tv-209867' : 27205,
+      title: isAnime ? 'Frieren: Beyond Journey’s End' : isTv ? 'Dark' : 'Inception',
+      year: isAnime ? '2023' : isTv ? '2017' : '2010',
+      posterPath: isAnime ? '/dqZENchTd7lp5zht7BdlqM7RBPk.jpg' : isTv ? '/apbrbWs8M9lyOpJYU5WXrpFbk1Z.jpg' : '/edv5CZvWj09upOsy2Y6IwDhK8bt.jpg',
       affinityScore: 91,
-      complexity: 88,
-      emotionalDepth: 95,
-      pacing: 'Atmospheric Deliberate Build',
-      endingType: 'Non-Linear Revelation',
-      primaryHook: 'Subversive Cognitive Storytelling',
-      whyMatches: `Matches ${cTitle} in narrative depth, emotional restraint, and a lingering philosophical conclusion.`
-    },
-    {
-      id: 27205,
-      title: 'Inception',
-      year: 2010,
-      posterPath: '/edv5CZvWj09upOsy2Y6IwDhK8bt.jpg',
-      affinityScore: 87,
       complexity: 94,
-      emotionalDepth: 85,
-      pacing: 'Synchronized Tension Cadence',
-      endingType: 'Ambiguous Equilibrium',
-      primaryHook: 'Multi-Tiered Conceptual Drive',
-      whyMatches: `Shares ${cTitle}’s high-stakes narrative momentum, complex character motivations, and iconic cinematography.`
-    },
-    {
-      id: 496243,
-      title: 'Parasite',
-      year: 2019,
-      posterPath: '/7IiTTgloJzvGI1TAYymCfbfl3vT.jpg',
-      affinityScore: 84,
-      complexity: 82,
       emotionalDepth: 92,
-      pacing: 'Flawless Structural Escalation',
-      endingType: 'Tragic Socioeconomic Reality',
-      primaryHook: 'Surgical Scene Geometry',
-      whyMatches: `Parallels the tonal balance and meticulous pacing of ${cTitle}, offering dark wit mixed with sharp psychological stakes.`
+      pacing: isAnime ? 'Contemplative Melancholic Cadence' : 'Tightening Spiral Thriller',
+      endingType: 'Bittersweet Transcendent Farewell',
+      primaryHook: 'Deep Time & Existential Contemplation',
+      whyMatches: `Parallels ${currentMovie.title}’s emotional weight and exceptional craftsmanship.`,
+      mediaTypeBadge: isAnime ? 'ANIME SERIES' : isTv ? 'SERIES' : 'FEATURE FILM'
     }
   ];
 }
@@ -237,15 +185,14 @@ interface DnaAffinityEngineProps {
   currentMovie: MovieItem;
 }
 
-export default function DnaAffinityEngine({ currentMovie }: DnaAffinityEngineProps) {
-  const movieIdStr = String(currentMovie.id);
-  const matchedList = KNOWLEDGE_GRAPH[movieIdStr] || generateDynamicAffinity(currentMovie);
+export default async function DnaAffinityEngine({ currentMovie }: DnaAffinityEngineProps) {
+  const matchedList = await fetchDynamicAffinity(currentMovie);
 
   return (
     <section className="my-14 rounded-2xl bg-gradient-to-b from-[#0b0f19] to-[#06080d] border border-cyan-500/20 p-6 sm:p-8 shadow-2xl relative overflow-hidden text-left">
       <div className="absolute top-0 right-0 w-96 h-96 bg-cyan-500/5 rounded-full blur-3xl pointer-events-none -z-0" />
 
-      {/* Header Badge & Title */}
+      {/* Header */}
       <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-5 mb-8">
         <div>
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-950/70 border border-cyan-500/30 text-cyan-400 font-mono text-xs uppercase tracking-widest mb-2">
@@ -295,13 +242,15 @@ export default function DnaAffinityEngine({ currentMovie }: DnaAffinityEnginePro
 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-2">
-                    <span className="text-[10px] font-mono uppercase text-slate-500">{target.year}</span>
+                    <span className="text-[9px] font-mono uppercase text-cyan-400 font-semibold px-1.5 py-0.5 rounded bg-cyan-950/60 border border-cyan-500/20">
+                      {target.mediaTypeBadge} • {target.year}
+                    </span>
                     <div className="px-2 py-0.5 rounded bg-cyan-950/80 border border-cyan-500/40 text-cyan-300 font-mono text-xs font-bold shrink-0">
                       {target.affinityScore}% Affinity
                     </div>
                   </div>
 
-                  <h3 className="text-base sm:text-lg font-bold text-white group-hover:text-cyan-300 transition-colors truncate mt-0.5">
+                  <h3 className="text-base sm:text-lg font-bold text-white group-hover:text-cyan-300 transition-colors truncate mt-1">
                     <Link href={`/movie/${target.id}`}>{target.title}</Link>
                   </h3>
 

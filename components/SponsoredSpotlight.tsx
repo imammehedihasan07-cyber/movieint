@@ -1,16 +1,13 @@
-"use client";
-
-import { useState } from "react";
 import Link from "next/link";
-import { Sparkles, ExternalLink, ShieldCheck, Film } from "lucide-react";
+import Image from "next/image";
+import { Sparkles, ExternalLink, ShieldCheck } from "lucide-react";
 
 export default function SponsoredSpotlight() {
-  const [imgError, setImgError] = useState(false);
-
   const partner = {
     title: "Challengers",
     tagline: "High-voltage psychological tension on and off the court.",
-    image: "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=400&q=80",
+    image:
+      "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=160&q=70&fm=webp",
     streamPlatform: "Prime Video",
     streamUrl: "https://www.amazon.com/gp/video/storefront",
     year: "2024",
@@ -24,23 +21,15 @@ export default function SponsoredSpotlight() {
         <div className="flex flex-col lg:flex-row items-center justify-between gap-6 z-10 relative">
           {/* Left: Poster & Title Details */}
           <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5 text-center sm:text-left">
-            <div className="relative w-24 aspect-[2/3] rounded-2xl overflow-hidden bg-[#0a0f1d] border border-white/10 shrink-0 shadow-lg flex items-center justify-center">
-              {!imgError ? (
-                <img
-                  src={partner.image}
-                  alt={partner.title}
-                  loading="eager"
-                  onError={() => setImgError(true)}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full flex flex-col items-center justify-center p-2 text-center bg-gradient-to-b from-indigo-950/40 to-slate-900">
-                  <Film className="w-7 h-7 text-amber-400 mb-1" />
-                  <span className="text-[9px] font-mono text-amber-300 font-bold uppercase">
-                    Cinema
-                  </span>
-                </div>
-              )}
+            <div className="relative w-20 sm:w-24 aspect-[2/3] rounded-2xl overflow-hidden bg-[#0a0f1d] border border-white/10 shrink-0 shadow-lg flex items-center justify-center">
+              <Image
+                src={partner.image}
+                alt={partner.title}
+                fill
+                priority
+                sizes="(max-width: 640px) 80px, 96px"
+                className="object-cover"
+              />
             </div>
 
             <div>
@@ -55,7 +44,10 @@ export default function SponsoredSpotlight() {
               </div>
 
               <h3 className="text-xl sm:text-2xl font-black text-white tracking-tight">
-                {partner.title} <span className="text-slate-500 text-sm font-normal">({partner.year})</span>
+                {partner.title}{" "}
+                <span className="text-slate-500 text-sm font-normal">
+                  ({partner.year})
+                </span>
               </h3>
 
               <p className="text-xs sm:text-sm text-slate-300 max-w-xl mt-1 leading-relaxed">

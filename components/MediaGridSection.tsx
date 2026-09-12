@@ -96,6 +96,7 @@ export default function MediaGridSection({
             <Link
               key={`${item.id}-${idx}`}
               href={linkHref}
+              prefetch={false} // অপ্রয়োজনীয় ব্যাকগ্রাউন্ড ফাংশন ইনভোকেশন সম্পূর্ণ বন্ধ করবে
               className={`group relative bg-[#090d15] border border-white/[0.06] rounded-2xl overflow-hidden ${borderAccent} hover:shadow-2xl transition-all duration-300 flex flex-col`}
             >
               <div className="aspect-[2/3] relative w-full bg-slate-950 overflow-hidden">

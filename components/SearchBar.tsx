@@ -23,7 +23,6 @@ const QUICK_TAGS = [
   "Fast-Paced Sci-Fi",
 ];
 
-// Presets mapping directly to TMDB parameters for 100% reliable results
 const MOOD_PRESETS: Record<string, string> = {
   "Mind-Bending": "with_genres=9648,878&sort_by=vote_average.desc&vote_count.gte=1000",
   "Slow-Burn Thrillers": "with_genres=53,18&sort_by=vote_average.desc&vote_count.gte=800",
@@ -49,9 +48,12 @@ export default function SearchBar() {
 
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Debounced Live TMDB Search with strict data hygiene
+  // Debounced Live TMDB Search with strict data hygiene and character threshold
   useEffect(() => {
-    if (!query.trim() || aiSearched) {
+    const cleanQuery = query.trim();
+
+    // ৩ অক্ষরের কম হলে এপিআই কল সম্পূর্ণ বন্ধ থাকবে
+    if (!cleanQuery || cleanQuery.length < 3 || aiSearched) {
       setSuggestions([]);
       setIsDropdownOpen(false);
       return;
@@ -62,12 +64,11 @@ export default function SearchBar() {
       try {
         const res = await fetch(
           `https://api.themoviedb.org/3/search/movie?api_key=b6b9f5e3a64b6ef32e0b8fade33cfe5a&query=${encodeURIComponent(
-            query
+            cleanQuery
           )}`
         );
         const data = await res.json();
         if (data.results) {
-          // Strict curation: Must have poster, positive rating, and minimal consensus threshold
           const cleanMatches = (data.results || [])
             .filter(
               (m: any) =>
@@ -86,7 +87,7 @@ export default function SearchBar() {
       } finally {
         setSuggestLoading(false);
       }
-    }, 280);
+    }, 450); // ৪০০-৪৫০ms ডিবউন্স অতিরিক্ত ফেচিং সম্পূর্ণ কমিয়ে আনবে
 
     return () => clearTimeout(timer);
   }, [query, aiSearched]);
@@ -330,6 +331,7 @@ export default function SearchBar() {
                 <Link
                   key={movie.id}
                   href={`/movie/${movie.id}`}
+                  prefetch={false} // প্রিফেচ বন্ধ করা হলো যেন অযথা সার্ভারলেস ফাংশন না চলে
                   className="group bg-[#090d15] border border-white/[0.06] rounded-2xl overflow-hidden hover:border-indigo-500 transition flex flex-col"
                 >
                   <div className="aspect-[2/3] relative w-full bg-slate-900">

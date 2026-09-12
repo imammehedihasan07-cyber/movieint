@@ -1,4 +1,3 @@
-// app/api/advisor/route.ts
 import { NextResponse } from 'next/server';
 
 interface MovieKnowledge {
@@ -18,7 +17,6 @@ interface MovieKnowledge {
   signature: string;
 }
 
-// Curated Cinematic Vector Database
 const MOVIE_DATABASE: MovieKnowledge[] = [
   {
     title: 'Arrival',
@@ -214,6 +212,9 @@ const MOVIE_DATABASE: MovieKnowledge[] = [
   }
 ];
 
+// In-Memory Cache
+const advisorCache = new Map<string, any>();
+
 export async function POST(req: Request) {
   try {
     const { prompt } = await req.json();
@@ -222,7 +223,14 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Prompt is required' }, { status: 400 });
     }
 
-    const query = prompt.toLowerCase();
+    const query = prompt.toLowerCase().trim();
+    if (advisorCache.has(query)) {
+      return NextResponse.json(advisorCache.get(query), {
+        headers: {
+          "Cache-Control": "public, s-maxage=86400, stale-while-revalidate=43200",
+        },
+      });
+    }
 
     // 1. Identify Tone & Intent Vectors
     const wantsDarker = query.includes('dark') || query.includes('scary') || query.includes('bleak') || query.includes('unsettling');
@@ -289,14 +297,14 @@ export async function POST(req: Request) {
       .sort((a, b) => b.matchPercent - a.matchPercent)
       .slice(0, 3);
 
-    // 4. Guaranteed TMDB Live Official Poster Resolution (Zero Human Error)
+    // 4. TMDB Details Resolution
     const apiKey = process.env.TMDB_API_KEY || 'b6b9f5e3a64b6ef32e0b8fade33cfe5a';
     const enrichedResults = await Promise.all(
       ranked.map(async (movie) => {
         try {
           const tmdbRes = await fetch(
             `https://api.themoviedb.org/3/movie/${movie.tmdbId}?api_key=${apiKey}`,
-            { next: { revalidate: 86400 } }
+            { next: { revalidate: 604800 } }
           );
           if (tmdbRes.ok) {
             const tmdbData = await tmdbRes.json();
@@ -315,10 +323,18 @@ export async function POST(req: Request) {
       })
     );
 
-    return NextResponse.json({
+    const payload = {
       query: prompt,
       referenceDetected: referenceMovie ? referenceMovie.title : null,
       results: enrichedResults
+    };
+
+    advisorCache.set(query, payload);
+
+    return NextResponse.json(payload, {
+      headers: {
+        "Cache-Control": "public, s-maxage=86400, stale-while-revalidate=43200",
+      },
     });
   } catch {
     return NextResponse.json({ error: 'Failed to process telemetry query' }, { status: 500 });

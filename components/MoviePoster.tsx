@@ -57,6 +57,7 @@ export default function MoviePoster({
       priority={priority}
       loading={priority ? "eager" : "lazy"}
       decoding="async"
+      unoptimized={true} // Vercel Image Transformation সম্পূর্ণ বন্ধ রাখবে
       className={className}
       onError={() => setError(true)}
       {...props}

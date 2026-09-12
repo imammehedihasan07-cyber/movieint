@@ -9,17 +9,15 @@ export async function GET(req: Request) {
   }
 
   try {
-    // search/multi returns Movies, TV Series, and Worldwide Shows
     const res = await fetch(
       `https://api.themoviedb.org/3/search/multi?api_key=${process.env.TMDB_API_KEY || "b6b9f5e3a64b6ef32e0b8fade33cfe5a"}&query=${encodeURIComponent(
         query
       )}&include_adult=false&page=1`,
-      { next: { revalidate: 300 } }
+      { next: { revalidate: 86400 } }
     );
     if (!res.ok) return NextResponse.json({ results: [] });
     const data = await res.json();
     
-    // Filter out people, only keep movie & tv series
     const mediaResults = (data.results || [])
       .filter((item: any) => item.media_type === "movie" || item.media_type === "tv")
       .slice(0, 7)
@@ -34,7 +32,14 @@ export async function GET(req: Request) {
         origin_country: item.origin_country?.[0] || "",
       }));
 
-    return NextResponse.json({ results: mediaResults });
+    return NextResponse.json(
+      { results: mediaResults },
+      {
+        headers: {
+          "Cache-Control": "public, s-maxage=86400, stale-while-revalidate=43200",
+        },
+      }
+    );
   } catch {
     return NextResponse.json({ results: [] });
   }

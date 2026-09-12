@@ -4,7 +4,7 @@ import { GoogleGenAI } from "@google/genai";
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 const TMDB_API_KEY = process.env.TMDB_API_KEY || "b6b9f5e3a64b6ef32e0b8fade33cfe5a";
 
-// মেমোরিতে রেজাল্ট ক্যাশ রাখা
+// In-Memory Search Cache
 const searchCache = new Map<string, any>();
 
 export async function POST(req: Request) {
@@ -65,7 +65,7 @@ Example format: ["Inception", "Interstellar", "Arrival"]`,
 
     const movies = (await Promise.all(movieDataPromises)).filter(Boolean);
 
-    // ক্যাশে সংরক্ষণ
+    // Store in cache
     searchCache.set(cacheKey, movies);
 
     return NextResponse.json(

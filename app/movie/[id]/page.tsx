@@ -15,6 +15,9 @@ import MoviePoster from "@/components/MoviePoster";
 import DnaAffinityEngine from "@/components/DnaAffinityEngine";
 import { EDITORIAL_ARTICLES } from "@/lib/editorial-data";
 
+// Incremental Static Regeneration (ISR) - Cache entire page on Edge for 24 hours
+export const revalidate = 86400;
+
 interface MovieDetailProps {
   params: Promise<{ id: string }> | { id: string };
 }
@@ -31,7 +34,7 @@ async function getMediaDetails(rawId: string) {
     try {
       const tvRes = await fetch(
         `https://api.themoviedb.org/3/tv/${cleanId}?api_key=${apiKey}&append_to_response=credits,aggregate_credits,similar,videos,watch/providers`,
-        { next: { revalidate: 3600 } }
+        { next: { revalidate: 86400 } }
       );
       if (tvRes.ok) {
         const data = await tvRes.json();
@@ -56,7 +59,7 @@ async function getMediaDetails(rawId: string) {
     try {
       const movieRes = await fetch(
         `https://api.themoviedb.org/3/movie/${cleanId}?api_key=${apiKey}&append_to_response=credits,similar,videos,watch/providers`,
-        { next: { revalidate: 3600 } }
+        { next: { revalidate: 86400 } }
       );
       if (movieRes.ok) {
         const data = await movieRes.json();
@@ -67,16 +70,16 @@ async function getMediaDetails(rawId: string) {
     }
   }
 
-  // 3. Ambiguous IDs: Query both endpoints concurrently to prevent collisions
+  // 3. Ambiguous IDs: Query both endpoints concurrently
   try {
     const [movieRes, tvRes] = await Promise.allSettled([
       fetch(
         `https://api.themoviedb.org/3/movie/${cleanId}?api_key=${apiKey}&append_to_response=credits,similar,videos,watch/providers`,
-        { next: { revalidate: 3600 } }
+        { next: { revalidate: 86400 } }
       ),
       fetch(
         `https://api.themoviedb.org/3/tv/${cleanId}?api_key=${apiKey}&append_to_response=credits,aggregate_credits,similar,videos,watch/providers`,
-        { next: { revalidate: 3600 } }
+        { next: { revalidate: 86400 } }
       ),
     ]);
 
@@ -100,7 +103,7 @@ async function getMediaDetails(rawId: string) {
           release_date: tvData.first_air_date,
           runtime: tvData.episode_run_time?.[0] || 45,
           credits: {
-            cast: tvData.aggregate_credits?.cast?.length ? tvData.aggregate_credits.cast : tvData.credits?.cast || [],
+            cast: dataCastExtract(tvData),
           },
           media_type: "tv",
         };
@@ -117,7 +120,7 @@ async function getMediaDetails(rawId: string) {
         release_date: tvData.first_air_date,
         runtime: tvData.episode_run_time?.[0] || 45,
         credits: {
-          cast: tvData.aggregate_credits?.cast?.length ? tvData.aggregate_credits.cast : tvData.credits?.cast || [],
+          cast: dataCastExtract(tvData),
         },
         media_type: "tv",
       };
@@ -127,6 +130,12 @@ async function getMediaDetails(rawId: string) {
   }
 
   return null;
+}
+
+function dataCastExtract(tvData: any) {
+  return tvData.aggregate_credits?.cast?.length
+    ? tvData.aggregate_credits.cast
+    : tvData.credits?.cast || [];
 }
 
 export async function generateMetadata({ params }: MovieDetailProps): Promise<Metadata> {
@@ -201,7 +210,7 @@ export default async function MediaDetailPage({ params }: MovieDetailProps) {
     return (
       <main className="min-h-screen bg-[#05070b] text-white flex flex-col items-center justify-center">
         <p className="text-slate-400 mb-4 font-mono text-sm">ARCHIVE_RECORD_NOT_FOUND</p>
-        <Link href="/" className="text-indigo-400 hover:text-indigo-300 font-medium transition">
+        <Link href="/" prefetch={false} className="text-indigo-400 hover:text-indigo-300 font-medium transition">
           ← Return to Command Center
         </Link>
       </main>
@@ -277,6 +286,7 @@ export default async function MediaDetailPage({ params }: MovieDetailProps) {
       <div className="max-w-5xl w-full z-10">
         <Link
           href="/"
+          prefetch={false}
           className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-400 hover:text-slate-200 mb-8 transition"
         >
           <ArrowLeft className="w-3.5 h-3.5" /> Back to Discover
@@ -396,7 +406,6 @@ export default async function MediaDetailPage({ params }: MovieDetailProps) {
           overview={media.overview}
         />
 
-        {/* 6-Vector Neural DNA Affinity Engine (Fixed Parameter Contract) */}
         <DnaAffinityEngine
           currentMovie={{
             id: id,
@@ -420,6 +429,7 @@ export default async function MediaDetailPage({ params }: MovieDetailProps) {
                 <Link
                   key={actor.id}
                   href={`/person/${actor.id}`}
+                  prefetch={false}
                   className="group bg-[#090d15] border border-white/[0.06] rounded-2xl p-3 text-center hover:border-indigo-500/50 transition block"
                 >
                   <div className="w-16 h-16 relative mx-auto mb-2 rounded-full overflow-hidden bg-slate-900 border border-white/5">
@@ -454,6 +464,7 @@ export default async function MediaDetailPage({ params }: MovieDetailProps) {
               </h3>
               <Link
                 href={`/movies-like/${id}`}
+                prefetch={false}
                 className="text-xs text-indigo-400 hover:text-indigo-300 transition font-mono"
               >
                 View Full Affinity Index →
@@ -467,6 +478,7 @@ export default async function MediaDetailPage({ params }: MovieDetailProps) {
                   <Link
                     key={sim.id}
                     href={`/movie/${linkId}`}
+                    prefetch={false}
                     className="group bg-[#090d15] border border-white/[0.06] rounded-2xl overflow-hidden hover:border-indigo-500/50 transition duration-300 flex flex-col"
                   >
                     <div className="aspect-[2/3] relative w-full bg-slate-950">
@@ -509,6 +521,7 @@ export default async function MediaDetailPage({ params }: MovieDetailProps) {
             </div>
             <Link
               href="/editorial"
+              prefetch={false}
               className="text-xs text-cyan-400 hover:text-cyan-300 transition font-mono flex items-center gap-1"
             >
               Explore All Guides <ChevronRight className="w-3 h-3" />
@@ -520,6 +533,7 @@ export default async function MediaDetailPage({ params }: MovieDetailProps) {
               <Link
                 key={guide.slug}
                 href={`/editorial/${guide.slug}`}
+                prefetch={false}
                 className="group bg-[#090d15] border border-white/[0.06] hover:border-cyan-500/40 rounded-2xl p-4 transition-all duration-300 flex flex-col justify-between"
               >
                 <div>

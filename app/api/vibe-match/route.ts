@@ -5,12 +5,24 @@ const ai = new GoogleGenAI({
   apiKey: process.env.GEMINI_API_KEY,
 });
 
+// In-Memory Cache
+const vibeCache = new Map<string, any>();
+
 export async function POST(req: Request) {
   try {
     const { title, overview } = await req.json();
 
     if (!title) {
       return NextResponse.json({ error: "Title required" }, { status: 400 });
+    }
+
+    const cacheKey = title.toLowerCase().trim();
+    if (vibeCache.has(cacheKey)) {
+      return NextResponse.json(vibeCache.get(cacheKey), {
+        headers: {
+          "Cache-Control": "public, s-maxage=604800, stale-while-revalidate=86400",
+        },
+      });
     }
 
     const prompt = `You are a film psychology and narrative architecture expert.
@@ -40,14 +52,14 @@ Return pure JSON array matching this format:
 
     const suggestions = JSON.parse(response.text || "[]");
 
-    // Fetch poster and TMDB ID for each match
     const enriched = await Promise.all(
       suggestions.map(async (item: any) => {
         try {
           const res = await fetch(
             `https://api.themoviedb.org/3/search/movie?api_key=${process.env.TMDB_API_KEY}&query=${encodeURIComponent(
               item.title
-            )}&year=${item.year || ""}`
+            )}&year=${item.year || ""}`,
+            { next: { revalidate: 604800 } }
           );
           const data = await res.json();
           const match = data.results?.[0];
@@ -63,9 +75,19 @@ Return pure JSON array matching this format:
       })
     );
 
-    return NextResponse.json(enriched);
+    vibeCache.set(cacheKey, enriched);
+
+    return NextResponse.json(enriched, {
+      headers: {
+        "Cache-Control": "public, s-maxage=604800, stale-while-revalidate=86400",
+      },
+    });
   } catch (error) {
     console.error("Vibe Match API error:", error);
-    return NextResponse.json([]);
+    return NextResponse.json([], {
+      headers: {
+        "Cache-Control": "public, s-maxage=3600",
+      },
+    });
   }
 }

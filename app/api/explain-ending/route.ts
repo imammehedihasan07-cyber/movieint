@@ -5,12 +5,24 @@ const ai = new GoogleGenAI({
   apiKey: process.env.GEMINI_API_KEY,
 });
 
+// In-Memory Cache
+const endingCache = new Map<string, any>();
+
 export async function POST(req: Request) {
   try {
     const { title, year, overview } = await req.json();
 
     if (!title) {
       return NextResponse.json({ error: "Title is required" }, { status: 400 });
+    }
+
+    const cacheKey = `${title}-${year || ""}`.toLowerCase().trim();
+    if (endingCache.has(cacheKey)) {
+      return NextResponse.json(endingCache.get(cacheKey), {
+        headers: {
+          "Cache-Control": "public, s-maxage=604800, stale-while-revalidate=86400",
+        },
+      });
     }
 
     const prompt = `You are an elite cinema scholar and structural narrative theorist.
@@ -41,7 +53,13 @@ Return pure JSON matching this exact structure:
     });
 
     const parsed = JSON.parse(response.text || "{}");
-    return NextResponse.json(parsed);
+    endingCache.set(cacheKey, parsed);
+
+    return NextResponse.json(parsed, {
+      headers: {
+        "Cache-Control": "public, s-maxage=604800, stale-while-revalidate=86400",
+      },
+    });
   } catch (error) {
     console.error("Ending explanation error:", error);
     return NextResponse.json(
@@ -54,7 +72,12 @@ Return pure JSON matching this exact structure:
         philosophicalThematicMeaning: "A commentary on acceptance versus delusion, forcing the viewer to question whether subjective peace outweighs objective truth.",
         finalAmbiguityVerdict: "The narrative intentionally preserves duality to reflect the core theme."
       },
-      { status: 200 }
+      {
+        status: 200,
+        headers: {
+          "Cache-Control": "public, s-maxage=86400",
+        },
+      }
     );
   }
 }

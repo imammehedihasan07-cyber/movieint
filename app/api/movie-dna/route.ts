@@ -18,7 +18,11 @@ export async function POST(req: Request) {
 
     const cacheKey = title.toLowerCase().trim();
     if (dnaCache.has(cacheKey)) {
-      return NextResponse.json(dnaCache.get(cacheKey));
+      return NextResponse.json(dnaCache.get(cacheKey), {
+        headers: {
+          "Cache-Control": "public, s-maxage=604800, stale-while-revalidate=86400",
+        },
+      });
     }
 
     const prompt = `You are a film scholar. Analyze this film strictly based on narrative architecture.
@@ -54,7 +58,11 @@ Return pure JSON matching this exact structure:
     // Cache the result
     dnaCache.set(cacheKey, parsedData);
 
-    return NextResponse.json(parsedData);
+    return NextResponse.json(parsedData, {
+      headers: {
+        "Cache-Control": "public, s-maxage=604800, stale-while-revalidate=86400",
+      },
+    });
   } catch (error: any) {
     console.error("Movie DNA generation error:", error);
     return NextResponse.json(
@@ -68,7 +76,12 @@ Return pure JSON matching this exact structure:
         targetAudience: "Cinema Lovers",
         whyWatch: "A compelling narrative driven by atmosphere and thematic depth.",
       },
-      { status: 200 }
+      {
+        status: 200,
+        headers: {
+          "Cache-Control": "public, s-maxage=86400",
+        },
+      }
     );
   }
 }

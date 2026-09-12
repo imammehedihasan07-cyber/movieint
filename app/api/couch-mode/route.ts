@@ -5,9 +5,21 @@ const ai = new GoogleGenAI({
   apiKey: process.env.GEMINI_API_KEY,
 });
 
+// In-Memory Cache
+const couchCache = new Map<string, any>();
+
 export async function POST(req: Request) {
   try {
     const { energy, mood, time } = await req.json();
+
+    const cacheKey = `${energy}-${mood}-${time}`.toLowerCase().trim();
+    if (couchCache.has(cacheKey)) {
+      return NextResponse.json(couchCache.get(cacheKey), {
+        headers: {
+          "Cache-Control": "public, s-maxage=86400, stale-while-revalidate=43200",
+        },
+      });
+    }
 
     const prompt = `You are an elite cinema concierge.
 A viewer wants a personalized movie recommendation based on these exact criteria:
@@ -37,14 +49,14 @@ Return pure JSON with this exact array structure:
 
     const suggestions = JSON.parse(response.text || "[]");
 
-    // Fetch poster and TMDB ID for each movie
     const enrichedResults = await Promise.all(
       suggestions.map(async (item: any) => {
         try {
           const tmdbRes = await fetch(
             `https://api.themoviedb.org/3/search/movie?api_key=${process.env.TMDB_API_KEY}&query=${encodeURIComponent(
               item.title
-            )}&year=${item.year || ""}`
+            )}&year=${item.year || ""}`,
+            { next: { revalidate: 604800 } }
           );
           const tmdbData = await tmdbRes.json();
           const match = tmdbData.results?.[0];
@@ -60,7 +72,13 @@ Return pure JSON with this exact array structure:
       })
     );
 
-    return NextResponse.json(enrichedResults);
+    couchCache.set(cacheKey, enrichedResults);
+
+    return NextResponse.json(enrichedResults, {
+      headers: {
+        "Cache-Control": "public, s-maxage=86400, stale-while-revalidate=43200",
+      },
+    });
   } catch (error) {
     console.error("Couch Mode error:", error);
     return NextResponse.json(
@@ -73,7 +91,12 @@ Return pure JSON with this exact array structure:
           vote_average: 7.9,
         },
       ],
-      { status: 200 }
+      {
+        status: 200,
+        headers: {
+          "Cache-Control": "public, s-maxage=86400",
+        },
+      }
     );
   }
 }

@@ -44,6 +44,7 @@ export const metadata: Metadata = {
     "Cinema AI recommendation",
     "Global Web Series",
     "Anime and K-Drama Discovery",
+    "Index of movies",
   ],
   authors: [{ name: "MOVIEINT Intelligence" }],
   creator: "MOVIEINT",
@@ -65,7 +66,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "MOVIEINT — AI-Powered Cinema Intelligence & DNA Archival",
     description:
-      "Algorithmic narrative breakdown and streaming availability for worldwide cinema & series.",
+      "Algorithmic narrative breakdown, ending explanations, and streaming availability for worldwide cinema & series.",
     url: siteUrl,
     siteName: "MOVIEINT",
     locale: "en_US",
@@ -129,15 +130,12 @@ export default function RootLayout({
           id="global-schema"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
-        {/* Google Analytics (GA4) - Lazy loaded to prevent main-thread blocking */}
+        {/* Google Analytics (GA4) */}
         <Script
           strategy="lazyOnload"
           src="https://www.googletagmanager.com/gtag/js?id=G-84GR311JNK"
         />
-        <Script
-          id="google-analytics"
-          strategy="lazyOnload"
-        >
+        <Script id="google-analytics" strategy="lazyOnload">
           {`
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}

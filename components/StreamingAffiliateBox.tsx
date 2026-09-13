@@ -1,5 +1,8 @@
+"use client";
+
 import { ShieldCheck, ExternalLink, Globe, Lock } from "lucide-react";
 import { AFFILIATE_CONFIG, getSmartStreamLink } from "@/lib/affiliates";
+import { trackAffiliateClick } from "@/lib/analytics";
 
 interface StreamingAffiliateBoxProps {
   movieTitle: string;
@@ -37,25 +40,36 @@ export default function StreamingAffiliateBox({ movieTitle }: StreamingAffiliate
 
       {/* Official Streaming Providers */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-5">
-        {providers.map((item) => (
-          <a
-            key={item.name}
-            href={getSmartStreamLink(item.name, safeTitle)}
-            target="_blank"
-            rel="nofollow sponsored noopener noreferrer"
-            className="flex items-center justify-between p-3.5 rounded-xl bg-white/[0.03] border border-white/[0.05] hover:border-indigo-500/40 hover:bg-white/[0.06] transition duration-200 group"
-          >
-            <div>
-              <div className="text-xs font-bold text-slate-200 group-hover:text-indigo-300 transition">
-                {item.name}
+        {providers.map((item) => {
+          const streamUrl = getSmartStreamLink(item.name, safeTitle);
+          return (
+            <a
+              key={item.name}
+              href={streamUrl}
+              target="_blank"
+              rel="nofollow sponsored noopener noreferrer"
+              onClick={() =>
+                trackAffiliateClick({
+                  movieTitle: safeTitle,
+                  platform: item.name,
+                  affiliateUrl: streamUrl,
+                  placement: "streaming_grid",
+                })
+              }
+              className="flex items-center justify-between p-3.5 rounded-xl bg-white/[0.03] border border-white/[0.05] hover:border-indigo-500/40 hover:bg-white/[0.06] transition duration-200 group"
+            >
+              <div>
+                <div className="text-xs font-bold text-slate-200 group-hover:text-indigo-300 transition">
+                  {item.name}
+                </div>
+                <div className="text-[10px] text-slate-500 font-mono mt-0.5">
+                  {item.type} • {item.status}
+                </div>
               </div>
-              <div className="text-[10px] text-slate-500 font-mono mt-0.5">
-                {item.type} • {item.status}
-              </div>
-            </div>
-            <ExternalLink className="w-3.5 h-3.5 text-slate-500 group-hover:text-indigo-400 transition" />
-          </a>
-        ))}
+              <ExternalLink className="w-3.5 h-3.5 text-slate-500 group-hover:text-indigo-400 transition" />
+            </a>
+          );
+        })}
       </div>
 
       {/* Privacy & Regional Security Partner Unit */}
@@ -74,15 +88,28 @@ export default function StreamingAffiliateBox({ movieTitle }: StreamingAffiliate
           </div>
         </div>
 
-        <a
-          href={AFFILIATE_CONFIG?.NORD_VPN || "https://nordvpn.com"}
-          target="_blank"
-          rel="nofollow sponsored noopener noreferrer"
-          className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold px-4 py-2 rounded-xl transition shadow-lg shadow-indigo-600/30 shrink-0"
-        >
-          <span>Explore NordVPN</span>
-          <ExternalLink className="w-3 h-3" />
-        </a>
+        {(() => {
+          const vpnUrl = AFFILIATE_CONFIG?.NORD_VPN || "https://nordvpn.com";
+          return (
+            <a
+              href={vpnUrl}
+              target="_blank"
+              rel="nofollow sponsored noopener noreferrer"
+              onClick={() =>
+                trackAffiliateClick({
+                  movieTitle: safeTitle,
+                  platform: "NordVPN",
+                  affiliateUrl: vpnUrl,
+                  placement: "vpn_partner_banner",
+                })
+              }
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold px-4 py-2 rounded-xl transition shadow-lg shadow-indigo-600/30 shrink-0"
+            >
+              <span>Explore NordVPN</span>
+              <ExternalLink className="w-3 h-3" />
+            </a>
+          );
+        })()}
       </div>
 
       {/* FTC Micro Disclaimer */}

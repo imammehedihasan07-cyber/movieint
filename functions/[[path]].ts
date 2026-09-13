@@ -1,1 +1,0 @@
-export { onRequest } from '../.open-next/worker.js';

@@ -5,20 +5,23 @@ import SearchBar from "@/components/SearchBar";
 import SponsoredSpotlight from "@/components/SponsoredSpotlight";
 import MediaGridSection from "@/components/MediaGridSection";
 
+export const dynamic = "force-dynamic";
+
 async function getGlobalCatalog() {
   const apiKey = process.env.TMDB_API_KEY || "b6b9f5e3a64b6ef32e0b8fade33cfe5a";
 
   try {
+    const fetchOptions = {
+      headers: { accept: "application/json" },
+      cache: "no-store" as RequestCache,
+    };
+
     const [moviesRes, seriesRes, animeRes] = await Promise.all([
-      fetch(`https://api.themoviedb.org/3/trending/movie/week?api_key=${apiKey}&page=1`, {
-        next: { revalidate: 3600 },
-      }),
-      fetch(`https://api.themoviedb.org/3/trending/tv/week?api_key=${apiKey}&page=1`, {
-        next: { revalidate: 3600 },
-      }),
+      fetch(`https://api.themoviedb.org/3/trending/movie/week?api_key=${apiKey}&page=1`, fetchOptions),
+      fetch(`https://api.themoviedb.org/3/trending/tv/week?api_key=${apiKey}&page=1`, fetchOptions),
       fetch(
         `https://api.themoviedb.org/3/discover/tv?api_key=${apiKey}&with_genres=16,18&sort_by=vote_average.desc&vote_count.gte=300&page=1`,
-        { next: { revalidate: 3600 } }
+        fetchOptions
       ),
     ]);
 
@@ -29,13 +32,13 @@ async function getGlobalCatalog() {
     ]);
 
     const movies = (moviesData.results || []).filter(
-      (m: any) => m && m.poster_path && m.vote_average > 0 && (m.vote_count ?? 0) >= 5
+      (m: any) => m && m.poster_path && m.vote_average > 0
     );
     const series = (seriesData.results || []).filter(
-      (s: any) => s && s.poster_path && s.vote_average > 0 && (s.vote_count ?? 0) >= 5
+      (s: any) => s && s.poster_path && s.vote_average > 0
     );
     const cultGlobal = (animeData.results || []).filter(
-      (a: any) => a && a.poster_path && a.vote_average > 0 && (a.vote_count ?? 0) >= 10
+      (a: any) => a && a.poster_path && a.vote_average > 0
     );
 
     const featured = movies[0] || series[0] || null;
@@ -94,6 +97,7 @@ export default async function HomePage() {
                   alt={featuredTitle}
                   fill
                   priority
+                  unoptimized
                   sizes="(max-width: 768px) 100vw, (max-width: 1280px) 90vw, 1200px"
                   className="object-cover object-center opacity-45 group-hover:scale-105 transition-transform duration-1000 ease-out"
                 />

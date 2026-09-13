@@ -56,6 +56,7 @@ async function getMediaDetails(rawId: string) {
           runtime: data.episode_run_time?.[0] || 45,
           credits: {
             cast: data.aggregate_credits?.cast?.length ? data.aggregate_credits.cast : data.credits?.cast || [],
+            crew: data.credits?.crew || [],
           },
           media_type: "tv",
         };
@@ -115,6 +116,7 @@ async function getMediaDetails(rawId: string) {
           runtime: tvData.episode_run_time?.[0] || 45,
           credits: {
             cast: dataCastExtract(tvData),
+            crew: tvData.credits?.crew || [],
           },
           media_type: "tv",
         };
@@ -132,6 +134,7 @@ async function getMediaDetails(rawId: string) {
         runtime: tvData.episode_run_time?.[0] || 45,
         credits: {
           cast: dataCastExtract(tvData),
+          crew: tvData.credits?.crew || [],
         },
         media_type: "tv",
       };
@@ -160,8 +163,24 @@ export async function generateMetadata({ params }: MovieDetailProps): Promise<Me
 
   const title = media.title || media.name || "Unknown Title";
   const releaseYear = (media.release_date || media.first_air_date || "").split("-")[0] || "";
-  const cleanDescription =
-    media.overview?.slice(0, 160) || "AI-powered narrative DNA, twist metrics, and streaming availability.";
+  const isTv = media.media_type === "tv";
+  const mediaTypeLabel = isTv ? "Series" : "Movie";
+
+  // Extract top 3 cast members for long-tail SEO queries
+  const topActors = (media.credits?.cast || [])
+    .slice(0, 3)
+    .map((a: any) => a.name)
+    .filter(Boolean);
+
+  const actorSnippet = topActors.length > 0 ? ` starring ${topActors.join(", ")}` : "";
+
+  // Dynamic high-CTR meta title
+  const metaTitle = `${title} (${releaseYear}) — Where to Watch, Ending Explained & Cast | MOVIEINT`;
+
+  const cleanDescription = media.overview
+    ? `${media.overview.slice(0, 120)}... Explore narrative DNA, ending explanation, cast details, and where to stream ${title} online.`
+    : `Explore ${title} (${releaseYear})${actorSnippet}. Get narrative DNA analysis, twist ratings, and official streaming guide on MOVIEINT.`;
+
   const canonicalUrl = `${baseUrl}/movie/${id}`;
 
   const ogImageUrl = `/api/og?title=${encodeURIComponent(title)}&rating=${media.vote_average?.toFixed(
@@ -171,36 +190,43 @@ export async function generateMetadata({ params }: MovieDetailProps): Promise<Me
   )}`;
 
   return {
-    title: `${title} (${releaseYear}) — Narrative DNA & Analysis | MOVIEINT`,
+    title: metaTitle,
     description: cleanDescription,
     alternates: {
       canonical: canonicalUrl,
     },
     keywords: [
       title,
-      "Movie DNA",
+      `${title} ${releaseYear}`,
+      `index of ${title.toLowerCase()}`,
+      `where to watch ${title}`,
+      `${title} ending explained`,
+      `${title} cast`,
+      ...topActors.map((actor: string) => `actor ${actor.toLowerCase()}`),
+      ...topActors,
+      `${mediaTypeLabel} DNA`,
       "Climax Twist Rating",
       "Streaming Availability",
       ...(media.genres?.map((g: { name: string }) => g.name) || []),
     ],
     openGraph: {
-      title: `${title} (${releaseYear}) | MOVIEINT`,
+      title: `${title} (${releaseYear}) — Cinematic Intelligence | MOVIEINT`,
       description: cleanDescription,
       url: canonicalUrl,
       siteName: "MOVIEINT",
-      type: media.media_type === "tv" ? "video.tv_show" : "video.movie",
+      type: isTv ? "video.tv_show" : "video.movie",
       images: [
         {
           url: ogImageUrl,
           width: 1200,
           height: 630,
-          alt: title,
+          alt: `${title} Poster`,
         },
       ],
     },
     twitter: {
       card: "summary_large_image",
-      title: `${title} — Cinematic Intelligence`,
+      title: `${title} (${releaseYear}) — Cinematic Intelligence`,
       description: cleanDescription,
       images: [ogImageUrl],
     },
@@ -259,6 +285,7 @@ export default async function MediaDetailPage({ params }: MovieDetailProps) {
   const relatedEditorialGuides =
     directGuides.length > 0 ? directGuides : EDITORIAL_ARTICLES.slice(0, 3);
 
+  // High-value Schema.org JSON-LD with Rich Cast list
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": isTv ? "TVSeries" : "Movie",
@@ -269,6 +296,10 @@ export default async function MediaDetailPage({ params }: MovieDetailProps) {
     description: media.overview,
     genre: media.genres?.map((g: { name: string }) => g.name),
     duration: media.runtime ? `PT${media.runtime}M` : undefined,
+    actor: cast.map((actor: any) => ({
+      "@type": "Person",
+      name: actor.name,
+    })),
     aggregateRating:
       media.vote_count && media.vote_average
         ? {

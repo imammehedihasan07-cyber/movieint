@@ -15,26 +15,37 @@ import MoviePoster from "@/components/MoviePoster";
 import DnaAffinityEngine from "@/components/DnaAffinityEngine";
 import { EDITORIAL_ARTICLES } from "@/lib/editorial-data";
 
-// Incremental Static Regeneration (ISR) - Cache entire page on Edge for 24 hours
-export const revalidate = 86400;
+export const dynamic = "force-dynamic";
 
 interface MovieDetailProps {
   params: Promise<{ id: string }> | { id: string };
 }
 
+function dataCastExtract(tvData: any) {
+  return tvData?.aggregate_credits?.cast?.length
+    ? tvData.aggregate_credits.cast
+    : tvData?.credits?.cast || [];
+}
+
 async function getMediaDetails(rawId: string) {
+  if (!rawId) return null;
   const apiKey = process.env.TMDB_API_KEY || "b6b9f5e3a64b6ef32e0b8fade33cfe5a";
 
   const isExplicitTv = rawId.startsWith("tv-") || rawId.startsWith("series-");
   const isExplicitMovie = rawId.startsWith("movie-");
   const cleanId = rawId.replace(/^(tv-|series-|movie-)/, "");
 
+  const fetchOptions = {
+    headers: { accept: "application/json" },
+    cache: "no-store" as RequestCache,
+  };
+
   // 1. Handle explicit TV routes
   if (isExplicitTv) {
     try {
       const tvRes = await fetch(
         `https://api.themoviedb.org/3/tv/${cleanId}?api_key=${apiKey}&append_to_response=credits,aggregate_credits,similar,videos,watch/providers`,
-        { next: { revalidate: 86400 } }
+        fetchOptions
       );
       if (tvRes.ok) {
         const data = await tvRes.json();
@@ -59,7 +70,7 @@ async function getMediaDetails(rawId: string) {
     try {
       const movieRes = await fetch(
         `https://api.themoviedb.org/3/movie/${cleanId}?api_key=${apiKey}&append_to_response=credits,similar,videos,watch/providers`,
-        { next: { revalidate: 86400 } }
+        fetchOptions
       );
       if (movieRes.ok) {
         const data = await movieRes.json();
@@ -75,11 +86,11 @@ async function getMediaDetails(rawId: string) {
     const [movieRes, tvRes] = await Promise.allSettled([
       fetch(
         `https://api.themoviedb.org/3/movie/${cleanId}?api_key=${apiKey}&append_to_response=credits,similar,videos,watch/providers`,
-        { next: { revalidate: 86400 } }
+        fetchOptions
       ),
       fetch(
         `https://api.themoviedb.org/3/tv/${cleanId}?api_key=${apiKey}&append_to_response=credits,aggregate_credits,similar,videos,watch/providers`,
-        { next: { revalidate: 86400 } }
+        fetchOptions
       ),
     ]);
 
@@ -132,15 +143,11 @@ async function getMediaDetails(rawId: string) {
   return null;
 }
 
-function dataCastExtract(tvData: any) {
-  return tvData.aggregate_credits?.cast?.length
-    ? tvData.aggregate_credits.cast
-    : tvData.credits?.cast || [];
-}
-
 export async function generateMetadata({ params }: MovieDetailProps): Promise<Metadata> {
-  const resolved = await Promise.resolve(params);
-  const id = resolved.id;
+  const resolved = await (params instanceof Promise ? params : Promise.resolve(params));
+  const id = resolved?.id;
+  if (!id) return { title: "Archive Record | MOVIEINT" };
+
   const media = await getMediaDetails(id);
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.movieint.com";
 
@@ -151,8 +158,8 @@ export async function generateMetadata({ params }: MovieDetailProps): Promise<Me
     };
   }
 
-  const title = media.title || media.name;
-  const releaseYear = (media.release_date || media.first_air_date || "").split("-")[0];
+  const title = media.title || media.name || "Unknown Title";
+  const releaseYear = (media.release_date || media.first_air_date || "").split("-")[0] || "";
   const cleanDescription =
     media.overview?.slice(0, 160) || "AI-powered narrative DNA, twist metrics, and streaming availability.";
   const canonicalUrl = `${baseUrl}/movie/${id}`;
@@ -201,9 +208,9 @@ export async function generateMetadata({ params }: MovieDetailProps): Promise<Me
 }
 
 export default async function MediaDetailPage({ params }: MovieDetailProps) {
-  const resolved = await Promise.resolve(params);
-  const id = resolved.id;
-  const media = await getMediaDetails(id);
+  const resolved = await (params instanceof Promise ? params : Promise.resolve(params));
+  const id = resolved?.id;
+  const media = id ? await getMediaDetails(id) : null;
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.movieint.com";
 
   if (!media) {
@@ -217,10 +224,10 @@ export default async function MediaDetailPage({ params }: MovieDetailProps) {
     );
   }
 
-  const title = media.title || media.name;
+  const title = media.title || media.name || "Untitled";
   const releaseDate = media.release_date || media.first_air_date || "TBA";
-  const year = releaseDate.split("-")[0];
-  const isTv = media.media_type === "tv" || id.startsWith("tv-") || id.startsWith("series-");
+  const year = releaseDate.split("-")[0] || "";
+  const isTv = media.media_type === "tv" || (id ? id.startsWith("tv-") || id.startsWith("series-") : false);
   const genreList = media.genres?.map((g: { name: string }) => g.name).join(", ") || "Cinema";
 
   const cast = (media.credits?.cast || [])
@@ -239,7 +246,7 @@ export default async function MediaDetailPage({ params }: MovieDetailProps) {
     media["watch/providers"]?.results?.US ||
     (Object.values(media["watch/providers"]?.results || {})[0] as any);
 
-  const cleanId = id.replace(/^(tv-|series-|movie-)/, "");
+  const cleanId = id ? id.replace(/^(tv-|series-|movie-)/, "") : "";
   const directGuides = EDITORIAL_ARTICLES.filter((article) =>
     article.movies.some(
       (m) =>
@@ -303,6 +310,7 @@ export default async function MediaDetailPage({ params }: MovieDetailProps) {
                 fallbackTitle={title}
                 fill
                 priority
+                unoptimized
                 sizes="(max-width: 768px) 100vw, 33vw"
                 className="object-cover"
               />
@@ -439,6 +447,7 @@ export default async function MediaDetailPage({ params }: MovieDetailProps) {
                         alt={`${actor.name} as ${actor.character || "Cast"} in ${title}`}
                         fallbackTitle={actor.name}
                         fill
+                        unoptimized
                         sizes="64px"
                         className="object-cover group-hover:scale-105 transition"
                       />
@@ -488,6 +497,7 @@ export default async function MediaDetailPage({ params }: MovieDetailProps) {
                           alt={`${simTitle} poster`}
                           fallbackTitle={simTitle}
                           fill
+                          unoptimized
                           sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
                           className="object-cover group-hover:scale-105 transition duration-300"
                         />

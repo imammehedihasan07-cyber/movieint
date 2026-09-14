@@ -20,7 +20,6 @@ import {
 import MoviePoster from '@/components/MoviePoster';
 import StreamingAffiliateBox from '@/components/StreamingAffiliateBox';
 import SpoilerShield from '@/components/SpoilerShield';
-import { computeBaselineDNA } from '@/components/MovieDNA';
 import { getRelatedEditorialsForMovie } from '@/lib/editorial-data';
 
 interface PageProps {
@@ -28,6 +27,50 @@ interface PageProps {
 }
 
 export const revalidate = 86400; // 24 hours ISR
+
+// Pure server-safe calculation to avoid Next.js Client-Server boundary conflict
+function calculateBaselineDNA(title: string, genre: string, voteAvg: number, overview: string, runtime: number) {
+  const g = (genre || '').toLowerCase();
+  const text = (overview || '').toLowerCase();
+
+  let pacingScore = 65;
+  if (g.includes('action') || g.includes('thriller')) pacingScore += 18;
+  if (g.includes('drama') || runtime > 140) pacingScore -= 15;
+  pacingScore = Math.min(95, Math.max(40, pacingScore));
+
+  let complexityScore = 55;
+  if (g.includes('mystery') || g.includes('sci-fi') || text.includes('identity') || text.includes('conspiracy')) {
+    complexityScore += 25;
+  }
+  complexityScore = Math.min(98, Math.max(30, complexityScore));
+
+  let twistScore = 50;
+  if (text.includes('secret') || text.includes('reveals') || text.includes('murder') || g.includes('mystery')) {
+    twistScore += 30;
+  }
+  twistScore = Math.min(95, Math.max(25, twistScore));
+
+  let resonanceScore = Math.min(98, Math.round(voteAvg * 10 + 5));
+
+  return {
+    pacing: {
+      score: pacingScore,
+      label: pacingScore > 75 ? 'Rapid Accelerating' : pacingScore > 55 ? 'Balanced Dynamic' : 'Methodical Slow-Burn',
+    },
+    complexity: {
+      score: complexityScore,
+      label: complexityScore > 75 ? 'Multi-Layered Cerebral' : complexityScore > 50 ? 'Linear Structured' : 'Accessible Direct',
+    },
+    twistPotency: {
+      score: twistScore,
+      label: twistScore > 70 ? 'High Reality Subversion' : 'Narrative Consistent',
+    },
+    emotionalResonance: {
+      score: resonanceScore,
+      label: resonanceScore > 75 ? 'High Thematic Impact' : 'Engaging Narrative',
+    },
+  };
+}
 
 async function getMovieDetails(id: string) {
   const apiKey = process.env.TMDB_API_KEY || 'b6b9f5e3a64b6ef32e0b8fade33cfe5a';
@@ -37,22 +80,10 @@ async function getMovieDetails(id: string) {
 
   try {
     const [movieRes, creditsRes, videosRes, similarRes] = await Promise.all([
-      fetch(
-        `https://api.themoviedb.org/3/movie/${cleanId}?api_key=${apiKey}&language=en-US`,
-        { next: { revalidate: 86400 } }
-      ).catch(() => null),
-      fetch(
-        `https://api.themoviedb.org/3/movie/${cleanId}/credits?api_key=${apiKey}&language=en-US`,
-        { next: { revalidate: 86400 } }
-      ).catch(() => null),
-      fetch(
-        `https://api.themoviedb.org/3/movie/${cleanId}/videos?api_key=${apiKey}&language=en-US`,
-        { next: { revalidate: 86400 } }
-      ).catch(() => null),
-      fetch(
-        `https://api.themoviedb.org/3/movie/${cleanId}/recommendations?api_key=${apiKey}&language=en-US&page=1`,
-        { next: { revalidate: 86400 } }
-      ).catch(() => null),
+      fetch(`https://api.themoviedb.org/3/movie/${cleanId}?api_key=${apiKey}&language=en-US`, { next: { revalidate: 86400 } }).catch(() => null),
+      fetch(`https://api.themoviedb.org/3/movie/${cleanId}/credits?api_key=${apiKey}&language=en-US`, { next: { revalidate: 86400 } }).catch(() => null),
+      fetch(`https://api.themoviedb.org/3/movie/${cleanId}/videos?api_key=${apiKey}&language=en-US`, { next: { revalidate: 86400 } }).catch(() => null),
+      fetch(`https://api.themoviedb.org/3/movie/${cleanId}/recommendations?api_key=${apiKey}&language=en-US&page=1`, { next: { revalidate: 86400 } }).catch(() => null),
     ]);
 
     if (!movieRes || !movieRes.ok) return null;
@@ -160,7 +191,7 @@ export default async function MovieDetailPage({ params }: PageProps) {
   const year = movie.release_date ? new Date(movie.release_date).getFullYear() : 'N/A';
   const genreNames = movie.genres?.map((g: { name: string }) => g.name).join(', ') || 'Feature Film';
 
-  const dna = computeBaselineDNA(
+  const dna = calculateBaselineDNA(
     movie.title,
     genreNames,
     movie.vote_average || 7.0,
@@ -308,10 +339,7 @@ export default async function MovieDetailPage({ params }: PageProps) {
               </span>
             </div>
             <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-emerald-500 rounded-full"
-                style={{ width: `${dna.pacing.score}%` }}
-              />
+              <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${dna.pacing.score}%` }} />
             </div>
             <p className="text-[11px] text-slate-400">{dna.pacing.label} momentum progression</p>
           </div>
@@ -327,10 +355,7 @@ export default async function MovieDetailPage({ params }: PageProps) {
               </span>
             </div>
             <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-purple-500 rounded-full"
-                style={{ width: `${dna.complexity.score}%` }}
-              />
+              <div className="h-full bg-purple-500 rounded-full" style={{ width: `${dna.complexity.score}%` }} />
             </div>
             <p className="text-[11px] text-slate-400">{dna.complexity.label} story layers</p>
           </div>
@@ -346,10 +371,7 @@ export default async function MovieDetailPage({ params }: PageProps) {
               </span>
             </div>
             <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-rose-500 rounded-full"
-                style={{ width: `${dna.twistPotency.score}%` }}
-              />
+              <div className="h-full bg-rose-500 rounded-full" style={{ width: `${dna.twistPotency.score}%` }} />
             </div>
             <p className="text-[11px] text-slate-400">Third-act reality subversion index</p>
           </div>
@@ -365,10 +387,7 @@ export default async function MovieDetailPage({ params }: PageProps) {
               </span>
             </div>
             <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-indigo-500 rounded-full"
-                style={{ width: `${dna.emotionalResonance.score}%` }}
-              />
+              <div className="h-full bg-indigo-500 rounded-full" style={{ width: `${dna.emotionalResonance.score}%` }} />
             </div>
             <p className="text-[11px] text-slate-400">Thematic weight & character investment</p>
           </div>
@@ -403,10 +422,7 @@ export default async function MovieDetailPage({ params }: PageProps) {
               </span>
             </div>
             <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-cyan-500 rounded-full"
-                style={{ width: `${rewatchValue}%` }}
-              />
+              <div className="h-full bg-cyan-500 rounded-full" style={{ width: `${rewatchValue}%` }} />
             </div>
             <p className="text-[11px] text-slate-400">Foreshadowing & detail revelation payoff</p>
           </div>

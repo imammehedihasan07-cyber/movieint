@@ -1,10 +1,8 @@
-// app/sitemap.ts
 import { MetadataRoute } from "next";
 import { getAllEditorialSlugs } from "@/lib/editorial-data";
 import { INTENT_FILTERS } from "@/config/intentFilters";
 
-export const runtime = "edge";
-export const revalidate = 86400; // 24 hours ISR Edge Cache
+export const revalidate = 86400; // 24 hours ISR
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.movieint.com";
@@ -45,7 +43,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ];
 
   // 2. Programmatic Search Intent Routes (/best/[category])
-  const intentRoutes: MetadataRoute.Sitemap = Object.keys(INTENT_FILTERS).map((key) => ({
+  const intentRoutes: MetadataRoute.Sitemap = Object.keys(INTENT_FILTERS || {}).map((key) => ({
     url: `${baseUrl}/best/${key}`,
     lastModified: now,
     changeFrequency: "weekly",

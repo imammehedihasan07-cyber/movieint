@@ -33,13 +33,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const canonicalUrl = `https://www.movieint.com/best/${category}/`;
 
   return {
-    title: `${filter.title} | MovieInt`,
+    title: `${filter.metaTitle} | MovieInt`,
     description: filter.metaDescription,
     alternates: {
       canonical: canonicalUrl,
     },
     openGraph: {
-      title: `${filter.title} | MovieInt`,
+      title: `${filter.metaTitle} | MovieInt`,
       description: filter.metaDescription,
       url: canonicalUrl,
       siteName: 'MovieInt',
@@ -47,7 +47,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     },
     twitter: {
       card: 'summary_large_image',
-      title: `${filter.title} | MovieInt`,
+      title: `${filter.metaTitle} | MovieInt`,
       description: filter.metaDescription,
     },
   };
@@ -69,18 +69,18 @@ export default async function BestCategoryPage({ params }: PageProps) {
     '@type': 'ItemList',
     name: filter.h1,
     description: filter.metaDescription,
-    itemListElement: movies.map((movie, index) => ({
+    itemListElement: movies.map((movie: any, index: number) => ({
       '@type': 'ListItem',
       position: index + 1,
       item: {
         '@type': 'Movie',
         name: movie.title,
         url: `https://www.movieint.com/movie/${movie.id}/`,
-        image: `https://image.tmdb.org/t/p/w500${movie.poster_path}`,
+        image: movie.posterUrl || movie.poster || '/og-image.png',
         dateCreated: `${movie.year}`,
         aggregateRating: {
           '@type': 'AggregateRating',
-          ratingValue: movie.vote_average,
+          ratingValue: movie.ratings?.imdb || 7.5,
           bestRating: 10,
           ratingCount: 1000,
         },
@@ -129,91 +129,96 @@ export default async function BestCategoryPage({ params }: PageProps) {
             {filter.h1}
           </h1>
           <p className="text-slate-300 text-sm sm:text-base leading-relaxed max-w-3xl">
-            {filter.description}
+            {filter.introText}
           </p>
         </header>
 
         {/* Movie Grid */}
         <section className="space-y-12">
-          {movies.map((movie, index) => (
-            <article
-              key={movie.id}
-              className="bg-[#090d15] border border-white/[0.06] rounded-3xl p-6 sm:p-8 flex flex-col md:flex-row gap-6 items-start"
-            >
-              {/* Poster */}
-              <div className="relative w-32 h-48 sm:w-40 sm:h-60 rounded-2xl overflow-hidden shrink-0 border border-white/10 shadow-2xl bg-slate-950">
-                <Image
-                  src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
-                  alt={movie.title}
-                  fill
-                  sizes="(max-width: 768px) 128px, 160px"
-                  className="object-cover"
-                />
-              </div>
+          {movies.map((movie: any, index: number) => {
+            const posterSrc = movie.posterUrl || movie.poster || '/og-image.png';
+            const ratingScore = movie.ratings?.imdb ?? 7.0;
 
-              {/* Details */}
-              <div className="flex-1 space-y-4">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div className="flex items-center gap-3">
-                    <span className="text-xl sm:text-2xl font-black text-indigo-400">
-                      #{index + 1}
-                    </span>
+            return (
+              <article
+                key={movie.id}
+                className="bg-[#090d15] border border-white/[0.06] rounded-3xl p-6 sm:p-8 flex flex-col md:flex-row gap-6 items-start"
+              >
+                {/* Poster */}
+                <div className="relative w-32 h-48 sm:w-40 sm:h-60 rounded-2xl overflow-hidden shrink-0 border border-white/10 shadow-2xl bg-slate-950">
+                  <Image
+                    src={posterSrc}
+                    alt={movie.title}
+                    fill
+                    sizes="(max-width: 768px) 128px, 160px"
+                    className="object-cover"
+                  />
+                </div>
+
+                {/* Details */}
+                <div className="flex-1 space-y-4">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div className="flex items-center gap-3">
+                      <span className="text-xl sm:text-2xl font-black text-indigo-400">
+                        #{index + 1}
+                      </span>
+                      <Link
+                        href={`/movie/${movie.id}`}
+                        className="text-xl sm:text-2xl font-bold text-white hover:text-indigo-400 transition"
+                      >
+                        {movie.title}
+                      </Link>
+                      <span className="text-slate-500 text-sm font-mono">({movie.year})</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 text-xs text-amber-400 bg-black/60 px-3 py-1 rounded-full border border-white/5">
+                      <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                      <span>{ratingScore} Score</span>
+                    </div>
+                  </div>
+
+                  <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                    {movie.synopsis}
+                  </p>
+
+                  {/* Telemetry Metrics */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 text-xs font-mono">
+                    <div className="bg-[#05070b] p-3 rounded-xl border border-white/5">
+                      <span className="text-slate-500 text-[10px] block">Pacing</span>
+                      <span className="text-slate-200">{movie.metrics?.pacing ?? 'Balanced'}</span>
+                    </div>
+                    <div className="bg-[#05070b] p-3 rounded-xl border border-white/5">
+                      <span className="text-slate-500 text-[10px] block">Complexity</span>
+                      <span className="text-indigo-400">{movie.metrics?.complexityScore ?? 7}/10</span>
+                    </div>
+                    <div className="bg-[#05070b] p-3 rounded-xl border border-white/5">
+                      <span className="text-slate-500 text-[10px] block">Twist Potency</span>
+                      <span className="text-rose-400">{movie.metrics?.twistPotency ?? 5}/10</span>
+                    </div>
+                    <div className="bg-[#05070b] p-3 rounded-xl border border-white/5">
+                      <span className="text-slate-500 text-[10px] block">Boredom Risk</span>
+                      <span className="text-amber-400">{movie.metrics?.boredomRisk ?? 'Low'}</span>
+                    </div>
+                  </div>
+
+                  {/* Streaming Availability Box */}
+                  <div className="pt-2">
+                    <StreamingAffiliateBox movieId={String(movie.id)} movieTitle={movie.title} />
+                  </div>
+
+                  {/* Link to Detail Page */}
+                  <div className="pt-2">
                     <Link
                       href={`/movie/${movie.id}`}
-                      className="text-xl sm:text-2xl font-bold text-white hover:text-indigo-400 transition"
+                      className="inline-flex items-center gap-1.5 text-xs font-bold text-indigo-400 hover:text-indigo-300 transition"
                     >
-                      {movie.title}
+                      <span>Full Narrative DNA Breakdown</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
                     </Link>
-                    <span className="text-slate-500 text-sm font-mono">({movie.year})</span>
-                  </div>
-                  <div className="flex items-center gap-1.5 text-xs text-amber-400 bg-black/60 px-3 py-1 rounded-full border border-white/5">
-                    <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-                    <span>{movie.vote_average} Score</span>
                   </div>
                 </div>
-
-                <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-                  {movie.overview}
-                </p>
-
-                {/* Telemetry Metrics */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 text-xs font-mono">
-                  <div className="bg-[#05070b] p-3 rounded-xl border border-white/5">
-                    <span className="text-slate-500 text-[10px] block">Pacing</span>
-                    <span className="text-slate-200">{movie.metrics.pacing}</span>
-                  </div>
-                  <div className="bg-[#05070b] p-3 rounded-xl border border-white/5">
-                    <span className="text-slate-500 text-[10px] block">Complexity</span>
-                    <span className="text-indigo-400">{movie.metrics.complexityScore}/10</span>
-                  </div>
-                  <div className="bg-[#05070b] p-3 rounded-xl border border-white/5">
-                    <span className="text-slate-500 text-[10px] block">Twist Potency</span>
-                    <span className="text-rose-400">{movie.metrics.twistPotency}/10</span>
-                  </div>
-                  <div className="bg-[#05070b] p-3 rounded-xl border border-white/5">
-                    <span className="text-slate-500 text-[10px] block">Boredom Risk</span>
-                    <span className="text-amber-400">{movie.metrics.boredomRisk}</span>
-                  </div>
-                </div>
-
-                {/* Streaming Box */}
-                <div className="pt-2">
-                  <StreamingAffiliateBox movieId={String(movie.id)} movieTitle={movie.title} />
-                </div>
-
-                {/* Link to Detail Page */}
-                <div className="pt-2">
-                  <Link
-                    href={`/movie/${movie.id}`}
-                    className="inline-flex items-center gap-1.5 text-xs font-bold text-indigo-400 hover:text-indigo-300 transition"
-                  >
-                    <span>Full Narrative DNA Breakdown</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </Link>
-                </div>
-              </div>
-            </article>
-          ))}
+              </article>
+            );
+          })}
         </section>
 
         {/* FAQs */}

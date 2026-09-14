@@ -64,7 +64,7 @@ async function getMovieDetails(id: string) {
 
     // Extract key crew members
     const director = credits.crew?.find((c: any) => c.job === 'Director')?.name || 'Unknown';
-    const topCast = (credits.cast || []).slice(0, 6).map((c: any) => c.name);
+    const topCast: string[] = (credits.cast || []).slice(0, 6).map((c: any) => c.name);
 
     // Official Trailer Key
     const trailer = (videos.results || []).find(
@@ -190,7 +190,7 @@ export default async function MovieDetailPage({ params }: PageProps) {
           '@type': 'Person',
           name: director,
         },
-        actor: topCast.map((name) => ({
+        actor: topCast.map((name: string) => ({
           '@type': 'Person',
           name,
         })),

@@ -5,6 +5,7 @@ import { AFFILIATE_CONFIG, getSmartStreamLink } from "@/lib/affiliates";
 import { trackAffiliateClick } from "@/lib/analytics";
 
 interface StreamingAffiliateBoxProps {
+  movieId?: string | number;
   movieTitle: string;
 }
 

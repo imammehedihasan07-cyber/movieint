@@ -28,7 +28,6 @@ interface PageProps {
   params: Promise<{ id: string }>;
 }
 
-export const runtime = 'edge';
 export const revalidate = 86400; // 24 hours ISR
 
 async function getMovieDetails(id: string) {

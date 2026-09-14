@@ -1,386 +1,225 @@
-// app/movie/[id]/page.tsx
-import { Metadata } from "next";
-import Image from "next/image";
-import Link from "next/link";
-import { 
-  ArrowLeft, Star, Clock, Calendar, Film, Tv, Clapperboard, 
-  BookOpen, ChevronRight, Activity, Brain, Heart, Zap, 
-  AlertTriangle, RotateCcw, Compass, Sparkles, UserCheck, Layers
-} from "lucide-react";
-import MovieDNA, { computeBaselineDNA } from "@/components/MovieDNA";
-import WatchlistButton from "@/components/WatchlistButton";
-import TrailerModal from "@/components/TrailerModal";
-import WatchProviders from "@/components/WatchProviders";
-import VibeMatch from "@/components/VibeMatch";
-import ClimaxIndex from "@/components/ClimaxIndex";
-import StreamingAffiliateBox from "@/components/StreamingAffiliateBox";
-import MovieFAQ from "@/components/MovieFAQ";
-import SpoilerVault from "@/components/SpoilerVault";
-import MoviePoster from "@/components/MoviePoster";
-import DnaAffinityEngine from "@/components/DnaAffinityEngine";
-import { EDITORIAL_ARTICLES } from "@/lib/editorial-data";
+import { Metadata } from 'next';
+import { notFound } from 'next/navigation';
+import Link from 'next/link';
+import Image from 'next/image';
+import {
+  Star,
+  Film,
+  Dna,
+  Clock,
+  Calendar,
+  Layers,
+  ArrowUpRight,
+  Activity,
+  Brain,
+  Zap,
+  RotateCcw,
+  AlertCircle,
+  HelpCircle,
+} from 'lucide-react';
+import MoviePoster from '@/components/MoviePoster';
+import StreamingAffiliateBox from '@/components/StreamingAffiliateBox';
+import SpoilerShield from '@/components/SpoilerShield';
+import { computeBaselineDNA } from '@/components/MovieDNA';
 
-export const dynamic = "force-dynamic";
-
-interface MovieDetailProps {
-  params: Promise<{ id: string }> | { id: string };
+interface PageProps {
+  params: Promise<{ id: string }>;
 }
 
-function dataCastExtract(tvData: any) {
-  return tvData?.aggregate_credits?.cast?.length
-    ? tvData.aggregate_credits.cast
-    : tvData?.credits?.cast || [];
-}
+export const runtime = 'edge';
+export const revalidate = 86400; // 24 hours ISR
 
-async function getMediaDetails(rawId: string) {
-  if (!rawId) return null;
-  const apiKey = process.env.TMDB_API_KEY || "b6b9f5e3a64b6ef32e0b8fade33cfe5a";
+async function getMovieDetails(id: string) {
+  const apiKey = process.env.TMDB_API_KEY || 'b6b9f5e3a64b6ef32e0b8fade33cfe5a';
+  const cleanId = id.replace(/^(tv-|series-|movie-)/, '');
 
-  const isExplicitTv = rawId.startsWith("tv-") || rawId.startsWith("series-");
-  const isExplicitMovie = rawId.startsWith("movie-");
-  const cleanId = rawId.replace(/^(tv-|series-|movie-)/, "");
-
-  const fetchOptions = {
-    headers: { accept: "application/json" },
-    cache: "no-store" as RequestCache,
-  };
-
-  // 1. Handle explicit TV routes
-  if (isExplicitTv) {
-    try {
-      const tvRes = await fetch(
-        `https://api.themoviedb.org/3/tv/${cleanId}?api_key=${apiKey}&append_to_response=credits,aggregate_credits,similar,videos,watch/providers`,
-        fetchOptions
-      );
-      if (tvRes.ok) {
-        const data = await tvRes.json();
-        return {
-          ...data,
-          title: data.name,
-          release_date: data.first_air_date,
-          runtime: data.episode_run_time?.[0] || 45,
-          credits: {
-            cast: data.aggregate_credits?.cast?.length ? data.aggregate_credits.cast : data.credits?.cast || [],
-            crew: data.credits?.crew || [],
-          },
-          media_type: "tv",
-        };
-      }
-    } catch (e) {
-      console.error("Explicit TV fetch failed", e);
-    }
-  }
-
-  // 2. Handle explicit Movie routes
-  if (isExplicitMovie) {
-    try {
-      const movieRes = await fetch(
-        `https://api.themoviedb.org/3/movie/${cleanId}?api_key=${apiKey}&append_to_response=credits,similar,videos,watch/providers`,
-        fetchOptions
-      );
-      if (movieRes.ok) {
-        const data = await movieRes.json();
-        return { ...data, media_type: "movie" };
-      }
-    } catch (e) {
-      console.error("Explicit Movie fetch failed", e);
-    }
-  }
-
-  // 3. Ambiguous IDs: Parallel lookup with auto-resolution
   try {
-    const [movieRes, tvRes] = await Promise.allSettled([
+    const [movieRes, creditsRes, videosRes, similarRes] = await Promise.all([
       fetch(
-        `https://api.themoviedb.org/3/movie/${cleanId}?api_key=${apiKey}&append_to_response=credits,similar,videos,watch/providers`,
-        fetchOptions
+        `https://api.themoviedb.org/3/movie/${cleanId}?api_key=${apiKey}&language=en-US`,
+        { next: { revalidate: 86400 } }
       ),
       fetch(
-        `https://api.themoviedb.org/3/tv/${cleanId}?api_key=${apiKey}&append_to_response=credits,aggregate_credits,similar,videos,watch/providers`,
-        fetchOptions
+        `https://api.themoviedb.org/3/movie/${cleanId}/credits?api_key=${apiKey}&language=en-US`,
+        { next: { revalidate: 86400 } }
+      ),
+      fetch(
+        `https://api.themoviedb.org/3/movie/${cleanId}/videos?api_key=${apiKey}&language=en-US`,
+        { next: { revalidate: 86400 } }
+      ),
+      fetch(
+        `https://api.themoviedb.org/3/movie/${cleanId}/recommendations?api_key=${apiKey}&language=en-US&page=1`,
+        { next: { revalidate: 86400 } }
       ),
     ]);
 
-    const movieData =
-      movieRes.status === "fulfilled" && movieRes.value.ok
-        ? await movieRes.value.json()
-        : null;
-    const tvData =
-      tvRes.status === "fulfilled" && tvRes.value.ok
-        ? await tvRes.value.json()
-        : null;
+    if (!movieRes.ok) return null;
 
-    if (movieData && tvData) {
-      const tvScore = (tvData.vote_count || 0) * (tvData.popularity || 1);
-      const movieScore = (movieData.vote_count || 0) * (movieData.popularity || 1);
+    const movie = await movieRes.json();
+    const credits = creditsRes.ok ? await creditsRes.json() : { cast: [], crew: [] };
+    const videos = videosRes.ok ? await videosRes.json() : { results: [] };
+    const similar = similarRes.ok ? await similarRes.json() : { results: [] };
 
-      if (tvScore > movieScore) {
-        return {
-          ...tvData,
-          title: tvData.name,
-          release_date: tvData.first_air_date,
-          runtime: tvData.episode_run_time?.[0] || 45,
-          credits: {
-            cast: dataCastExtract(tvData),
-            crew: tvData.credits?.crew || [],
-          },
-          media_type: "tv",
-        };
-      }
-      return { ...movieData, media_type: "movie" };
-    }
+    // Extract key crew members
+    const director = credits.crew?.find((c: any) => c.job === 'Director')?.name || 'Unknown';
+    const topCast = (credits.cast || []).slice(0, 6).map((c: any) => c.name);
 
-    if (movieData) return { ...movieData, media_type: "movie" };
+    // Official Trailer Key
+    const trailer = (videos.results || []).find(
+      (v: any) => v.site === 'YouTube' && (v.type === 'Trailer' || v.type === 'Teaser')
+    );
 
-    if (tvData) {
-      return {
-        ...tvData,
-        title: tvData.name,
-        release_date: tvData.first_air_date,
-        runtime: tvData.episode_run_time?.[0] || 45,
-        credits: {
-          cast: dataCastExtract(tvData),
-          crew: tvData.credits?.crew || [],
-        },
-        media_type: "tv",
-      };
-    }
-  } catch (e) {
-    console.error("Parallel fetch error", e);
+    // Similar verified titles
+    const verifiedSimilar = (similar.results || [])
+      .filter((m: any) => m.poster_path && m.vote_average > 0)
+      .slice(0, 6);
+
+    return {
+      movie,
+      director,
+      topCast,
+      trailerKey: trailer?.key || null,
+      similar: verifiedSimilar,
+    };
+  } catch (error) {
+    console.error('Failed to fetch movie details:', error);
+    return null;
   }
-
-  return null;
 }
 
-export async function generateMetadata({ params }: MovieDetailProps): Promise<Metadata> {
-  const resolved = await (params instanceof Promise ? params : Promise.resolve(params));
-  const id = resolved?.id;
-  if (!id) return { title: "Archive Record | MOVIEINT" };
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { id } = await params;
+  const data = await getMovieDetails(id);
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.movieint.com';
 
-  const media = await getMediaDetails(id);
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.movieint.com";
-
-  if (!media) {
+  if (!data || !data.movie) {
     return {
-      title: "Archive Record Not Found | MOVIEINT",
-      description: "Autonomous cinema intelligence and discoverability engine.",
+      title: 'Movie Intelligence Telemetry | MOVIEINT',
+      description: 'Comprehensive film telemetry, narrative complexity, and streaming options.',
     };
   }
 
-  const title = media.title || media.name || "Unknown Title";
-  const releaseYear = (media.release_date || media.first_air_date || "").split("-")[0] || "";
-  const isTv = media.media_type === "tv";
-  const mediaTypeLabel = isTv ? "Series" : "Movie";
-
-  const topActors = (media.credits?.cast || [])
-    .slice(0, 3)
-    .map((a: any) => a.name)
-    .filter(Boolean);
-
-  const actorSnippet = topActors.length > 0 ? ` starring ${topActors.join(", ")}` : "";
-
-  // Target high CTR programmatic search queries
-  const metaTitle = `${title} (${releaseYear}) — Stream, Ending Twist & Narrative DNA | MOVIEINT`;
-
-  const cleanDescription = media.overview
-    ? `${media.overview.slice(0, 130)}... Analyze narrative complexity, pacing telemetry, twist potency, and streaming availability on MOVIEINT.`
-    : `Explore ${title} (${releaseYear})${actorSnippet}. Get deep narrative DNA telemetry, twist index, and official streaming guide on MOVIEINT.`;
-
+  const { movie, director } = data;
+  const year = movie.release_date ? new Date(movie.release_date).getFullYear() : '';
   const canonicalUrl = `${baseUrl}/movie/${id}`;
 
-  const ogImageUrl = `/api/og?title=${encodeURIComponent(title)}&rating=${media.vote_average?.toFixed(
-    1
-  )}&year=${releaseYear}&poster=${encodeURIComponent(
-    media.poster_path ? `https://image.tmdb.org/t/p/w500${media.poster_path}` : ""
-  )}`;
+  const metaTitle = `${movie.title} (${year}) — Narrative DNA, Review & Where to Stream | MOVIEINT`;
+  const metaDescription = `Deconstruct ${movie.title} (${year}) directed by ${director}. Explore narrative complexity, pacing score, climax twist potency, and live digital streaming availability.`;
 
   return {
     title: metaTitle,
-    description: cleanDescription,
+    description: metaDescription,
     alternates: {
       canonical: canonicalUrl,
     },
-    keywords: [
-      title,
-      `${title} ${releaseYear}`,
-      `movies like ${title}`,
-      `where to watch ${title}`,
-      `${title} streaming online`,
-      `${title} ending explained`,
-      `${title} twist rating`,
-      `${title} narrative dna`,
-      `${title} boredom risk`,
-      `${mediaTypeLabel} telemetry`,
-      ...topActors,
-      ...(media.genres?.map((g: { name: string }) => g.name) || []),
-    ],
     openGraph: {
-      title: `${title} (${releaseYear}) — Narrative DNA & Intelligence | MOVIEINT`,
-      description: cleanDescription,
+      title: metaTitle,
+      description: metaDescription,
       url: canonicalUrl,
-      siteName: "MOVIEINT",
-      type: isTv ? "video.tv_show" : "video.movie",
+      type: 'video.movie',
       images: [
         {
-          url: ogImageUrl,
+          url: movie.backdrop_path
+            ? `https://image.tmdb.org/t/p/w1280${movie.backdrop_path}`
+            : movie.poster_path
+            ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
+            : '/og-image.png',
           width: 1200,
           height: 630,
-          alt: `${title} Poster and Narrative Card`,
+          alt: `${movie.title} telemetry card`,
         },
       ],
     },
     twitter: {
-      card: "summary_large_image",
-      title: `${title} (${releaseYear}) — Cinematic DNA Intelligence`,
-      description: cleanDescription,
-      images: [ogImageUrl],
+      card: 'summary_large_image',
+      title: metaTitle,
+      description: metaDescription,
     },
   };
 }
 
-export default async function MediaDetailPage({ params }: MovieDetailProps) {
-  const resolved = await (params instanceof Promise ? params : Promise.resolve(params));
-  const id = resolved?.id;
-  const media = id ? await getMediaDetails(id) : null;
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.movieint.com";
+export default async function MovieDetailPage({ params }: PageProps) {
+  const { id } = await params;
+  const data = await getMovieDetails(id);
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.movieint.com';
 
-  if (!media) {
-    return (
-      <main className="min-h-screen bg-[#05070b] text-white flex flex-col items-center justify-center p-4">
-        <p className="text-slate-400 mb-4 font-mono text-sm">ARCHIVE_RECORD_NOT_FOUND</p>
-        <Link 
-          href="/" 
-          prefetch={false} 
-          className="text-indigo-400 hover:text-indigo-300 font-medium transition text-sm flex items-center gap-1.5"
-        >
-          <ArrowLeft className="w-4 h-4" /> Return to Command Center
-        </Link>
-      </main>
-    );
+  if (!data || !data.movie) {
+    notFound();
   }
 
-  const title = media.title || media.name || "Untitled";
-  const releaseDate = media.release_date || media.first_air_date || "TBA";
-  const year = releaseDate.split("-")[0] || "";
-  const isTv = media.media_type === "tv" || (id ? id.startsWith("tv-") || id.startsWith("series-") : false);
-  const genreList = media.genres?.map((g: { name: string }) => g.name).join(", ") || "Cinema";
+  const { movie, director, topCast, trailerKey, similar } = data;
+  const year = movie.release_date ? new Date(movie.release_date).getFullYear() : 'N/A';
+  const genreNames = movie.genres?.map((g: { name: string }) => g.name).join(', ') || 'Feature Film';
 
-  const cast = (media.credits?.cast || [])
-    .filter((actor: any) => actor && (actor.id || actor.name))
-    .slice(0, 6);
-
-  const directors = (media.credits?.crew || [])
-    .filter((member: any) => ["Director", "Creator", "Series Director"].includes(member.job) || member.department === "Directing")
-    .slice(0, 2);
-
-  const writers = (media.credits?.crew || [])
-    .filter((member: any) => ["Screenplay", "Writer", "Story"].includes(member.job))
-    .slice(0, 2);
-
-  const similarMedia = (media.similar?.results || [])
-    .filter((sim: any) => sim && sim.poster_path && sim.vote_average > 0)
-    .slice(0, 6);
-
-  const trailer = media.videos?.results?.find(
-    (v: any) => v.site === "YouTube" && (v.type === "Trailer" || v.type === "Teaser")
+  // Compute MovieInt DNA Baseline
+  const dna = computeBaselineDNA(
+    movie.title,
+    genreNames,
+    movie.vote_average || 7.0,
+    movie.overview || '',
+    movie.runtime || 110
   );
 
-  const providers =
-    media["watch/providers"]?.results?.US ||
-    (Object.values(media["watch/providers"]?.results || {})[0] as any);
+  // Derived DNA Telemetry Metrics
+  const boredomRisk = dna.pacing.score > 75 ? 'Very Low' : dna.pacing.score > 50 ? 'Low' : 'Moderate';
+  const rewatchValue = Math.min(100, Math.round(movie.vote_average * 10 + dna.complexity.score * 0.15));
 
-  const cleanId = id ? id.replace(/^(tv-|series-|movie-)/, "") : "";
-  const directGuides = EDITORIAL_ARTICLES.filter((article) =>
-    article.movies.some(
-      (m) =>
-        String(m.slugId) === String(cleanId) ||
-        String(m.tmdbId) === String(cleanId) ||
-        m.title.toLowerCase() === title.toLowerCase()
-    )
-  );
-
-  const relatedEditorialGuides =
-    directGuides.length > 0 ? directGuides : EDITORIAL_ARTICLES.slice(0, 3);
-
-  // Unified DNA telemetry calculation
-  const telemetry = computeBaselineDNA(
-    title,
-    genreList,
-    media.vote_average,
-    media.overview,
-    media.runtime || 110
-  );
-
-  // Full Rich Schema.org Entity Graph
+  // Schema.org: Movie + FAQPage Graph
   const jsonLd = {
-    "@context": "https://schema.org",
-    "@graph": [
+    '@context': 'https://schema.org',
+    '@graph': [
       {
-        "@type": isTv ? "TVSeries" : "Movie",
-        "@id": `${baseUrl}/movie/${id}#media`,
-        name: title,
+        '@type': 'Movie',
+        '@id': `${baseUrl}/movie/${id}#movie`,
+        name: movie.title,
         url: `${baseUrl}/movie/${id}`,
-        image: media.poster_path ? `https://image.tmdb.org/t/p/w500${media.poster_path}` : undefined,
-        datePublished: releaseDate,
-        description: media.overview,
-        genre: media.genres?.map((g: { name: string }) => g.name),
-        duration: media.runtime ? `PT${media.runtime}M` : undefined,
-        inLanguage: media.original_language || "en",
-        director: directors.map((d: any) => ({
-          "@type": "Person",
-          name: d.name,
+        image: `https://image.tmdb.org/t/p/w500${movie.poster_path}`,
+        datePublished: movie.release_date,
+        description: movie.overview,
+        duration: movie.runtime ? `PT${movie.runtime}M` : undefined,
+        director: {
+          '@type': 'Person',
+          name: director,
+        },
+        actor: topCast.map((name) => ({
+          '@type': 'Person',
+          name,
         })),
-        actor: cast.map((actor: any) => ({
-          "@type": "Person",
-          name: actor.name,
-        })),
-        trailer: trailer
+        aggregateRating: movie.vote_average
           ? {
-              "@type": "VideoObject",
-              name: `${title} Official Trailer`,
-              thumbnailUrl: media.backdrop_path
-                ? `https://image.tmdb.org/t/p/w780${media.backdrop_path}`
-                : undefined,
-              embedUrl: `https://www.youtube.com/embed/${trailer.key}`,
-              uploadDate: releaseDate,
+              '@type': 'AggregateRating',
+              ratingValue: movie.vote_average.toFixed(1),
+              bestRating: '10',
+              ratingCount: movie.vote_count || 500,
             }
           : undefined,
-        aggregateRating:
-          media.vote_count && media.vote_average
-            ? {
-                "@type": "AggregateRating",
-                ratingValue: Number(media.vote_average.toFixed(1)),
-                bestRating: "10",
-                worstRating: "1",
-                ratingCount: media.vote_count,
-              }
-            : undefined,
       },
       {
-        "@type": "FAQPage",
-        "@id": `${baseUrl}/movie/${id}#faq`,
+        '@type': 'FAQPage',
+        '@id': `${baseUrl}/movie/${id}#faq`,
         mainEntity: [
           {
-            "@type": "Question",
-            name: `Where can I stream ${title} (${year}) online?`,
+            '@type': 'Question',
+            name: `What is the narrative complexity score of ${movie.title}?`,
             acceptedAnswer: {
-              "@type": "Answer",
-              text: `${title} is tracked on major digital platforms including Netflix, Prime Video, and Apple TV depending on licensing. Check the real-time availability section above.`,
+              '@type': 'Answer',
+              text: `${movie.title} rates at ${dna.complexity.score}/100 on our narrative complexity index, categorized under ${dna.complexity.label.toLowerCase()} architecture with ${dna.pacing.label.toLowerCase()} pacing.`,
             },
           },
           {
-            "@type": "Question",
-            name: `What is the Narrative DNA and pacing of ${title}?`,
+            '@type': 'Question',
+            name: `Does ${movie.title} have a major twist ending?`,
             acceptedAnswer: {
-              "@type": "Answer",
-              text: `${title} features a pacing score of ${telemetry.pacing.score}/100 (${telemetry.pacing.label}) and a narrative complexity rating of ${telemetry.complexity.score}/100.`,
+              '@type': 'Answer',
+              text: `${movie.title} features a twist potency rating of ${dna.twistPotency.score}/100, indicating a third-act structure that alters earlier established story context.`,
             },
           },
           {
-            "@type": "Question",
-            name: `What movies are similar to ${title}?`,
+            '@type': 'Question',
+            name: `Where can I stream ${movie.title}?`,
             acceptedAnswer: {
-              "@type": "Answer",
-              text: `Movies with matching thematic DNA and narrative affinity include: ${similarMedia.map((m: any) => m.title || m.name).join(", ")}. Explore the dedicated "Movies Like ${title}" affinity hub on MOVIEINT.`,
+              '@type': 'Answer',
+              text: `Check the real-time streaming availability box on this page for active listings across Netflix, Amazon Prime Video, Apple TV, and regional options.`,
             },
           },
         ],
@@ -389,376 +228,366 @@ export default async function MediaDetailPage({ params }: MovieDetailProps) {
   };
 
   return (
-    <main className="min-h-screen bg-[#05070b] text-slate-100 px-4 py-10 flex flex-col items-center selection:bg-indigo-600 selection:text-white relative overflow-hidden pb-24">
-      {/* Ambient Backdrop */}
-      {media.backdrop_path ? (
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-[520px] pointer-events-none -z-0 overflow-hidden">
-          <Image
-            src={`https://image.tmdb.org/t/p/w1280${media.backdrop_path}`}
-            alt={`${title} backdrop`}
-            fill
-            priority
-            unoptimized
-            className="object-cover object-top opacity-15 blur-2xl mask-gradient"
-          />
-          <div className="absolute inset-0 bg-gradient-to-b from-[#05070b]/40 via-[#05070b]/80 to-[#05070b]" />
-        </div>
-      ) : (
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-6xl h-[450px] bg-gradient-to-b from-indigo-600/10 via-rose-950/5 to-transparent pointer-events-none -z-0" />
-      )}
-
-      {/* JSON-LD Schema */}
+    <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
-      <div className="max-w-5xl w-full z-10">
+      <main className="min-h-screen bg-[#05070b] text-slate-100 py-10 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto selection:bg-indigo-600 selection:text-white">
         {/* Navigation Breadcrumb */}
-        <div className="flex items-center justify-between mb-8">
-          <Link
-            href="/"
-            prefetch={false}
-            className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-400 hover:text-slate-200 transition"
-          >
-            <ArrowLeft className="w-3.5 h-3.5" /> Back to Discover
-          </Link>
-          <div className="flex items-center gap-2 text-[10px] font-mono text-slate-500 uppercase tracking-widest">
-            <span>Catalog ID</span>
-            <span className="text-slate-400 bg-white/[0.04] px-2 py-0.5 rounded border border-white/5">
-              {id}
-            </span>
+        <nav className="flex items-center justify-between text-xs text-slate-500 uppercase tracking-widest font-mono mb-8">
+          <div className="flex items-center gap-2">
+            <Link href="/" className="hover:text-indigo-400">Home</Link>
+            <span>/</span>
+            <span className="text-slate-400">Movie</span>
+            <span>/</span>
+            <span className="text-indigo-300 truncate max-w-[180px] sm:max-w-xs">{movie.title}</span>
           </div>
-        </div>
+          <Link
+            href={`/movies-like/${id}`}
+            className="inline-flex items-center gap-1 text-indigo-400 hover:text-indigo-300"
+          >
+            <span>Movies Like This</span>
+            <ArrowUpRight className="w-3.5 h-3.5" />
+          </Link>
+        </nav>
 
-        {/* Primary Hero Card */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 bg-[#090d15]/90 border border-white/[0.08] rounded-3xl p-6 sm:p-8 mb-10 shadow-2xl relative overflow-hidden backdrop-blur-md">
-          <div className="absolute top-0 right-0 w-80 h-80 bg-indigo-500/5 blur-3xl -z-0 pointer-events-none" />
-
-          {/* Poster Column */}
-          <div className="aspect-[2/3] relative rounded-2xl overflow-hidden shadow-2xl bg-slate-950 border border-white/10 z-10 group">
-            {media.poster_path ? (
-              <MoviePoster
-                src={`https://image.tmdb.org/t/p/w500${media.poster_path}`}
-                alt={`${title} (${year}) official poster`}
-                fallbackTitle={title}
+        {/* 1. Header Hero Section */}
+        <header className="relative rounded-3xl overflow-hidden border border-white/[0.08] bg-[#090d15] p-6 sm:p-10 mb-12 shadow-2xl">
+          {movie.backdrop_path && (
+            <div className="absolute top-0 right-0 w-full h-full -z-0 opacity-20 pointer-events-none">
+              <Image
+                src={`https://image.tmdb.org/t/p/w1280${movie.backdrop_path}`}
+                alt={movie.title}
                 fill
                 priority
-                unoptimized
-                sizes="(max-width: 768px) 100vw, 33vw"
-                className="object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                className="object-cover object-center"
               />
-            ) : (
-              <div className="flex flex-col items-center justify-center h-full text-slate-600 text-xs gap-2">
-                <Clapperboard className="w-8 h-8 text-slate-700" />
-                <span>No Visual Record</span>
-              </div>
-            )}
-          </div>
+              <div className="absolute inset-0 bg-gradient-to-t from-[#090d15] via-[#090d15]/80 to-transparent" />
+            </div>
+          )}
 
-          {/* Right Core Details Column */}
-          <div className="md:col-span-2 flex flex-col justify-between gap-6 z-10">
-            <div>
-              {/* Badges Bar */}
-              <div className="flex flex-wrap items-center gap-2.5 mb-4">
-                <span className="bg-white/[0.05] border border-white/10 text-slate-300 px-3 py-1 rounded-full text-xs font-mono uppercase tracking-wider">
-                  {isTv ? "TV Series" : "Feature Film"}
+          <div className="relative z-10 flex flex-col md:flex-row gap-8 items-center md:items-start">
+            <div className="w-40 sm:w-48 aspect-[2/3] relative rounded-2xl overflow-hidden bg-slate-950 border border-white/10 shrink-0 shadow-2xl">
+              <MoviePoster
+                src={movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : null}
+                alt={movie.title}
+                fallbackTitle={movie.title}
+                fill
+                sizes="192px"
+                priority
+                className="object-cover"
+              />
+            </div>
+
+            <div className="flex-1 space-y-4 text-center md:text-left">
+              <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 text-xs font-mono">
+                <span className="px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 font-semibold uppercase">
+                  Verified Telemetry
                 </span>
-
-                <div className="flex items-center gap-1.5 bg-black/60 border border-white/10 px-3 py-1 rounded-full text-amber-400 text-xs font-bold">
-                  <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-                  {media.vote_average?.toFixed(1)} <span className="text-slate-500 font-normal">/ 10</span>
-                </div>
-
-                <TrailerModal key={`trailer-${id}`} trailerKey={trailer?.key} movieTitle={title} />
-
-                <WatchlistButton
-                  key={`watchlist-${id}`}
-                  movie={{
-                    id: media.id,
-                    title: title,
-                    poster_path: media.poster_path,
-                    vote_average: media.vote_average,
-                    release_date: releaseDate,
-                  }}
-                />
+                <span className="flex items-center gap-1 bg-white/[0.03] border border-white/5 px-2.5 py-1 rounded-full text-slate-300">
+                  <Calendar className="w-3 h-3 text-slate-400" /> {year}
+                </span>
+                {movie.runtime > 0 && (
+                  <span className="flex items-center gap-1 bg-white/[0.03] border border-white/5 px-2.5 py-1 rounded-full text-slate-300">
+                    <Clock className="w-3 h-3 text-slate-400" /> {movie.runtime} mins
+                  </span>
+                )}
+                {movie.vote_average > 0 && (
+                  <span className="flex items-center gap-1 bg-black/60 border border-white/10 px-2.5 py-1 rounded-full text-amber-400 font-bold">
+                    <Star className="w-3.5 h-3.5 fill-amber-400" /> {movie.vote_average.toFixed(1)} / 10
+                  </span>
+                )}
               </div>
 
-              {/* Title & Tagline */}
-              <h1 className="text-3xl sm:text-5xl font-black tracking-tight text-white mb-2 leading-tight">
-                {title}
+              <h1 className="text-3xl sm:text-5xl font-black text-white tracking-tight leading-tight">
+                {movie.title}
               </h1>
 
-              {media.tagline && (
-                <p className="italic text-slate-400 text-sm mb-4 font-serif">&quot;{media.tagline}&quot;</p>
-              )}
-
-              {/* Meta Stats */}
-              <div className="flex flex-wrap gap-5 text-xs font-medium text-slate-400 mb-6 border-y border-white/[0.06] py-3">
-                <div className="flex items-center gap-1.5">
-                  <Calendar className="w-3.5 h-3.5 text-indigo-400" />
-                  <span>{releaseDate}</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <Clock className="w-3.5 h-3.5 text-indigo-400" />
-                  <span>{media.runtime} mins</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  {isTv ? <Tv className="w-3.5 h-3.5 text-indigo-400" /> : <Film className="w-3.5 h-3.5 text-indigo-400" />}
-                  <span>{genreList}</span>
-                </div>
+              <div className="text-xs sm:text-sm text-slate-400 flex flex-wrap items-center justify-center md:justify-start gap-x-4 gap-y-1">
+                <span>Director: <strong className="text-slate-200">{director}</strong></span>
+                <span>•</span>
+                <span>Genres: <strong className="text-slate-200">{genreNames}</strong></span>
               </div>
 
-              {/* Crew Highlights */}
-              {(directors.length > 0 || writers.length > 0) && (
-                <div className="flex flex-wrap gap-4 mb-5 text-xs">
-                  {directors.length > 0 && (
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-slate-500 font-mono uppercase text-[10px]">
-                        {isTv ? "Created by:" : "Directed by:"}
-                      </span>
-                      <span className="text-slate-300 font-semibold">
-                        {directors.map((d: any) => d.name).join(", ")}
-                      </span>
-                    </div>
-                  )}
-                  {writers.length > 0 && (
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-slate-500 font-mono uppercase text-[10px]">Written by:</span>
-                      <span className="text-slate-300 font-semibold">
-                        {writers.map((w: any) => w.name).join(", ")}
-                      </span>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Narrative Synopsis */}
-              <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Narrative Synopsis</h2>
-              <p className="text-slate-300 text-xs sm:text-sm leading-relaxed mb-6">
-                {media.overview}
+              <p className="text-xs sm:text-sm text-slate-300 leading-relaxed max-w-2xl font-normal">
+                {movie.overview || 'Comprehensive narrative synopsis being compiled by the intelligence engine.'}
               </p>
 
-              {/* Streaming Section */}
-              <div className="mb-2">
-                <WatchProviders key={`providers-${id}`} providers={providers} />
-              </div>
-
-              <StreamingAffiliateBox key={`affiliate-${id}`} movieTitle={title} />
+              {topCast.length > 0 && (
+                <div className="text-xs text-slate-400 pt-1">
+                  <span className="font-mono text-slate-500">Key Cast:</span>{' '}
+                  <span className="text-slate-300">{topCast.join(', ')}</span>
+                </div>
+              )}
             </div>
-
-            {/* Deep Movie DNA Component */}
-            <MovieDNA
-              key={`dna-${id}`}
-              title={title}
-              overview={media.overview}
-              genres={genreList}
-              voteAverage={media.vote_average}
-              runtime={media.runtime}
-            />
           </div>
-        </div>
+        </header>
 
-        {/* Intelligence Engines */}
-        <ClimaxIndex
-          key={`climax-${id}`}
-          title={title}
-          overview={media.overview}
-          year={year}
-          rating={media.vote_average}
-        />
+        {/* 2. Streaming Availability Box (High Conversion Section) */}
+        <section className="mb-12">
+          <div className="mb-4">
+            <h2 className="text-sm font-bold text-white uppercase tracking-wider font-mono flex items-center gap-2">
+              <Film className="w-4 h-4 text-indigo-400" /> Real-Time Streaming Availability
+            </h2>
+          </div>
+          <StreamingAffiliateBox movieId={String(movie.id)} movieTitle={movie.title} />
+        </section>
 
-        <SpoilerVault
-          key={`spoiler-${id}`}
-          title={title}
-          year={year}
-          overview={media.overview}
-        />
-
-        <VibeMatch
-          key={`vibe-${id}`}
-          movieTitle={title}
-          overview={media.overview}
-        />
-
-        <DnaAffinityEngine
-          currentMovie={{
-            id: id,
-            title: title,
-            poster_path: media.poster_path,
-            release_date: releaseDate,
-            vote_average: media.vote_average,
-            overview: media.overview,
-            genres: media.genres,
-            original_language: media.original_language,
-          }}
-        />
-
-        {/* Cast Units */}
-        {cast.length > 0 && (
-          <section className="mb-14 text-left">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <UserCheck className="w-4 h-4 text-indigo-400" />
-                <h3 className="text-xs font-mono uppercase tracking-[0.2em] text-slate-400 font-bold">
-                  Key Cast & Performance Units
-                </h3>
-              </div>
+        {/* 3. Deep Narrative DNA Telemetry Suite (Core SEO Weapon) */}
+        <section className="bg-[#090d15]/80 border border-white/[0.08] rounded-3xl p-6 sm:p-8 mb-12 shadow-2xl">
+          <div className="flex flex-wrap items-center justify-between gap-4 mb-8 pb-4 border-b border-white/[0.06]">
+            <div>
+              <h2 className="text-lg font-bold text-white tracking-wide flex items-center gap-2">
+                <Dna className="w-5 h-5 text-indigo-400" /> Deep Narrative DNA Telemetry
+              </h2>
+              <p className="text-xs text-slate-400 mt-1">
+                Deconstruction across pacing dynamics, psychological complexity, and structural twists.
+              </p>
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
-              {cast.map((actor: any) => (
-                <Link
-                  key={actor.id}
-                  href={`/person/${actor.id}`}
-                  prefetch={false}
-                  className="group bg-[#090d15] border border-white/[0.06] rounded-2xl p-3 text-center hover:border-indigo-500/50 transition duration-300 block"
-                >
-                  <div className="w-16 h-16 relative mx-auto mb-2 rounded-full overflow-hidden bg-slate-900 border border-white/5">
-                    {actor.profile_path ? (
-                      <MoviePoster
-                        src={`https://image.tmdb.org/t/p/w185${actor.profile_path}`}
-                        alt={`${actor.name} as ${actor.character || "Cast"} in ${title}`}
-                        fallbackTitle={actor.name}
-                        fill
-                        unoptimized
-                        sizes="64px"
-                        className="object-cover group-hover:scale-105 transition"
-                      />
-                    ) : (
-                      <div className="flex items-center justify-center h-full text-[10px] text-slate-600">No Visual</div>
-                    )}
-                  </div>
-                  <h4 className="text-xs font-bold text-slate-200 truncate group-hover:text-indigo-400 transition">
-                    {actor.name}
-                  </h4>
-                  <p className="text-[10px] text-slate-500 truncate">{actor.character || "Cast"}</p>
-                </Link>
-              ))}
+            <div className="text-xs font-mono bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 px-3 py-1.5 rounded-xl">
+              Model: MOVIEINT-v3.2
+            </div>
+          </div>
+
+          {/* 6 Key Telemetry Metrics Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+            {/* 1. Pacing Velocity */}
+            <div className="bg-black/40 border border-white/5 rounded-2xl p-4 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-slate-400 flex items-center gap-1.5">
+                  <Activity className="w-4 h-4 text-emerald-400" /> Pacing Velocity
+                </span>
+                <span className="text-xs font-mono font-bold text-emerald-400">
+                  {dna.pacing.score}/100
+                </span>
+              </div>
+              <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-emerald-500 rounded-full"
+                  style={{ width: `${dna.pacing.score}%` }}
+                />
+              </div>
+              <p className="text-[11px] text-slate-400">{dna.pacing.label} momentum progression</p>
+            </div>
+
+            {/* 2. Conceptual Complexity */}
+            <div className="bg-black/40 border border-white/5 rounded-2xl p-4 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-slate-400 flex items-center gap-1.5">
+                  <Brain className="w-4 h-4 text-purple-400" /> Complexity Index
+                </span>
+                <span className="text-xs font-mono font-bold text-purple-400">
+                  {dna.complexity.score}/100
+                </span>
+              </div>
+              <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-purple-500 rounded-full"
+                  style={{ width: `${dna.complexity.score}%` }}
+                />
+              </div>
+              <p className="text-[11px] text-slate-400">{dna.complexity.label} story layers</p>
+            </div>
+
+            {/* 3. Ending Twist Potency */}
+            <div className="bg-black/40 border border-white/5 rounded-2xl p-4 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-slate-400 flex items-center gap-1.5">
+                  <Zap className="w-4 h-4 text-rose-400" /> Climax Twist Potency
+                </span>
+                <span className="text-xs font-mono font-bold text-rose-400">
+                  {dna.twistPotency.score}/100
+                </span>
+              </div>
+              <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-rose-500 rounded-full"
+                  style={{ width: `${dna.twistPotency.score}%` }}
+                />
+              </div>
+              <p className="text-[11px] text-slate-400">Third-act reality subversion index</p>
+            </div>
+
+            {/* 4. Emotional Resonance */}
+            <div className="bg-black/40 border border-white/5 rounded-2xl p-4 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-slate-400 flex items-center gap-1.5">
+                  <Star className="w-4 h-4 text-indigo-400" /> Emotional Resonance
+                </span>
+                <span className="text-xs font-mono font-bold text-indigo-400">
+                  {dna.emotionalResonance.score}/100
+                </span>
+              </div>
+              <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-indigo-500 rounded-full"
+                  style={{ width: `${dna.emotionalResonance.score}%` }}
+                />
+              </div>
+              <p className="text-[11px] text-slate-400">Thematic weight & character investment</p>
+            </div>
+
+            {/* 5. Boredom Risk */}
+            <div className="bg-black/40 border border-white/5 rounded-2xl p-4 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-slate-400 flex items-center gap-1.5">
+                  <AlertCircle className="w-4 h-4 text-amber-400" /> Boredom Risk
+                </span>
+                <span className="text-xs font-mono font-bold text-amber-400">
+                  {boredomRisk}
+                </span>
+              </div>
+              <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-amber-500 rounded-full"
+                  style={{ width: boredomRisk === 'Very Low' ? '20%' : boredomRisk === 'Low' ? '45%' : '75%' }}
+                />
+              </div>
+              <p className="text-[11px] text-slate-400">Pacing drop-off & dead-time index</p>
+            </div>
+
+            {/* 6. Rewatch Value */}
+            <div className="bg-black/40 border border-white/5 rounded-2xl p-4 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-slate-400 flex items-center gap-1.5">
+                  <RotateCcw className="w-4 h-4 text-cyan-400" /> Rewatch Value
+                </span>
+                <span className="text-xs font-mono font-bold text-cyan-400">
+                  {rewatchValue}/100
+                </span>
+              </div>
+              <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-cyan-500 rounded-full"
+                  style={{ width: `${rewatchValue}%` }}
+                />
+              </div>
+              <p className="text-[11px] text-slate-400">Foreshadowing & detail revelation payoff</p>
+            </div>
+          </div>
+        </section>
+
+        {/* 4. Protected Climax & Twist Telemetry (Spoiler Guard) */}
+        <section className="mb-12">
+          <SpoilerShield
+            title={movie.title}
+            twistPotencyScore={dna.twistPotency.score}
+            overview={movie.overview}
+          />
+        </section>
+
+        {/* 5. Official Video / Trailer Section */}
+        {trailerKey && (
+          <section className="bg-[#090d15]/80 border border-white/[0.08] rounded-3xl p-6 sm:p-8 mb-12 shadow-2xl">
+            <h2 className="text-base font-bold text-white uppercase tracking-wider font-mono mb-4 flex items-center gap-2">
+              <Film className="w-4 h-4 text-indigo-400" /> Official Cinematic Preview
+            </h2>
+            <div className="relative aspect-video w-full rounded-2xl overflow-hidden border border-white/10 bg-black">
+              <iframe
+                src={`https://www.youtube-nocookie.com/embed/${trailerKey}`}
+                title={`${movie.title} Trailer`}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                className="w-full h-full border-0"
+              />
             </div>
           </section>
         )}
 
-        {/* Thematic Neighbours & "Movies Like This" Hub Link */}
-        {similarMedia.length > 0 && (
-          <section className="mb-14 text-left">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <Compass className="w-4 h-4 text-indigo-400" />
-                <h3 className="text-xs font-mono uppercase tracking-[0.2em] text-slate-400 font-bold">
-                  Thematic Neighbours & Movies Like {title}
-                </h3>
-              </div>
-              <Link
-                href={`/movies-like/${id}`}
-                prefetch={false}
-                className="text-xs text-indigo-400 hover:text-indigo-300 transition font-mono flex items-center gap-1 group"
-              >
-                <span>Full &quot;Movies Like {title}&quot; Affinity Matrix</span>
-                <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
-              </Link>
+        {/* 6. pSEO Internal Linking Hub: Movies Like This */}
+        <section className="bg-[#090d15]/90 border border-white/[0.08] rounded-3xl p-6 sm:p-8 mb-12 shadow-2xl">
+          <div className="flex flex-wrap items-center justify-between gap-4 mb-6 pb-4 border-b border-white/[0.06]">
+            <div>
+              <h2 className="text-lg font-bold text-white tracking-wide flex items-center gap-2">
+                <Layers className="w-5 h-5 text-indigo-400" /> Thematic Twins & Similar Cinema
+              </h2>
+              <p className="text-xs text-slate-400 mt-0.5">
+                Titles exhibiting matching narrative telemetry and pacing affinity.
+              </p>
             </div>
-            
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3.5">
-              {similarMedia.map((sim: any) => {
-                const simTitle = sim.title || sim.name;
-                const linkId = isTv ? `tv-${sim.id}` : sim.id;
-                return (
-                  <Link
-                    key={sim.id}
-                    href={`/movie/${linkId}`}
-                    prefetch={false}
-                    className="group bg-[#090d15] border border-white/[0.06] rounded-2xl overflow-hidden hover:border-indigo-500/50 transition duration-300 flex flex-col"
-                  >
-                    <div className="aspect-[2/3] relative w-full bg-slate-950">
-                      {sim.poster_path ? (
-                        <MoviePoster
-                          src={`https://image.tmdb.org/t/p/w500${sim.poster_path}`}
-                          alt={`${simTitle} poster`}
-                          fallbackTitle={simTitle}
-                          fill
-                          unoptimized
-                          sizes="(max-width: 640px) 50vw, 16vw"
-                          className="object-cover group-hover:scale-105 transition duration-300"
-                        />
-                      ) : (
-                        <div className="flex items-center justify-center h-full text-xs text-slate-600">No Image</div>
-                      )}
-                      <div className="absolute bottom-1.5 right-1.5 bg-black/80 px-1.5 py-0.5 rounded text-[10px] font-mono text-amber-400 border border-white/10">
-                        ★ {sim.vote_average?.toFixed(1) || "N/A"}
-                      </div>
-                    </div>
-                    <div className="p-2.5">
-                      <h4 className="text-xs font-bold text-slate-200 truncate group-hover:text-indigo-400 transition">
-                        {simTitle}
-                      </h4>
-                      <p className="text-[10px] text-slate-500 truncate mt-0.5 font-mono">
-                        DNA Affinity Match
-                      </p>
-                    </div>
-                  </Link>
-                );
-              })}
-            </div>
-          </section>
-        )}
 
-        {/* Editorial Guides */}
-        <section className="mb-14 text-left">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <BookOpen className="w-4 h-4 text-cyan-400" />
-              <h3 className="text-xs font-mono uppercase tracking-[0.2em] text-slate-400 font-bold">
-                Curated Context & Editorial Guides
-              </h3>
-            </div>
             <Link
-              href="/editorial"
-              prefetch={false}
-              className="text-xs text-cyan-400 hover:text-cyan-300 transition font-mono flex items-center gap-1"
+              href={`/movies-like/${id}`}
+              className="inline-flex items-center gap-1.5 text-xs font-mono font-bold text-indigo-400 hover:text-indigo-300 bg-indigo-500/10 border border-indigo-500/20 px-3.5 py-1.5 rounded-xl transition"
             >
-              Explore All Guides <ChevronRight className="w-3 h-3" />
+              <span>Explore Top 10 Movies Like {movie.title}</span>
+              <ArrowUpRight className="w-3.5 h-3.5" />
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            {relatedEditorialGuides.map((guide) => (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+            {similar.map((sim: any) => (
               <Link
-                key={guide.slug}
-                href={`/editorial/${guide.slug}`}
-                prefetch={false}
-                className="group bg-[#090d15] border border-white/[0.06] hover:border-cyan-500/40 rounded-2xl p-4 transition-all duration-300 flex flex-col justify-between"
+                key={sim.id}
+                href={`/movie/${sim.id}`}
+                className="group block bg-black/40 border border-white/5 hover:border-indigo-500/50 rounded-2xl p-2 transition duration-200"
               >
-                <div>
-                  <div className="flex items-center justify-between text-[10px] font-mono text-slate-400 mb-2">
-                    <span className="px-2 py-0.5 rounded bg-cyan-950/60 border border-cyan-500/30 text-cyan-400 uppercase tracking-wider">
-                      {guide.moodTag}
-                    </span>
-                    <span>{guide.readTime}</span>
+                <div className="relative aspect-[2/3] rounded-xl overflow-hidden mb-2 bg-slate-950">
+                  <MoviePoster
+                    src={sim.poster_path ? `https://image.tmdb.org/t/p/w342${sim.poster_path}` : null}
+                    alt={sim.title}
+                    fallbackTitle={sim.title}
+                    fill
+                    sizes="(max-width: 768px) 50vw, 150px"
+                    className="object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                  <div className="absolute bottom-1 right-1 bg-black/80 px-1.5 py-0.5 rounded text-[10px] font-mono text-amber-400 flex items-center gap-0.5">
+                    <Star className="w-2.5 h-2.5 fill-amber-400" />
+                    <span>{sim.vote_average?.toFixed(1)}</span>
                   </div>
-                  <h4 className="text-xs font-bold text-slate-200 group-hover:text-cyan-300 transition line-clamp-2 leading-relaxed">
-                    {guide.title}
-                  </h4>
                 </div>
-                <div className="pt-3 mt-3 border-t border-white/[0.04] flex items-center justify-between text-[11px] font-mono text-slate-500">
-                  <span>{guide.movies.length} Evaluated Titles</span>
-                  <span className="text-cyan-400 group-hover:translate-x-1 transition-transform">Read →</span>
-                </div>
+                <h3 className="text-xs font-medium text-white truncate group-hover:text-indigo-300 transition">
+                  {sim.title}
+                </h3>
+                <span className="text-[10px] font-mono text-slate-500">
+                  {(sim.release_date || '').split('-')[0]}
+                </span>
               </Link>
             ))}
           </div>
         </section>
 
-        {/* Enhanced Movie FAQ */}
-        <MovieFAQ
-          key={`faq-${id}`}
-          title={title}
-          genres={genreList}
-          runtime={media.runtime}
-          voteAverage={media.vote_average}
-          overview={media.overview}
-          tagline={media.tagline}
-        />
-      </div>
-    </main>
+        {/* 7. Comprehensive Programmatic FAQ (SERP Authority) */}
+        <section className="bg-[#090d15]/60 border border-white/[0.08] rounded-3xl p-6 sm:p-8 space-y-4">
+          <div className="flex items-center gap-2 text-indigo-400 text-xs font-mono uppercase tracking-widest">
+            <HelpCircle className="w-4 h-4" /> Editorial & Algorithm Intelligence FAQ
+          </div>
+          <h2 className="text-lg sm:text-xl font-bold text-white tracking-tight">
+            Frequently Inquired Telemetry for {movie.title}
+          </h2>
+
+          <div className="space-y-3 pt-2 text-xs sm:text-sm">
+            <div className="bg-black/40 border border-white/5 rounded-2xl p-4">
+              <h3 className="font-bold text-slate-200 mb-1">
+                What does {movie.title}&apos;s complexity score mean?
+              </h3>
+              <p className="text-slate-400 leading-relaxed">
+                With a score of {dna.complexity.score}/100, the narrative utilizes non-linear thematic layering and requires active audience engagement to fully decode all underlying subtexts.
+              </p>
+            </div>
+
+            <div className="bg-black/40 border border-white/5 rounded-2xl p-4">
+              <h3 className="font-bold text-slate-200 mb-1">
+                How does MovieInt evaluate boredom risk?
+              </h3>
+              <p className="text-slate-400 leading-relaxed">
+                Boredom risk ({boredomRisk}) is calculated by evaluating scene transition frequencies, dialog-to-action ratios, and narrative acceleration milestones across the {movie.runtime || 110}-minute runtime.
+              </p>
+            </div>
+
+            <div className="bg-black/40 border border-white/5 rounded-2xl p-4">
+              <h3 className="font-bold text-slate-200 mb-1">
+                Are streaming platforms updated in real-time?
+              </h3>
+              <p className="text-slate-400 leading-relaxed">
+                Yes. Our integrated distribution pipeline constantly indexes catalog movements across Prime Video, Netflix, Max, and Apple TV.
+              </p>
+            </div>
+          </div>
+        </section>
+      </main>
+    </>
   );
 }

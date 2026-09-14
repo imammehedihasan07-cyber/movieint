@@ -1112,3 +1112,45 @@ export function getRelatedArticles(currentSlug: string, count: number = 3): Edit
     })
     .slice(0, count);
 }
+
+export function getRelatedEditorialsForMovie(
+  movieId: number | string,
+  movieGenres: string[] = [],
+  count: number = 3
+): EditorialArticle[] {
+  const targetId = String(movieId).replace(/^(tv-|series-|movie-)/, '');
+
+  const scored = EDITORIAL_ARTICLES.map((article) => {
+    let score = 0;
+
+    // 1. Highest Priority: Movie is explicitly featured inside this editorial
+    const isDirectlyFeatured = article.movies.some(
+      (m) => String(m.tmdbId) === targetId || String(m.slugId) === targetId
+    );
+    if (isDirectlyFeatured) {
+      score += 100;
+    }
+
+    // 2. Genre & Theme matches
+    const lowerGenres = movieGenres.map((g) => g.toLowerCase());
+    if (lowerGenres.some((g) => g.includes('sci-fi') || g.includes('science fiction'))) {
+      if (article.themeTag === 'Sci-Fi' || article.moodTag === 'Mind-Bending') score += 15;
+    }
+    if (lowerGenres.some((g) => g.includes('thriller') || g.includes('mystery') || g.includes('crime'))) {
+      if (article.themeTag === 'Crime & Mystery' || article.moodTag === 'Psychological') score += 15;
+    }
+    if (lowerGenres.some((g) => g.includes('drama') || g.includes('romance'))) {
+      if (article.moodTag === 'Emotional') score += 12;
+    }
+
+    // 3. Featured articles get a slight baseline bump
+    if (article.featured) score += 2;
+
+    return { article, score };
+  });
+
+  return scored
+    .sort((a, b) => b.score - a.score)
+    .slice(0, count)
+    .map((item) => item.article);
+}

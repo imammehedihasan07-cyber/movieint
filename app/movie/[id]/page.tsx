@@ -16,11 +16,13 @@ import {
   RotateCcw,
   AlertCircle,
   HelpCircle,
+  BookOpen,
 } from 'lucide-react';
 import MoviePoster from '@/components/MoviePoster';
 import StreamingAffiliateBox from '@/components/StreamingAffiliateBox';
 import SpoilerShield from '@/components/SpoilerShield';
 import { computeBaselineDNA } from '@/components/MovieDNA';
+import { getRelatedEditorialsForMovie } from '@/lib/editorial-data';
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -163,6 +165,13 @@ export default async function MovieDetailPage({ params }: PageProps) {
   // Derived DNA Telemetry Metrics
   const boredomRisk = dna.pacing.score > 75 ? 'Very Low' : dna.pacing.score > 50 ? 'Low' : 'Moderate';
   const rewatchValue = Math.min(100, Math.round(movie.vote_average * 10 + dna.complexity.score * 0.15));
+
+  // Related Editorial Dossiers (High Authority Internal Linking)
+  const relatedEditorials = getRelatedEditorialsForMovie(
+    id,
+    movie.genres?.map((g: { name: string }) => g.name) || [],
+    3
+  );
 
   // Schema.org: Movie + FAQPage Graph
   const jsonLd = {
@@ -549,7 +558,61 @@ export default async function MovieDetailPage({ params }: PageProps) {
           </div>
         </section>
 
-        {/* 7. Comprehensive Programmatic FAQ (SERP Authority) */}
+        {/* 7. Curated Editorial Intelligence Guides (Internal Linking Engine) */}
+        {relatedEditorials.length > 0 && (
+          <section className="bg-[#090d15]/80 border border-white/[0.08] rounded-3xl p-6 sm:p-8 mb-12 shadow-2xl">
+            <div className="flex flex-wrap items-center justify-between gap-4 mb-6 pb-4 border-b border-white/[0.06]">
+              <div>
+                <h2 className="text-lg font-bold text-white tracking-wide flex items-center gap-2">
+                  <BookOpen className="w-5 h-5 text-indigo-400" /> Curated Editorial Dossiers
+                </h2>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  Deep-dive thematic essays and comparative lists featuring {movie.title}.
+                </p>
+              </div>
+              <Link
+                href="/editorial"
+                className="text-xs font-mono text-indigo-400 hover:text-indigo-300 transition"
+              >
+                View All Guides →
+              </Link>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+              {relatedEditorials.map((guide) => (
+                <Link
+                  key={guide.slug}
+                  href={`/editorial/${guide.slug}`}
+                  className="group flex flex-col justify-between bg-black/40 border border-white/5 hover:border-indigo-500/40 rounded-2xl p-5 transition duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-indigo-950/20"
+                >
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between text-[11px] font-mono">
+                      <span className="text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 px-2 py-0.5 rounded-md">
+                        {guide.moodTag}
+                      </span>
+                      <span className="text-slate-500">{guide.readTime}</span>
+                    </div>
+
+                    <h3 className="text-sm font-bold text-white group-hover:text-indigo-300 transition line-clamp-2 leading-snug">
+                      {guide.title}
+                    </h3>
+
+                    <p className="text-xs text-slate-400 line-clamp-3 leading-relaxed">
+                      {guide.metaDescription}
+                    </p>
+                  </div>
+
+                  <div className="pt-4 mt-4 border-t border-white/[0.06] flex items-center justify-between text-xs font-mono text-slate-400 group-hover:text-white transition">
+                    <span>Read Intelligence Report</span>
+                    <span className="group-hover:translate-x-1 transition-transform">→</span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* 8. Comprehensive Programmatic FAQ (SERP Authority) */}
         <section className="bg-[#090d15]/60 border border-white/[0.08] rounded-3xl p-6 sm:p-8 space-y-4">
           <div className="flex items-center gap-2 text-indigo-400 text-xs font-mono uppercase tracking-widest">
             <HelpCircle className="w-4 h-4" /> Editorial & Algorithm Intelligence FAQ

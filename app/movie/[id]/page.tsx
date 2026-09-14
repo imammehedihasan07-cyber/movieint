@@ -5,9 +5,9 @@ import Link from "next/link";
 import { 
   ArrowLeft, Star, Clock, Calendar, Film, Tv, Clapperboard, 
   BookOpen, ChevronRight, Activity, Brain, Heart, Zap, 
-  AlertTriangle, RotateCcw, Compass, Sparkles, UserCheck
+  AlertTriangle, RotateCcw, Compass, Sparkles, UserCheck, Layers
 } from "lucide-react";
-import MovieDNA from "@/components/MovieDNA";
+import MovieDNA, { computeBaselineDNA } from "@/components/MovieDNA";
 import WatchlistButton from "@/components/WatchlistButton";
 import TrailerModal from "@/components/TrailerModal";
 import WatchProviders from "@/components/WatchProviders";
@@ -30,66 +30,6 @@ function dataCastExtract(tvData: any) {
   return tvData?.aggregate_credits?.cast?.length
     ? tvData.aggregate_credits.cast
     : tvData?.credits?.cast || [];
-}
-
-function calculateTelemetryMetrics(media: any) {
-  const rating = Number(media?.vote_average || 6.5);
-  const runtime = Number(media?.runtime || 110);
-  const genres = (media?.genres || []).map((g: any) => g.name.toLowerCase());
-
-  // 1. Pacing Calculation
-  let pacingScore = 65;
-  let pacingLabel = "Deliberate & Measured";
-  if (genres.some((g: string) => ["action", "thriller", "adventure", "horror"].includes(g))) {
-    pacingScore = Math.min(95, Math.round(72 + (rating * 2.2)));
-    pacingLabel = "Rapid & High-Tension";
-  } else if (genres.some((g: string) => ["drama", "mystery", "history"].includes(g))) {
-    pacingScore = runtime > 130 ? 54 : 68;
-    pacingLabel = runtime > 130 ? "Slow-Burn & Atmospheric" : "Steady & Thoughtful";
-  }
-
-  // 2. Complexity Calculation
-  let complexityScore = 55;
-  let complexityLabel = "Accessible";
-  if (genres.some((g: string) => ["sci-fi", "mystery", "thriller"].includes(g))) {
-    complexityScore = Math.min(96, Math.round(65 + (rating * 3)));
-    complexityLabel = complexityScore > 80 ? "Multi-Layered / Mind-Bending" : "Intricate Subplots";
-  } else if (genres.some((g: string) => ["action", "comedy"].includes(g))) {
-    complexityScore = Math.max(35, Math.round(40 + (rating * 1.5)));
-    complexityLabel = "Direct & Kinetic";
-  }
-
-  // 3. Emotional Resonance
-  let emotionalScore = Math.min(98, Math.round(rating * 9.5 + 5));
-  let emotionalLabel = emotionalScore > 80 ? "Profound & Cathartic" : "Balanced Tone";
-
-  // 4. Ending / Twist Potency
-  let twistScore = 50;
-  let twistLabel = "Predictable Resolution";
-  if (genres.some((g: string) => ["mystery", "thriller", "crime", "horror"].includes(g))) {
-    twistScore = Math.min(98, Math.round(70 + (rating * 2.5)));
-    twistLabel = twistScore > 85 ? "Shattering Paradigm Shift" : "Notable Climax Turn";
-  } else {
-    twistScore = Math.min(75, Math.round(rating * 6));
-    twistLabel = "Natural Narrative Arc";
-  }
-
-  // 5. Boredom Risk (Inverse score: Lower is safer)
-  let boredomScore = Math.max(8, Math.min(85, Math.round((10 - rating) * 9 + (runtime > 140 ? 15 : 0))));
-  let boredomLabel = boredomScore < 25 ? "Extremely Low (Edge-of-Seat)" : boredomScore < 50 ? "Moderate" : "Elevated (Demands Patience)";
-
-  // 6. Rewatch Value
-  let rewatchScore = Math.min(95, Math.max(30, Math.round((rating * 7) + (complexityScore * 0.3))));
-  let rewatchLabel = rewatchScore > 75 ? "High (Hidden Details Emerge)" : "Single-Experience Focus";
-
-  return {
-    pacing: { score: pacingScore, label: pacingLabel },
-    complexity: { score: complexityScore, label: complexityLabel },
-    emotionalResonance: { score: emotionalScore, label: emotionalLabel },
-    twistPotency: { score: twistScore, label: twistLabel },
-    boredomRisk: { score: boredomScore, label: boredomLabel },
-    rewatchValue: { score: rewatchScore, label: rewatchLabel },
-  };
 }
 
 async function getMediaDetails(rawId: string) {
@@ -238,12 +178,12 @@ export async function generateMetadata({ params }: MovieDetailProps): Promise<Me
 
   const actorSnippet = topActors.length > 0 ? ` starring ${topActors.join(", ")}` : "";
 
-  // High CTR & Intent-Targeted Meta Title
-  const metaTitle = `${title} (${releaseYear}) — Stream, Ending Breakdown & Narrative DNA | MOVIEINT`;
+  // Target high CTR programmatic search queries
+  const metaTitle = `${title} (${releaseYear}) — Stream, Ending Twist & Narrative DNA | MOVIEINT`;
 
   const cleanDescription = media.overview
-    ? `${media.overview.slice(0, 125)}... Analyze narrative complexity, pacing score, ending twist potency, streaming availability, and full cast telemetry on MOVIEINT.`
-    : `Explore ${title} (${releaseYear})${actorSnippet}. Get deep narrative DNA telemetry, pacing metrics, twist index, and official streaming guide on MOVIEINT.`;
+    ? `${media.overview.slice(0, 130)}... Analyze narrative complexity, pacing telemetry, twist potency, and streaming availability on MOVIEINT.`
+    : `Explore ${title} (${releaseYear})${actorSnippet}. Get deep narrative DNA telemetry, twist index, and official streaming guide on MOVIEINT.`;
 
   const canonicalUrl = `${baseUrl}/movie/${id}`;
 
@@ -262,15 +202,14 @@ export async function generateMetadata({ params }: MovieDetailProps): Promise<Me
     keywords: [
       title,
       `${title} ${releaseYear}`,
+      `movies like ${title}`,
       `where to watch ${title}`,
       `${title} streaming online`,
       `${title} ending explained`,
       `${title} twist rating`,
-      `${title} cast and crew`,
       `${title} narrative dna`,
       `${title} boredom risk`,
       `${mediaTypeLabel} telemetry`,
-      ...topActors.map((actor: string) => `actor ${actor.toLowerCase()}`),
       ...topActors,
       ...(media.genres?.map((g: { name: string }) => g.name) || []),
     ],
@@ -329,7 +268,6 @@ export default async function MediaDetailPage({ params }: MovieDetailProps) {
     .filter((actor: any) => actor && (actor.id || actor.name))
     .slice(0, 6);
 
-  // Extract Key Crew (Director / Creator / Screenplay)
   const directors = (media.credits?.crew || [])
     .filter((member: any) => ["Director", "Creator", "Series Director"].includes(member.job) || member.department === "Directing")
     .slice(0, 2);
@@ -340,7 +278,7 @@ export default async function MediaDetailPage({ params }: MovieDetailProps) {
 
   const similarMedia = (media.similar?.results || [])
     .filter((sim: any) => sim && sim.poster_path && sim.vote_average > 0)
-    .slice(0, 5);
+    .slice(0, 6);
 
   const trailer = media.videos?.results?.find(
     (v: any) => v.site === "YouTube" && (v.type === "Trailer" || v.type === "Teaser")
@@ -363,10 +301,16 @@ export default async function MediaDetailPage({ params }: MovieDetailProps) {
   const relatedEditorialGuides =
     directGuides.length > 0 ? directGuides : EDITORIAL_ARTICLES.slice(0, 3);
 
-  // Dynamic Metrics Calculation for Deep Narrative Telemetry
-  const telemetry = calculateTelemetryMetrics(media);
+  // Unified DNA telemetry calculation
+  const telemetry = computeBaselineDNA(
+    title,
+    genreList,
+    media.vote_average,
+    media.overview,
+    media.runtime || 110
+  );
 
-  // Full Rich Schema.org Entity Graph (Movie/TV + FAQ Structured Data)
+  // Full Rich Schema.org Entity Graph
   const jsonLd = {
     "@context": "https://schema.org",
     "@graph": [
@@ -420,7 +364,7 @@ export default async function MediaDetailPage({ params }: MovieDetailProps) {
             name: `Where can I stream ${title} (${year}) online?`,
             acceptedAnswer: {
               "@type": "Answer",
-              text: `${title} can be tracked on authorized digital networks including Netflix, Prime Video, and Apple TV depending on regional licensing. Check the real-time availability section above.`,
+              text: `${title} is tracked on major digital platforms including Netflix, Prime Video, and Apple TV depending on licensing. Check the real-time availability section above.`,
             },
           },
           {
@@ -428,15 +372,15 @@ export default async function MediaDetailPage({ params }: MovieDetailProps) {
             name: `What is the Narrative DNA and pacing of ${title}?`,
             acceptedAnswer: {
               "@type": "Answer",
-              text: `${title} exhibits a pacing score of ${telemetry.pacing.score}/100 (${telemetry.pacing.label}) and a narrative complexity index of ${telemetry.complexity.score}/100 with a twist potency score of ${telemetry.twistPotency.score}/100.`,
+              text: `${title} features a pacing score of ${telemetry.pacing.score}/100 (${telemetry.pacing.label}) and a narrative complexity rating of ${telemetry.complexity.score}/100.`,
             },
           },
           {
             "@type": "Question",
-            name: `Does ${title} have a post-credit scene or major twist?`,
+            name: `What movies are similar to ${title}?`,
             acceptedAnswer: {
               "@type": "Answer",
-              text: `With an Ending Twist Potency rated at ${telemetry.twistPotency.score}/100 (${telemetry.twistPotency.label}), view the Spoiler Vault section on MOVIEINT for a comprehensive breakdown of the resolution without accidental spoilers.`,
+              text: `Movies with matching thematic DNA and narrative affinity include: ${similarMedia.map((m: any) => m.title || m.name).join(", ")}. Explore the dedicated "Movies Like ${title}" affinity hub on MOVIEINT.`,
             },
           },
         ],
@@ -446,7 +390,7 @@ export default async function MediaDetailPage({ params }: MovieDetailProps) {
 
   return (
     <main className="min-h-screen bg-[#05070b] text-slate-100 px-4 py-10 flex flex-col items-center selection:bg-indigo-600 selection:text-white relative overflow-hidden pb-24">
-      {/* Dynamic Ambient Backdrop */}
+      {/* Ambient Backdrop */}
       {media.backdrop_path ? (
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-[520px] pointer-events-none -z-0 overflow-hidden">
           <Image
@@ -463,7 +407,7 @@ export default async function MediaDetailPage({ params }: MovieDetailProps) {
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-6xl h-[450px] bg-gradient-to-b from-indigo-600/10 via-rose-950/5 to-transparent pointer-events-none -z-0" />
       )}
 
-      {/* Structured Schema.org JSON-LD */}
+      {/* JSON-LD Schema */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
@@ -491,7 +435,7 @@ export default async function MediaDetailPage({ params }: MovieDetailProps) {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 bg-[#090d15]/90 border border-white/[0.08] rounded-3xl p-6 sm:p-8 mb-10 shadow-2xl relative overflow-hidden backdrop-blur-md">
           <div className="absolute top-0 right-0 w-80 h-80 bg-indigo-500/5 blur-3xl -z-0 pointer-events-none" />
 
-          {/* Left Poster Column */}
+          {/* Poster Column */}
           <div className="aspect-[2/3] relative rounded-2xl overflow-hidden shadow-2xl bg-slate-950 border border-white/10 z-10 group">
             {media.poster_path ? (
               <MoviePoster
@@ -515,7 +459,7 @@ export default async function MediaDetailPage({ params }: MovieDetailProps) {
           {/* Right Core Details Column */}
           <div className="md:col-span-2 flex flex-col justify-between gap-6 z-10">
             <div>
-              {/* Badges & Actions Bar */}
+              {/* Badges Bar */}
               <div className="flex flex-wrap items-center gap-2.5 mb-4">
                 <span className="bg-white/[0.05] border border-white/10 text-slate-300 px-3 py-1 rounded-full text-xs font-mono uppercase tracking-wider">
                   {isTv ? "TV Series" : "Feature Film"}
@@ -549,7 +493,7 @@ export default async function MediaDetailPage({ params }: MovieDetailProps) {
                 <p className="italic text-slate-400 text-sm mb-4 font-serif">&quot;{media.tagline}&quot;</p>
               )}
 
-              {/* Quick Meta Stats */}
+              {/* Meta Stats */}
               <div className="flex flex-wrap gap-5 text-xs font-medium text-slate-400 mb-6 border-y border-white/[0.06] py-3">
                 <div className="flex items-center gap-1.5">
                   <Calendar className="w-3.5 h-3.5 text-indigo-400" />
@@ -565,7 +509,7 @@ export default async function MediaDetailPage({ params }: MovieDetailProps) {
                 </div>
               </div>
 
-              {/* Crew Highlights (Directors / Writers) */}
+              {/* Crew Highlights */}
               {(directors.length > 0 || writers.length > 0) && (
                 <div className="flex flex-wrap gap-4 mb-5 text-xs">
                   {directors.length > 0 && (
@@ -595,7 +539,7 @@ export default async function MediaDetailPage({ params }: MovieDetailProps) {
                 {media.overview}
               </p>
 
-              {/* Streaming Availability Section */}
+              {/* Streaming Section */}
               <div className="mb-2">
                 <WatchProviders key={`providers-${id}`} providers={providers} />
               </div>
@@ -603,136 +547,19 @@ export default async function MediaDetailPage({ params }: MovieDetailProps) {
               <StreamingAffiliateBox key={`affiliate-${id}`} movieTitle={title} />
             </div>
 
-            {/* Base Movie DNA Component */}
+            {/* Deep Movie DNA Component */}
             <MovieDNA
               key={`dna-${id}`}
               title={title}
               overview={media.overview}
               genres={genreList}
               voteAverage={media.vote_average}
+              runtime={media.runtime}
             />
           </div>
         </div>
 
-        {/* DEEP NARRATIVE TELEMETRY & COGNITIVE DNA ENGINE (The 7 Pillars) */}
-        <section className="w-full bg-[#090d15]/80 border border-white/[0.08] rounded-3xl p-6 sm:p-8 mb-10 shadow-2xl relative">
-          <div className="flex items-center justify-between mb-6 pb-4 border-b border-white/[0.06]">
-            <div className="flex items-center gap-2.5">
-              <Sparkles className="w-5 h-5 text-indigo-400" />
-              <div>
-                <h3 className="text-sm font-bold text-white uppercase tracking-wider">
-                  Cognitive Narrative Telemetry
-                </h3>
-                <p className="text-[11px] text-slate-400">
-                  Algorithmic pacing, ending volatility, and structural complexity indicators
-                </p>
-              </div>
-            </div>
-            <span className="text-[10px] font-mono text-indigo-300 bg-indigo-500/10 border border-indigo-500/20 px-2.5 py-1 rounded-full uppercase tracking-widest">
-              Neural Evaluation
-            </span>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {/* 1. Pacing */}
-            <div className="bg-black/40 border border-white/[0.05] rounded-2xl p-4 flex flex-col justify-between">
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-1.5 text-xs text-slate-300 font-semibold">
-                    <Activity className="w-4 h-4 text-emerald-400" /> Pacing Telemetry
-                  </div>
-                  <span className="text-xs font-mono font-bold text-emerald-400">{telemetry.pacing.score}/100</span>
-                </div>
-                <div className="w-full bg-slate-800/60 h-1.5 rounded-full overflow-hidden mb-2">
-                  <div className="bg-emerald-500 h-full rounded-full" style={{ width: `${telemetry.pacing.score}%` }} />
-                </div>
-              </div>
-              <p className="text-[11px] text-slate-400 font-mono mt-1">{telemetry.pacing.label}</p>
-            </div>
-
-            {/* 2. Complexity */}
-            <div className="bg-black/40 border border-white/[0.05] rounded-2xl p-4 flex flex-col justify-between">
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-1.5 text-xs text-slate-300 font-semibold">
-                    <Brain className="w-4 h-4 text-purple-400" /> Narrative Complexity
-                  </div>
-                  <span className="text-xs font-mono font-bold text-purple-400">{telemetry.complexity.score}/100</span>
-                </div>
-                <div className="w-full bg-slate-800/60 h-1.5 rounded-full overflow-hidden mb-2">
-                  <div className="bg-purple-500 h-full rounded-full" style={{ width: `${telemetry.complexity.score}%` }} />
-                </div>
-              </div>
-              <p className="text-[11px] text-slate-400 font-mono mt-1">{telemetry.complexity.label}</p>
-            </div>
-
-            {/* 3. Emotional Resonance */}
-            <div className="bg-black/40 border border-white/[0.05] rounded-2xl p-4 flex flex-col justify-between">
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-1.5 text-xs text-slate-300 font-semibold">
-                    <Heart className="w-4 h-4 text-rose-400" /> Emotional Resonance
-                  </div>
-                  <span className="text-xs font-mono font-bold text-rose-400">{telemetry.emotionalResonance.score}/100</span>
-                </div>
-                <div className="w-full bg-slate-800/60 h-1.5 rounded-full overflow-hidden mb-2">
-                  <div className="bg-rose-500 h-full rounded-full" style={{ width: `${telemetry.emotionalResonance.score}%` }} />
-                </div>
-              </div>
-              <p className="text-[11px] text-slate-400 font-mono mt-1">{telemetry.emotionalResonance.label}</p>
-            </div>
-
-            {/* 4. Ending / Twist Potency */}
-            <div className="bg-black/40 border border-white/[0.05] rounded-2xl p-4 flex flex-col justify-between">
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-1.5 text-xs text-slate-300 font-semibold">
-                    <Zap className="w-4 h-4 text-amber-400" /> Climax Twist Potency
-                  </div>
-                  <span className="text-xs font-mono font-bold text-amber-400">{telemetry.twistPotency.score}/100</span>
-                </div>
-                <div className="w-full bg-slate-800/60 h-1.5 rounded-full overflow-hidden mb-2">
-                  <div className="bg-amber-500 h-full rounded-full" style={{ width: `${telemetry.twistPotency.score}%` }} />
-                </div>
-              </div>
-              <p className="text-[11px] text-slate-400 font-mono mt-1">{telemetry.twistPotency.label}</p>
-            </div>
-
-            {/* 5. Boredom Risk */}
-            <div className="bg-black/40 border border-white/[0.05] rounded-2xl p-4 flex flex-col justify-between">
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-1.5 text-xs text-slate-300 font-semibold">
-                    <AlertTriangle className="w-4 h-4 text-cyan-400" /> Boredom Risk Index
-                  </div>
-                  <span className="text-xs font-mono font-bold text-cyan-400">{telemetry.boredomRisk.score}%</span>
-                </div>
-                <div className="w-full bg-slate-800/60 h-1.5 rounded-full overflow-hidden mb-2">
-                  <div className="bg-cyan-500 h-full rounded-full" style={{ width: `${telemetry.boredomRisk.score}%` }} />
-                </div>
-              </div>
-              <p className="text-[11px] text-slate-400 font-mono mt-1">{telemetry.boredomRisk.label}</p>
-            </div>
-
-            {/* 6. Rewatch Value */}
-            <div className="bg-black/40 border border-white/[0.05] rounded-2xl p-4 flex flex-col justify-between">
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-1.5 text-xs text-slate-300 font-semibold">
-                    <RotateCcw className="w-4 h-4 text-indigo-400" /> Rewatch Value
-                  </div>
-                  <span className="text-xs font-mono font-bold text-indigo-400">{telemetry.rewatchValue.score}/100</span>
-                </div>
-                <div className="w-full bg-slate-800/60 h-1.5 rounded-full overflow-hidden mb-2">
-                  <div className="bg-indigo-500 h-full rounded-full" style={{ width: `${telemetry.rewatchValue.score}%` }} />
-                </div>
-              </div>
-              <p className="text-[11px] text-slate-400 font-mono mt-1">{telemetry.rewatchValue.label}</p>
-            </div>
-          </div>
-        </section>
-
-        {/* Existing Intelligence & Climax Components */}
+        {/* Intelligence Engines */}
         <ClimaxIndex
           key={`climax-${id}`}
           title={title}
@@ -767,7 +594,7 @@ export default async function MediaDetailPage({ params }: MovieDetailProps) {
           }}
         />
 
-        {/* Key Personnel & Cast Grid */}
+        {/* Cast Units */}
         {cast.length > 0 && (
           <section className="mb-14 text-left">
             <div className="flex items-center justify-between mb-4">
@@ -811,26 +638,27 @@ export default async function MediaDetailPage({ params }: MovieDetailProps) {
           </section>
         )}
 
-        {/* Similar Media / Thematic Neighbours (Internal Linking SEO) */}
+        {/* Thematic Neighbours & "Movies Like This" Hub Link */}
         {similarMedia.length > 0 && (
           <section className="mb-14 text-left">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <Compass className="w-4 h-4 text-indigo-400" />
                 <h3 className="text-xs font-mono uppercase tracking-[0.2em] text-slate-400 font-bold">
-                  Thematic Neighbours & Movies Like This
+                  Thematic Neighbours & Movies Like {title}
                 </h3>
               </div>
               <Link
                 href={`/movies-like/${id}`}
                 prefetch={false}
-                className="text-xs text-indigo-400 hover:text-indigo-300 transition font-mono flex items-center gap-1"
+                className="text-xs text-indigo-400 hover:text-indigo-300 transition font-mono flex items-center gap-1 group"
               >
-                <span>Explore Full Affinity Index</span>
-                <ChevronRight className="w-3.5 h-3.5" />
+                <span>Full &quot;Movies Like {title}&quot; Affinity Matrix</span>
+                <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
               </Link>
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+            
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3.5">
               {similarMedia.map((sim: any) => {
                 const simTitle = sim.title || sim.name;
                 const linkId = isTv ? `tv-${sim.id}` : sim.id;
@@ -849,19 +677,22 @@ export default async function MediaDetailPage({ params }: MovieDetailProps) {
                           fallbackTitle={simTitle}
                           fill
                           unoptimized
-                          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
+                          sizes="(max-width: 640px) 50vw, 16vw"
                           className="object-cover group-hover:scale-105 transition duration-300"
                         />
                       ) : (
                         <div className="flex items-center justify-center h-full text-xs text-slate-600">No Image</div>
                       )}
+                      <div className="absolute bottom-1.5 right-1.5 bg-black/80 px-1.5 py-0.5 rounded text-[10px] font-mono text-amber-400 border border-white/10">
+                        ★ {sim.vote_average?.toFixed(1) || "N/A"}
+                      </div>
                     </div>
-                    <div className="p-3">
+                    <div className="p-2.5">
                       <h4 className="text-xs font-bold text-slate-200 truncate group-hover:text-indigo-400 transition">
                         {simTitle}
                       </h4>
-                      <p className="text-[11px] text-slate-500 mt-1">
-                        ★ {sim.vote_average?.toFixed(1) || "N/A"}
+                      <p className="text-[10px] text-slate-500 truncate mt-0.5 font-mono">
+                        DNA Affinity Match
                       </p>
                     </div>
                   </Link>
@@ -871,7 +702,7 @@ export default async function MediaDetailPage({ params }: MovieDetailProps) {
           </section>
         )}
 
-        {/* Curated Editorial Guides Cross-Funnel Section */}
+        {/* Editorial Guides */}
         <section className="mb-14 text-left">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
@@ -917,7 +748,7 @@ export default async function MediaDetailPage({ params }: MovieDetailProps) {
           </div>
         </section>
 
-        {/* Enhanced Movie FAQ Component */}
+        {/* Enhanced Movie FAQ */}
         <MovieFAQ
           key={`faq-${id}`}
           title={title}

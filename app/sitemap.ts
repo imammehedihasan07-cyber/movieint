@@ -5,7 +5,7 @@ import { INTENT_FILTERS } from "@/config/intentFilters";
 export const revalidate = 86400; // 24 hours ISR Cache
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://movieint.com";
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.movieint.com";
   const now = new Date();
 
   // 1. All Valid Core & Feature Routes (Matching App Directories)

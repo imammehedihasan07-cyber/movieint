@@ -16,7 +16,10 @@ import {
   AlertCircle,
   HelpCircle,
   BookOpen,
-  Tv,
+  Bookmark,
+  Share2,
+  TrendingUp,
+  Sparkles,
 } from 'lucide-react';
 import MoviePoster from '@/components/MoviePoster';
 import StreamingAffiliateBox from '@/components/StreamingAffiliateBox';
@@ -55,7 +58,7 @@ function calculateBaselineDNA(title: string, genre: string, voteAvg: number, ove
   return {
     pacing: {
       score: pacingScore,
-      label: pacingScore > 75 ? 'High Cadence Velocity' : pacingScore > 58 ? 'Balanced Dynamic' : 'Methodical Atmospheric',
+      label: pacingScore > 75 ? 'Rapid Accelerating' : pacingScore > 58 ? 'Balanced Dynamic' : 'Methodical Slow-Burn',
     },
     complexity: {
       score: complexityScore,
@@ -85,7 +88,6 @@ async function getUniversalMediaDetails(id: string) {
     next: { revalidate: 86400 },
   }).catch(() => null);
 
-  // Fallback: If initially tried movie but failed and wasn't explicitly prefixed, try TV
   if ((!mediaRes || !mediaRes.ok) && !hasTvPrefix) {
     endpoint = 'tv';
     mediaRes = await fetch(`https://api.themoviedb.org/3/tv/${cleanId}?api_key=${apiKey}&language=en-US`, {
@@ -93,7 +95,6 @@ async function getUniversalMediaDetails(id: string) {
     }).catch(() => null);
   }
 
-  // Fallback 2: If explicitly tried TV and failed, try Movie just in case
   if ((!mediaRes || !mediaRes.ok) && hasTvPrefix) {
     endpoint = 'movie';
     mediaRes = await fetch(`https://api.themoviedb.org/3/movie/${cleanId}?api_key=${apiKey}&language=en-US`, {
@@ -118,7 +119,7 @@ async function getUniversalMediaDetails(id: string) {
 
   const title = media.title || media.name || 'Untitled';
   const releaseDate = media.release_date || media.first_air_date || '';
-  const runtime = media.runtime || (media.episode_run_time && media.episode_run_time[0]) || 24;
+  const runtime = media.runtime || (media.episode_run_time && media.episode_run_time[0]) || 45;
 
   const director =
     media.created_by?.[0]?.name ||
@@ -128,7 +129,7 @@ async function getUniversalMediaDetails(id: string) {
   const topCast: string[] = (credits.cast || []).slice(0, 6).map((c: any) => c.name);
 
   const trailer = (videos.results || []).find(
-    (v: any) => v.site === 'YouTube' && (v.type === 'Trailer' || v.type === 'Teaser' || v.type === 'Opening')
+    (v: any) => v.site === 'YouTube' && (v.type === 'Trailer' || v.type === 'Teaser')
   ) || (videos.results || [])[0];
 
   const verifiedSimilar = (similar.results || [])
@@ -163,8 +164,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   if (!data || !data.movie) {
     return {
-      title: 'Global Cinema & Series Intelligence | MOVIEINT',
-      description: 'Comprehensive film, anime, and series narrative telemetry.',
+      title: 'Cinematic Intelligence Telemetry | MOVIEINT',
+      description: 'Comprehensive film, series, and anime narrative telemetry.',
     };
   }
 
@@ -172,8 +173,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const year = movie.release_date ? new Date(movie.release_date).getFullYear() : '';
   const canonicalUrl = `${baseUrl}/movie/${id}`;
 
-  const metaTitle = `${movie.title} (${year}) — Narrative DNA & Telemetry | MOVIEINT`;
-  const metaDescription = `Deconstruct ${movie.title} (${year}) by ${director}. Explore narrative complexity, pacing score, and streaming availability across Anime, Series & Cinema.`;
+  const metaTitle = `${movie.title} (${year}) — Narrative DNA, Review & Where to Stream | MOVIEINT`;
+  const metaDescription = `Deconstruct ${movie.title} (${year}) by ${director}. Explore pacing velocity, complexity indices, reality subversion score, and streaming availability.`;
 
   return {
     title: metaTitle,
@@ -195,7 +196,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
             : '/og-image.png',
           width: 1200,
           height: 630,
-          alt: `${movie.title} preview`,
+          alt: `${movie.title} telemetry card`,
         },
       ],
     },
@@ -210,13 +211,14 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export default async function MovieDetailPage({ params }: PageProps) {
   const { id } = await params;
   const data = await getUniversalMediaDetails(id);
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.movieint.com';
 
   if (!data || !data.movie) {
     return (
       <main className="min-h-screen bg-[#05070b] text-slate-100 flex flex-col items-center justify-center p-6 text-center">
-        <h1 className="text-2xl font-bold mb-2">Intelligence Telemetry Synchronizing</h1>
+        <h1 className="text-2xl font-bold mb-2">Cinematic Intelligence Telemetry Not Available</h1>
         <p className="text-slate-400 text-sm mb-6 max-w-md">
-          Unable to locate archival records for index: {id}.
+          Unable to synchronize archival telemetry for index: {id}.
         </p>
         <Link href="/" className="px-4 py-2 bg-indigo-600 rounded-xl text-xs font-bold hover:bg-indigo-500 transition">
           Return to Hub
@@ -227,19 +229,18 @@ export default async function MovieDetailPage({ params }: PageProps) {
 
   const { movie, director, topCast, trailerKey, similar, isTv } = data;
   const year = movie.release_date ? new Date(movie.release_date).getFullYear() : 'N/A';
-  const genreNames = movie.genres?.map((g: { name: string }) => g.name).join(', ') || (isTv ? 'Series / Anime' : 'Feature Film');
+  const genreNames = movie.genres?.map((g: { name: string }) => g.name).join(', ') || (isTv ? 'Television Series' : 'Feature Film');
 
   const isAnime = genreNames.toLowerCase().includes('animation') || (movie.origin_country || []).includes('JP');
   const isKDrama = (movie.origin_country || []).includes('KR');
-
-  const mediaTypeBadge = isAnime ? 'Anime Masterpiece' : isKDrama ? 'K-Drama Series' : isTv ? 'TV Series Telemetry' : 'Verified Cinema';
+  const mediaTypeBadge = isAnime ? 'Anime Masterpiece' : isKDrama ? 'K-Drama Series' : isTv ? 'TV Series' : 'Verified Cinema';
 
   const dna = calculateBaselineDNA(
     movie.title,
     genreNames,
     movie.vote_average || 7.0,
     movie.overview || '',
-    movie.runtime || 45
+    movie.runtime || 60
   );
 
   const boredomRisk = dna.pacing.score > 75 ? 'Very Low' : dna.pacing.score > 55 ? 'Low' : 'Moderate';
@@ -251,9 +252,38 @@ export default async function MovieDetailPage({ params }: PageProps) {
     3
   );
 
+  // SEO Schema.org JSON-LD Structured Data
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': isTv ? 'TVSeries' : 'Movie',
+    name: movie.title,
+    description: movie.overview,
+    image: movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : undefined,
+    datePublished: movie.release_date,
+    director: {
+      '@type': 'Person',
+      name: director,
+    },
+    aggregateRating: movie.vote_average
+      ? {
+          '@type': 'AggregateRating',
+          ratingValue: movie.vote_average.toFixed(1),
+          bestRating: '10',
+          worstRating: '1',
+          ratingCount: movie.vote_count || 100,
+        }
+      : undefined,
+  };
+
   return (
     <main className="min-h-screen bg-[#05070b] text-slate-100 py-10 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto selection:bg-indigo-600 selection:text-white">
-      {/* Breadcrumb Navigation */}
+      {/* 0. Structured Data Injection */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+
+      {/* Navigation Breadcrumb */}
       <nav className="flex items-center justify-between text-xs text-slate-500 uppercase tracking-widest font-mono mb-8">
         <div className="flex items-center gap-2">
           <Link href="/" className="hover:text-indigo-400">Home</Link>
@@ -339,6 +369,24 @@ export default async function MovieDetailPage({ params }: PageProps) {
                 <span className="text-slate-300">{topCast.join(', ')}</span>
               </div>
             )}
+
+            {/* Interactive User Engagement Bar */}
+            <div className="pt-2 flex flex-wrap items-center justify-center md:justify-start gap-3">
+              <button
+                type="button"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold shadow-lg shadow-indigo-600/20 transition cursor-pointer"
+              >
+                <Bookmark className="w-3.5 h-3.5" />
+                <span>Add to Watchlist</span>
+              </button>
+              <button
+                type="button"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 text-slate-300 rounded-xl text-xs font-semibold transition cursor-pointer"
+              >
+                <Share2 className="w-3.5 h-3.5" />
+                <span>Share Telemetry</span>
+              </button>
+            </div>
           </div>
         </div>
       </header>
@@ -464,6 +512,39 @@ export default async function MovieDetailPage({ params }: PageProps) {
             <p className="text-[11px] text-slate-400">Layered details payoff index</p>
           </div>
         </div>
+
+        {/* Narrative Tension & Pacing Arc */}
+        <div className="bg-black/50 border border-white/5 rounded-2xl p-5 space-y-4">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-mono uppercase tracking-wider text-slate-300 flex items-center gap-2">
+              <TrendingUp className="w-4 h-4 text-indigo-400" /> Narrative Tension Arc Progression
+            </span>
+            <span className="text-[11px] font-mono text-slate-500">Act I → Climax → Resolution</span>
+          </div>
+
+          <div className="grid grid-cols-4 gap-2 pt-2 text-center text-[11px]">
+            <div className="bg-white/[0.02] border border-white/5 rounded-xl p-3 space-y-1">
+              <div className="text-slate-400 font-mono">Act I: Setup</div>
+              <div className="h-1 bg-indigo-500/40 rounded-full mt-2" />
+              <p className="text-[10px] text-slate-500 pt-1">Worldbuilding</p>
+            </div>
+            <div className="bg-white/[0.02] border border-white/5 rounded-xl p-3 space-y-1">
+              <div className="text-slate-400 font-mono">Act II: Escalation</div>
+              <div className="h-1 bg-indigo-500/70 rounded-full mt-2" />
+              <p className="text-[10px] text-slate-500 pt-1">Rising Conflict</p>
+            </div>
+            <div className="bg-indigo-500/10 border border-indigo-500/30 rounded-xl p-3 space-y-1">
+              <div className="text-indigo-300 font-mono font-bold">Act III: Climax</div>
+              <div className="h-1 bg-rose-500 rounded-full mt-2" />
+              <p className="text-[10px] text-rose-300 pt-1">{dna.twistPotency.score}% Shock Factor</p>
+            </div>
+            <div className="bg-white/[0.02] border border-white/5 rounded-xl p-3 space-y-1">
+              <div className="text-slate-400 font-mono">Resolution</div>
+              <div className="h-1 bg-cyan-500/50 rounded-full mt-2" />
+              <p className="text-[10px] text-slate-500 pt-1">Thematic Closure</p>
+            </div>
+          </div>
+        </div>
       </section>
 
       {/* 4. Protected Climax & Twist Telemetry */}
@@ -483,7 +564,7 @@ export default async function MovieDetailPage({ params }: PageProps) {
           </h2>
           <div className="relative aspect-video w-full rounded-2xl overflow-hidden border border-white/10 bg-black">
             <iframe
-              src={`https://www.youtube.com/embed/${trailerKey}?origin=https://movieint.com`}
+              src={`https://www.youtube.com/embed/${trailerKey}?origin=${baseUrl}`}
               title={`${movie.title} Trailer`}
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen

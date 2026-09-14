@@ -1,6 +1,10 @@
 // app/sitemap.ts
 import { MetadataRoute } from "next";
 import { getAllEditorialSlugs } from "@/lib/editorial-data";
+import { INTENT_FILTERS } from "@/config/intentFilters";
+
+export const runtime = "edge";
+export const revalidate = 86400; // 24 hours ISR Edge Cache
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.movieint.com";
@@ -38,14 +42,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${baseUrl}/privacy-policy`, lastModified: now, changeFrequency: "monthly", priority: 0.3 },
     { url: `${baseUrl}/terms`, lastModified: now, changeFrequency: "monthly", priority: 0.3 },
     { url: `${baseUrl}/disclaimer`, lastModified: now, changeFrequency: "monthly", priority: 0.3 },
-    // Verified curated editorial hubs
-    { url: `${baseUrl}/best/mind-bending-movies`, lastModified: now, changeFrequency: "weekly", priority: 0.8 },
-    { url: `${baseUrl}/best/slow-burn-thrillers`, lastModified: now, changeFrequency: "weekly", priority: 0.8 },
-    { url: `${baseUrl}/best/high-octane-action`, lastModified: now, changeFrequency: "weekly", priority: 0.8 },
-    { url: `${baseUrl}/best/deep-concept-sci-fi`, lastModified: now, changeFrequency: "weekly", priority: 0.8 },
   ];
 
-  // 2. Genre routes
+  // 2. Programmatic Search Intent Routes (/best/[category])
+  const intentRoutes: MetadataRoute.Sitemap = Object.keys(INTENT_FILTERS).map((key) => ({
+    url: `${baseUrl}/best/${key}`,
+    lastModified: now,
+    changeFrequency: "weekly",
+    priority: 0.85,
+  }));
+
+  // 3. Genre routes (/genre/[slug])
   const genreRoutes: MetadataRoute.Sitemap = genreSlugs.map((slug) => ({
     url: `${baseUrl}/genre/${slug}`,
     lastModified: now,
@@ -53,7 +60,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
   }));
 
-  // 3. Dynamic Editorial Guides routes (/editorial/[slug])
+  // 4. Dynamic Editorial Guides routes (/editorial/[slug])
   let editorialRoutes: MetadataRoute.Sitemap = [];
   try {
     const slugs = getAllEditorialSlugs();
@@ -99,7 +106,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         } else {
           const isTvSource = index === 2 || index === 3;
           res.value.results.forEach((item: any) => {
-            if (item && item.id && (item.poster_path || item.backdrop_path) && (item.vote_average ?? 0) > 0) {
+            if (
+              item &&
+              item.id &&
+              (item.poster_path || item.backdrop_path) &&
+              (item.vote_average ?? 0) > 0
+            ) {
               const routeId = isTvSource ? `tv-${item.id}` : String(item.id);
               cleanMediaList.push({
                 routeId,
@@ -124,11 +136,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }));
 
     // Affinity Routes: /movies-like/[id]
-    const moviesLikeRoutes: MetadataRoute.Sitemap = uniqueRouteIds.slice(0, 40).map((routeId) => ({
+    const moviesLikeRoutes: MetadataRoute.Sitemap = uniqueRouteIds.slice(0, 50).map((routeId) => ({
       url: `${baseUrl}/movies-like/${routeId}`,
       lastModified: now,
       changeFrequency: "weekly",
-      priority: 0.7,
+      priority: 0.75,
     }));
 
     // Cast / Personnel Routes: /person/[id]
@@ -144,6 +156,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
     return [
       ...staticRoutes,
+      ...intentRoutes,
       ...genreRoutes,
       ...editorialRoutes,
       ...dynamicMediaRoutes,
@@ -152,6 +165,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ];
   } catch (e) {
     console.error("Sitemap generation fallback triggered:", e);
-    return [...staticRoutes, ...genreRoutes, ...editorialRoutes];
+    return [...staticRoutes, ...intentRoutes, ...genreRoutes, ...editorialRoutes];
   }
 }

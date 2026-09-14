@@ -483,7 +483,7 @@ export default async function MovieDetailPage({ params }: PageProps) {
           </h2>
           <div className="relative aspect-video w-full rounded-2xl overflow-hidden border border-white/10 bg-black">
             <iframe
-              src={`https://www.youtube-nocookie.com/embed/${trailerKey}`}
+              src={`https://www.youtube.com/embed/${trailerKey}?origin=https://movieint.com`}
               title={`${movie.title} Trailer`}
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen

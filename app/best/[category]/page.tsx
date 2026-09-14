@@ -3,9 +3,9 @@ import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Star, ShieldAlert, Zap, ArrowRight } from 'lucide-react';
+import { Star, ArrowRight } from 'lucide-react';
 import { INTENT_FILTERS } from '@/config/intentFilters';
-import { getFilteredMovies } from '@/lib/getFilteredMovies';
+import { getMoviesByIntent } from '@/lib/getFilteredMovies';
 import StreamingAffiliateBox from '@/components/StreamingAffiliateBox';
 
 interface PageProps {
@@ -61,7 +61,7 @@ export default async function BestCategoryPage({ params }: PageProps) {
     notFound();
   }
 
-  const movies = await getFilteredMovies(filter);
+  const movies = await getMoviesByIntent(filter);
 
   // Schema.org: ItemList
   const itemListSchema = {
@@ -115,7 +115,7 @@ export default async function BestCategoryPage({ params }: PageProps) {
 
       <main className="min-h-screen bg-[#05070b] text-slate-100 py-10 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto">
         {/* Breadcrumb Navigation */}
-        <nav className="text-xs text-slate-500 uppercase tracking-widest mb-6">
+        <nav className="text-xs text-slate-500 uppercase tracking-widest mb-6 font-mono">
           <Link href="/" className="hover:text-indigo-400">Home</Link>
           <span className="mx-2">/</span>
           <span className="text-slate-400">Best</span>
@@ -141,7 +141,7 @@ export default async function BestCategoryPage({ params }: PageProps) {
               className="bg-[#090d15] border border-white/[0.06] rounded-3xl p-6 sm:p-8 flex flex-col md:flex-row gap-6 items-start"
             >
               {/* Poster */}
-              <div className="relative w-32 h-48 sm:w-40 sm:h-60 rounded-2xl overflow-hidden shrink-0 border border-white/10 shadow-2xl">
+              <div className="relative w-32 h-48 sm:w-40 sm:h-60 rounded-2xl overflow-hidden shrink-0 border border-white/10 shadow-2xl bg-slate-950">
                 <Image
                   src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
                   alt={movie.title}
@@ -196,7 +196,7 @@ export default async function BestCategoryPage({ params }: PageProps) {
                   </div>
                 </div>
 
-                {/* Streaming Availability Box */}
+                {/* Streaming Box */}
                 <div className="pt-2">
                   <StreamingAffiliateBox movieId={String(movie.id)} movieTitle={movie.title} />
                 </div>

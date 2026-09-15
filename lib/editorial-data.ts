@@ -1501,6 +1501,181 @@ export const EDITORIAL_ARTICLES: EditorialArticle[] = [
       'best-movies-like-inception-cerebral-thrillers'
     ]
   }
+,
+  // 23. Best Neo-Noir Detective Movies
+  {
+    slug: 'best-neo-noir-crime-movies-ranked',
+    title: '8 Gritty Neo-Noir Detective Movies Ranked by Atmosphere and Cynicism',
+    seoTitle: 'Best Neo-Noir Crime & Detective Movies Ranked | MOVIEINT',
+    metaDescription: 'Step into rain-slicked city streets, morally compromised private eyes, and cynical corruption in cinema’s greatest neo-noir thrillers.',
+    publishedDate: '2026-09-15T15:00:00Z',
+    modifiedDate: '2026-09-15T15:00:00Z',
+    author: {
+      name: 'MovieINT Editorial Intelligence Lab',
+      role: 'Film Curation Lead',
+    },
+    category: 'Lists',
+    moodTag: 'Dark',
+    themeTag: 'Crime & Mystery',
+    readTime: '8 min read',
+    featured: true,
+    coverImage: 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?q=80&w=1200&auto=format&fit=crop',
+    introText: 'Neo-noir updates the classical hardboiled detective story for cynical modern landscapes. These films reject tidy moral outcomes in favor of institutional decay, compromised ethics, and existential ambiguity.',
+    keyTakeaways: [
+      'Uncompromising moral grayness and disillusioned protagonists.',
+      'Signature expressionist lighting paired with modern urban grit.',
+      'Labyrinthine conspiracy plotting with bleak resolutions.'
+    ],
+    movies: [
+      {
+        tmdbId: 807,
+        slugId: '807',
+        title: 'Se7en',
+        year: 1995,
+        director: 'David Fincher',
+        runtime: '127 min',
+        genres: ['Crime', 'Mystery', 'Thriller'],
+        dnaScore: 9.6,
+        metrics: {
+          complexity: 86,
+          brainpower: 88,
+          twistPotency: 98,
+          pacing: 'Methodical Procedural Dread',
+          endingType: 'Devastating Moral Trap',
+        },
+        whyRecommended: 'David Fincher’s masterclass in unrelenting dread, turning a metropolitan homicide investigation into an unforgettable philosophical descent.',
+        bestFor: 'Fans of gritty investigative crime thrillers and dark endings.',
+        avoidIf: 'You are sensitive to grim, visceral crime scenes.',
+        streamingOn: ['Max', 'Apple TV'],
+      }
+    ],
+    faqs: [
+      {
+        question: 'What differentiates neo-noir from classic film noir?',
+        answer: 'Neo-noir adopts modern visual technology, color cinematography, explicit violence, and contemporary socio-political cynicism while preserving noir themes.'
+      }
+    ],
+    relatedGuideSlugs: [
+      'best-murder-mystery-whodunit-movies',
+      'best-psychological-thriller-movies-ranked'
+    ]
+  },
+  // 24. Psychological Horror Movies
+  {
+    slug: 'psychological-horror-movies-unreliable-narrator',
+    title: '9 Chilling Psychological Horrors With Unreliable Narrators',
+    seoTitle: 'Best Psychological Horror Movies With Unreliable Narrators | MOVIEINT',
+    metaDescription: 'Discover horror films that forgo cheap jump scares to dismantle reality, sanity, and perception from the inside out.',
+    publishedDate: '2026-09-15T15:00:00Z',
+    modifiedDate: '2026-09-15T15:00:00Z',
+    author: {
+      name: 'MovieINT Cinema Intelligence Lab',
+      role: 'Global Narrative Specialist',
+    },
+    category: 'Recommendations',
+    moodTag: 'Psychological',
+    themeTag: 'Existential',
+    readTime: '8 min read',
+    featured: true,
+    coverImage: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=1200&auto=format&fit=crop',
+    introText: 'The most terrifying monsters are internal delusions. These psychological masterworks place viewers inside unstable minds where sensory reality itself cannot be trusted.',
+    keyTakeaways: [
+      'Subversion of objective perspective through subjective distortion.',
+      'Absence of cheap jump scares in favor of mounting psychological dread.',
+      'Ambiguous final sequences challenging viewer interpretation.'
+    ],
+    movies: [
+      {
+        tmdbId: 493922,
+        slugId: '493922',
+        title: 'Hereditary',
+        year: 2018,
+        director: 'Ari Aster',
+        runtime: '127 min',
+        genres: ['Horror', 'Mystery', 'Drama'],
+        dnaScore: 9.3,
+        metrics: {
+          complexity: 89,
+          brainpower: 87,
+          twistPotency: 94,
+          pacing: 'Suffocating Emotional Escalation',
+          endingType: 'Chilling Inevitability',
+        },
+        whyRecommended: 'A harrowing examination of grief, familial trauma, and generational damnation masquerading as a modern occult tragedy.',
+        bestFor: 'Viewers looking for deeply disturbing, slow-burn psychological dread.',
+        avoidIf: 'You are vulnerable to intense themes of family trauma.',
+        streamingOn: ['Max', 'Prime Video'],
+      }
+    ],
+    faqs: [
+      {
+        question: 'What is an unreliable narrator in psychological horror?',
+        answer: 'A protagonist whose mental instability, trauma, or bias distorts the events on screen, leaving the viewer unsure of what is real.'
+      }
+    ],
+    relatedGuideSlugs: [
+      'best-mind-bending-movies-that-make-you-think',
+      'best-movies-with-insane-plot-twists'
+    ]
+  },
+  // 25. Smartest Heist Movies
+  {
+    slug: 'smartest-heist-movies-elaborate-plans',
+    title: '10 Smartest Heist Movies With Brilliant Elaborate Plans Ranked',
+    seoTitle: 'Smartest Heist Movies With Elaborate Plans Ranked | MOVIEINT',
+    metaDescription: 'From vault infiltration to complex misdirection, explore cinema’s most ingenious heist and tactical robbery movies.',
+    publishedDate: '2026-09-15T15:00:00Z',
+    modifiedDate: '2026-09-15T15:00:00Z',
+    author: {
+      name: 'MovieINT Editorial Intelligence Lab',
+      role: 'Film Curation Lead',
+    },
+    category: 'Lists',
+    moodTag: 'Intellectual',
+    themeTag: 'Crime & Mystery',
+    readTime: '7 min read',
+    featured: true,
+    coverImage: 'https://images.unsplash.com/photo-1542204165-65bf26472b9b?q=80&w=1200&auto=format&fit=crop',
+    introText: 'A great heist film functions like a Swiss chronometer: every gear, contingency, and misdirection must click into place with surgical precision under extreme scrutiny.',
+    keyTakeaways: [
+      'Calculated technical execution and elaborate misdirection mechanics.',
+      'High rewatchability focused on tactical problem-solving under pressure.',
+      'Smooth ensemble synchronization with charismatic operational leadership.'
+    ],
+    movies: [
+      {
+        tmdbId: 161,
+        slugId: '161',
+        title: "Ocean's Eleven",
+        year: 2001,
+        director: 'Steven Soderbergh',
+        runtime: '116 min',
+        genres: ['Thriller', 'Crime'],
+        dnaScore: 9.1,
+        metrics: {
+          complexity: 82,
+          brainpower: 80,
+          twistPotency: 91,
+          pacing: 'Effortless Rhythmic Swagger',
+          endingType: 'Clean Audacious Escape',
+        },
+        whyRecommended: 'The gold standard of sleek, charismatic ensemble heists, backed by razor-sharp direction and immaculate editing.',
+        bestFor: 'Fans of witty ensemble chemistry and elegant tactical capers.',
+        avoidIf: 'You prefer gritty, realistic street-level crime drama.',
+        streamingOn: ['Max', 'Apple TV'],
+      }
+    ],
+    faqs: [
+      {
+        question: 'What makes a heist movie realistic vs cinematic?',
+        answer: 'Realistic heists emphasize mundane operational logistics and surveillance, while cinematic heists favor theatrical sleight-of-hand and split-second luck.'
+      }
+    ],
+    relatedGuideSlugs: [
+      'best-murder-mystery-whodunit-movies',
+      'best-movies-under-90-minutes-tight-pacing'
+    ]
+  }
 ];
 
 

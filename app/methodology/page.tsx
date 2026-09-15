@@ -50,7 +50,7 @@ export default function MethodologyPage() {
                 1. Bayesian Prior Adjustment
               </h3>
               <p className="text-xs text-slate-400 leading-relaxed">
-                Titles with low review counts are weighted toward the global cinematic mean ($R_{prior}$), dampening artificial 10/10 or 1/10 spikes.
+                Titles with low review counts are weighted toward the global cinematic mean (R(prior)), dampening artificial 10/10 or 1/10 spikes.
               </p>
             </div>
             <div className="bg-white/[0.02] border border-white/[0.05] p-4 rounded-2xl">

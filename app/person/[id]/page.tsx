@@ -79,14 +79,31 @@ export default async function PersonPage({ params }: PersonPageProps) {
     );
   }
 
-  const rawCredits =
-    person.known_for_department === "Directing"
-      ? person.movie_credits?.crew?.filter((c: any) => c.job === "Director")
-      : person.movie_credits?.cast;
+  const isDirector = person.known_for_department === "Directing";
+  const directedMovies = (person.movie_credits?.crew || [])
+    .filter((c: any) => c.job === "Director" && c.poster_path);
+  const actedMovies = (person.movie_credits?.cast || [])
+    .filter((c: any) => c.poster_path);
 
-  const validCredits = (rawCredits || [])
-    .filter((m: any) => m.poster_path && m.vote_average > 0)
-    .sort((a: any, b: any) => (b.vote_average || 0) - (a.vote_average || 0));
+  const rawCredits = isDirector 
+    ? (directedMovies.length > 0 ? directedMovies : actedMovies)
+    : (actedMovies.length > 0 ? actedMovies : directedMovies);
+
+  // Deduplicate and filter high-quality filmography entries
+  const uniqueCreditsMap = new Map();
+  rawCredits.forEach((m: any) => {
+    if (!uniqueCreditsMap.has(m.id) && m.poster_path && m.vote_average > 0) {
+      uniqueCreditsMap.set(m.id, m);
+    }
+  });
+
+  const validCredits = Array.from(uniqueCreditsMap.values())
+    .sort((a: any, b: any) => {
+      // Prioritize films with significant review consensus over 1-vote anomalies
+      const scoreA = (a.vote_average || 0) * Math.log10((a.vote_count || 1) + 10);
+      const scoreB = (b.vote_average || 0) * Math.log10((b.vote_count || 1) + 10);
+      return scoreB - scoreA;
+    });
 
   const jsonLd = {
     "@context": "https://schema.org",

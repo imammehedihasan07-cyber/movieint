@@ -139,12 +139,18 @@ async function getUniversalMediaDetails(id: string) {
   const releaseDate = media.release_date || media.first_air_date || '';
   const runtime = media.runtime || (media.episode_run_time && media.episode_run_time[0]) || 45;
 
-  const director =
-    media.created_by?.[0]?.name ||
-    credits.crew?.find((c: any) => c.job === 'Director' || c.job === 'Series Director')?.name ||
-    'Original Studio / Creators';
+  const directorObj =
+    media.created_by?.[0] ||
+    credits.crew?.find((c: any) => c.job === 'Director' || c.job === 'Series Director');
 
-  const topCast: string[] = (credits.cast || []).slice(0, 6).map((c: any) => c.name);
+  const director = directorObj?.name || 'Original Studio / Creators';
+  const directorId = directorObj?.id || null;
+
+  const topCastMembers = (credits.cast || []).slice(0, 6).map((c: any) => ({
+    id: c.id,
+    name: c.name
+  }));
+  const topCast: string[] = topCastMembers.map((c: any) => c.name);
 
   const trailer = (videos.results || []).find(
     (v: any) => v.site === 'YouTube' && (v.type === 'Trailer' || v.type === 'Teaser')
@@ -419,7 +425,16 @@ export default async function MovieDetailPage({ params }: PageProps) {
             {topCast.length > 0 && (
               <div className="text-xs text-slate-400 pt-1">
                 <span className="font-mono text-slate-500">Starring Cast:</span>{' '}
-                <span className="text-slate-300">{topCast.join(', ')}</span>
+                <span className="text-slate-300">
+                {topCastMembers.map((member: any, i: number) => (
+                  <span key={member.id}>
+                    <Link href={`/person/${member.id}`} className="hover:text-indigo-300 transition-colors underline underline-offset-2">
+                      {member.name}
+                    </Link>
+                    {i < topCastMembers.length - 1 ? ', ' : ''}
+                  </span>
+                ))}
+              </span>
               </div>
             )}
 

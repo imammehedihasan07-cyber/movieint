@@ -3,7 +3,7 @@ import Link from "next/link";
 import { ArrowLeft, Cpu, ShieldCheck, Layers, Database, Sparkles, Activity, Gauge } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Algorithm & Scoring Methodology | MOVIEINT",
+  title: "Algorithm & Scoring Methodology",
   description:
     "An architectural breakdown of the MOVIEINT narrative score, weighted telemetry calculations, and algorithmic movie intelligence.",
   alternates: {

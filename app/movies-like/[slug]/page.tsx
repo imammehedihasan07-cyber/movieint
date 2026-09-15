@@ -118,7 +118,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   if (!data) {
     return {
-      title: 'Similar Cinema & Series Recommendations | MOVIEINT',
+      title: 'Similar Cinema & Series Recommendations',
       description: 'Discover curated algorithmic recommendations.',
     };
   }
@@ -132,7 +132,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       canonical: canonicalUrl,
     },
     openGraph: {
-      title: `Movies Like ${data.title} | MOVIEINT`,
+      title: `Movies Like ${data.title}`,
       description: `Best recommendations with matching tone and narrative complexity to ${data.title}.`,
       url: canonicalUrl,
       type: 'website',

@@ -104,7 +104,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   if (!genre) {
     return {
-      title: "Genre Hub | MOVIEINT",
+      title: "Genre Hub",
       description: "Explore cinematic properties classified by narrative genre.",
     };
   }
@@ -112,13 +112,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const canonicalUrl = `${baseUrl}/genre/${normalizedSlug}`;
 
   return {
-    title: `Best ${genre.name} Movies & Algorithmic Index | MOVIEINT`,
+    title: `Best ${genre.name} Movies & Algorithmic Index`,
     description: `Discover top-rated ${genre.name.toLowerCase()} films curated through Narrative DNA, pacing analysis, and telemetry scores.`,
     alternates: {
       canonical: canonicalUrl,
     },
     openGraph: {
-      title: `Best ${genre.name} Movies | MOVIEINT`,
+      title: `Best ${genre.name} Movies`,
       description: genre.description,
       url: canonicalUrl,
       type: "website",

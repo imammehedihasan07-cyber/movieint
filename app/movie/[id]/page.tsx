@@ -189,7 +189,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   if (!data || !data.movie) {
     return {
-      title: 'Cinematic Intelligence & Streaming Guide | MOVIEINT',
+      title: 'Cinematic Intelligence & Streaming Guide',
       description: 'Comprehensive film and series editorial insights, mood telemetry, and streaming guide.',
     };
   }
@@ -198,7 +198,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const year = movie.release_date ? new Date(movie.release_date).getFullYear() : '2026';
   const canonicalUrl = `${baseUrl}/movie/${id}`;
 
-  const metaTitle = `Where to Watch ${movie.title} (${year}) Online & Streaming Guide | MOVIEINT`;
+  const metaTitle = `Where to Watch ${movie.title} (${year}) Online & Streaming Guide`;
   const metaDescription = `Find where to stream ${movie.title} (${year}) by ${director}. Explore why you should watch, audience recommendations, pacing review, and verified streaming platforms.`;
 
   return {

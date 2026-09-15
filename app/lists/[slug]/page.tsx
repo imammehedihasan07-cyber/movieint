@@ -46,7 +46,7 @@ export async function generateMetadata({
   };
 
   return {
-    title: `${config.title} | MOVIEINT Neural Cinema`,
+    title: `${config.title}`,
     description: config.description,
   };
 }

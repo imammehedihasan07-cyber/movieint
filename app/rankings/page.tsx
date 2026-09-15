@@ -4,14 +4,14 @@ import { Sparkles, BarChart3, Brain, Compass, ShieldCheck, Layers, Info } from "
 import RankingsClient from "./RankingsClient";
 
 export const metadata: Metadata = {
-  title: "Global Cinema Rankings & Intelligence Leaderboard | MOVIEINT",
+  title: "Global Cinema Rankings & Intelligence Leaderboard",
   description:
     "Explore algorithmic rankings evaluating narrative complexity, pacing consistency, and historical critical resonance across global cinema.",
   alternates: {
     canonical: "https://www.movieint.com/rankings",
   },
   openGraph: {
-    title: "Global Cinema Rankings & Telemetry Leaderboard | MOVIEINT",
+    title: "Global Cinema Rankings & Telemetry Leaderboard",
     description:
       "Algorithmic film rankings combining community consensus, pacing variance, and structural depth metrics.",
     url: "https://www.movieint.com/rankings",

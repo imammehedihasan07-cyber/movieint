@@ -33,13 +33,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const canonicalUrl = `https://www.movieint.com/best/${category}/`;
 
   return {
-    title: `${filter.metaTitle} | MovieInt`,
+    title: `${filter.metaTitle}`,
     description: filter.metaDescription,
     alternates: {
       canonical: canonicalUrl,
     },
     openGraph: {
-      title: `${filter.metaTitle} | MovieInt`,
+      title: `${filter.metaTitle}`,
       description: filter.metaDescription,
       url: canonicalUrl,
       siteName: 'MovieInt',
@@ -47,7 +47,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     },
     twitter: {
       card: 'summary_large_image',
-      title: `${filter.metaTitle} | MovieInt`,
+      title: `${filter.metaTitle}`,
       description: filter.metaDescription,
     },
   };

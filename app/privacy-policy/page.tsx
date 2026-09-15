@@ -3,7 +3,7 @@ import Link from "next/link";
 import { ArrowLeft, Shield, Lock, EyeOff, Cookie, Mail, Megaphone } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy | MOVIEINT",
+  title: "Privacy Policy",
   description:
     "Learn how MOVIEINT protects user privacy, utilizes local browser storage, and manages third-party advertising cookies and partner telemetry.",
   alternates: {

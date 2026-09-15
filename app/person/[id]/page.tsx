@@ -31,7 +31,7 @@ export async function generateMetadata({ params }: PersonPageProps): Promise<Met
 
   if (!person) {
     return {
-      title: "Cinema Contributor Archive | MOVIEINT",
+      title: "Cinema Contributor Archive",
       description: "Filmography and narrative profile for notable cinema creators.",
     };
   }
@@ -40,13 +40,13 @@ export async function generateMetadata({ params }: PersonPageProps): Promise<Met
   const canonicalUrl = `${baseUrl}/person/${id}`;
 
   return {
-    title: `${person.name} (${role}) — Filmography & Telemetry | MOVIEINT`,
+    title: `${person.name} (${role}) — Filmography & Telemetry`,
     description: `Explore the cinematic profile, essential films, and narrative impact of ${person.name}.`,
     alternates: {
       canonical: canonicalUrl,
     },
     openGraph: {
-      title: `${person.name} — Filmography & Cinematic Profile | MOVIEINT`,
+      title: `${person.name} — Filmography & Cinematic Profile`,
       description: person.biography?.slice(0, 160) || `Cinematic works and telemetry for ${person.name}.`,
       url: canonicalUrl,
       type: "profile",

@@ -43,7 +43,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   if (!data) {
     return {
-      title: 'Ending Explained | MOVIEINT',
+      title: 'Ending Explained',
       description: 'Cinematic climax decryption.',
     };
   }
@@ -53,7 +53,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const canonicalUrl = `${baseUrl}/ending-explained/${id}`;
 
   return {
-    title: `${movie.title} (${year}) Ending Explained & Meaning | MOVIEINT`,
+    title: `${movie.title} (${year}) Ending Explained & Meaning`,
     description: `A decisive breakdown of what really happened at the end of ${movie.title}. Uncover hidden clues, twists, and thematic interpretations.`,
     alternates: {
       canonical: canonicalUrl,

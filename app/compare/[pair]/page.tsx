@@ -88,7 +88,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   if (config) {
     return {
-      title: `${config.titleA} vs ${config.titleB}: Which is Better? Comparison & Telemetry | MOVIEINT`,
+      title: `${config.titleA} vs ${config.titleB}: Which is Better? Comparison & Telemetry`,
       description: `Comprehensive comparison between ${config.titleA} and ${config.titleB}. Analyze ratings, storytelling complexity, pacing, and audience verdict.`,
       alternates: { canonical: canonicalUrl },
     };
@@ -99,7 +99,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const titleB = parts[1]?.replace(/-/g, ' ') || 'Movie B';
 
   return {
-    title: `${titleA} vs ${titleB} Comparison | MOVIEINT`,
+    title: `${titleA} vs ${titleB} Comparison`,
     description: `Side-by-side comparison of ${titleA} and ${titleB}.`,
     alternates: { canonical: canonicalUrl },
   };

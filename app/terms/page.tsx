@@ -3,7 +3,7 @@ import Link from "next/link";
 import { ArrowLeft, FileText, ShieldAlert, Mail } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Terms of Service & DMCA Compliance | MOVIEINT",
+  title: "Terms of Service & DMCA Compliance",
   description:
     "Review MOVIEINT's terms of service, acceptable usage guidelines, copyright attribution, and DMCA takedown procedures.",
   alternates: {

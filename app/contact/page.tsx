@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Mail, MessageSquare, ShieldAlert, Sparkles, Send } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Contact Us | MOVIEINT",
+  title: "Contact Us",
   description:
     "Get in touch with MOVIEINT for film telemetry feedback, algorithmic corrections, advertising partnerships, or support.",
 };

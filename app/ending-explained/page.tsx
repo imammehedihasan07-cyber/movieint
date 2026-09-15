@@ -4,7 +4,7 @@ import { Sparkles, ShieldAlert, ArrowLeft, Star, Film } from 'lucide-react';
 import MoviePoster from '@/components/MoviePoster';
 
 export const metadata: Metadata = {
-  title: 'Ending Explained & Climax Decryption Library | MOVIEINT',
+  title: 'Ending Explained & Climax Decryption Library',
   description: 'Unravel ambiguous movie climaxes, hidden clues, and thematic meanings for cinema’s most mind-bending films.',
   alternates: {
     canonical: 'https://www.movieint.com/ending-explained',

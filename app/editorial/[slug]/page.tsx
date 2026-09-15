@@ -123,7 +123,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const slug = await resolveSlug(params);
   const article = findArticle(slug);
 
-  if (!article) return { title: 'Guide Not Found | MOVIEINT' };
+  if (!article) return { title: 'Guide Not Found' };
 
   const url = `https://www.movieint.com/editorial/${article.slug}`;
 

@@ -5,14 +5,14 @@ import { Metadata } from 'next';
 import { EDITORIAL_ARTICLES } from '@/lib/editorial-data';
 
 export const metadata: Metadata = {
-  title: 'Cinematic Editorial & Discovery Guides | MOVIEINT Intelligence',
+  title: 'Cinematic Editorial & Discovery Guides',
   description:
     'Explore curated movie discovery guides, ranked lists, and thematic breakdowns powered by MovieINT Narrative DNA telemetry, Brainpower ratings, and streaming availability.',
   alternates: {
     canonical: 'https://www.movieint.com/editorial',
   },
   openGraph: {
-    title: 'Cinematic Editorial & Discovery Guides | MOVIEINT',
+    title: 'Cinematic Editorial & Discovery Guides',
     description:
       'Curated lists, narrative DNA telemetry, and streaming intelligence across world cinema, anime, and psychological thrillers.',
     url: 'https://www.movieint.com/editorial',
@@ -21,7 +21,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Cinematic Editorial & Discovery Guides | MOVIEINT',
+    title: 'Cinematic Editorial & Discovery Guides',
     description: 'Discover what to watch next with MovieINT Narrative DNA.',
   },
 };

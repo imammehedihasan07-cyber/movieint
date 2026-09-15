@@ -3,7 +3,7 @@ import Link from "next/link";
 import { ShieldAlert, ArrowLeft, Info, Film, ExternalLink, Scale } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Legal & Regulatory Disclaimer | MOVIEINT",
+  title: "Legal & Regulatory Disclaimer",
   description:
     "Official disclosure regarding TMDB metadata attribution, algorithmic scores, affiliate partnerships, and intellectual property.",
   alternates: {

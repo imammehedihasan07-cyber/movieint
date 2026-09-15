@@ -297,35 +297,36 @@ export default async function MovieDetailPage({ params }: PageProps) {
       : undefined,
   };
 
+    const dynamicFaqs = [
+    {
+      q: `What is the premise and narrative tone of ${movie.title}?`,
+      a: `${movie.overview ? movie.overview.slice(0, 180) + '...' : movie.title + ' is an acclaimed release.'} It delivers a ${analysis.mood.toLowerCase()} tone designed for ${analysis.targetAudience.toLowerCase()}`
+    },
+    {
+      q: `Is ${movie.title} worth watching based on MovieINT analysis?`,
+      a: `With an audience score of ${movie.vote_average.toFixed(1)}/10, ${analysis.hook} Its primary strength lies in ${analysis.primaryStrength.toLowerCase()} Viewer consideration: ${analysis.potentialFlaw}`
+    },
+    {
+      q: `What is the runtime and pacing intensity of ${movie.title}?`,
+      a: `${movie.title} clocks in at ${movie.runtime ? Math.floor(movie.runtime / 60) + 'h ' + (movie.runtime % 60) + 'm' : 'standard feature length'} with a calibrated narrative pacing score of ${analysis.pacingScore}/100.`
+    },
+    {
+      q: `Who stars in and directed ${movie.title}?`,
+      a: `The film is directed by ${director || 'acclaimed filmmakers'}, with lead performances by ${topCast && topCast.length > 0 ? topCast.slice(0, 3).join(', ') : 'an ensemble cast'}.`
+    }
+  ];
+
   const faqSchema = {
     '@context': 'https://schema.org',
     '@type': 'FAQPage',
-    mainEntity: [
-      {
-        '@type': 'Question',
-        name: `Where can I watch ${movie.title} online?`,
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: `${movie.title} is available across digital streaming platforms and VOD storefronts including Netflix, Amazon Prime Video, and Apple TV depending on your regional licensing. Check our live streaming directory below.`,
-        },
-      },
-      {
-        '@type': 'Question',
-        name: `Is ${movie.title} worth watching?`,
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: `With an audience score of ${movie.vote_average.toFixed(1)}/10, ${movie.title} offers: ${analysis.hook} It is particularly recommended for ${analysis.targetAudience}`,
-        },
-      },
-      {
-        '@type': 'Question',
-        name: `Who directed and created ${movie.title}?`,
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: `${movie.title} was directed and helmed by ${director}, featuring performances by ${topCast.slice(0, 3).join(', ')}.`,
-        },
-      },
-    ],
+    mainEntity: dynamicFaqs.map(item => ({
+      '@type': 'Question',
+      name: item.q,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: item.a
+      }
+    }))
   };
 
   return (
@@ -680,42 +681,45 @@ export default async function MovieDetailPage({ params }: PageProps) {
         </section>
       )}
 
-      {/* 8. Verified Visible FAQ (Ranked directly on Google Search) */}
-      <section className="bg-[#090d15]/60 border border-white/[0.08] rounded-3xl p-6 sm:p-8 space-y-4">
-        <div className="flex items-center gap-2 text-indigo-400 text-xs font-mono uppercase tracking-widest">
-          <HelpCircle className="w-4 h-4" /> Frequently Inquired Questions
+      {/* 8. Verified Dynamic FAQ & Editorial Nexus */}
+      <section className="bg-[#090d15]/60 border border-white/[0.08] rounded-3xl p-6 sm:p-8 space-y-6">
+        <div className="space-y-2">
+          <div className="flex items-center gap-2 text-indigo-400 text-xs font-mono uppercase tracking-widest">
+            <HelpCircle className="w-4 h-4" /> Frequently Inquired Questions
+          </div>
+          <h2 className="text-lg sm:text-xl font-bold text-white tracking-tight">
+            Viewer Intelligence & Analysis for {movie.title}
+          </h2>
         </div>
-        <h2 className="text-lg sm:text-xl font-bold text-white tracking-tight">
-          Viewer Guide & Questions About {movie.title}
-        </h2>
 
-        <div className="space-y-3 pt-2 text-xs sm:text-sm">
-          <div className="bg-black/40 border border-white/5 rounded-2xl p-4">
-            <h3 className="font-bold text-slate-200 mb-1">
-              Where can I stream {movie.title} right now?
-            </h3>
-            <p className="text-slate-400 leading-relaxed">
-              Availability depends on local licensing agreements. You can check our real-time streaming module above to find licensed streams across Netflix, Prime Video, Disney+, Max, and digital on-demand storefronts.
-            </p>
-          </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+          {dynamicFaqs.map((faq, idx) => (
+            <div key={idx} className="bg-black/40 border border-white/5 rounded-2xl p-4 flex flex-col justify-between">
+              <h3 className="font-bold text-slate-200 text-xs sm:text-sm mb-2">
+                {faq.q}
+              </h3>
+              <p className="text-slate-400 text-xs leading-relaxed">
+                {faq.a}
+              </p>
+            </div>
+          ))}
+        </div>
 
-          <div className="bg-black/40 border border-white/5 rounded-2xl p-4">
-            <h3 className="font-bold text-slate-200 mb-1">
-              Is {movie.title} worth watching for general audiences?
-            </h3>
-            <p className="text-slate-400 leading-relaxed">
-              Holding a {movie.vote_average.toFixed(1)}/10 rating, it delivers strong production value. It is particularly recommended for {analysis.targetAudience}
-            </p>
+        {/* Intelligent Cross-Linking Bar */}
+        <div className="border-t border-white/5 pt-5 flex flex-wrap items-center justify-between gap-3 text-xs font-mono text-slate-400">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-slate-500 uppercase">Explore Universe:</span>
+            <Link href={`/movies-like/${encodeURIComponent(movie.title.toLowerCase().replace(/[^a-z0-9]+/g, '-'))}`} className="text-indigo-400 hover:text-indigo-300 transition-colors underline underline-offset-4">
+              Movies Like {movie.title} →
+            </Link>
+            <span className="text-slate-700">•</span>
+            <Link href="/editorial" className="text-cyan-400 hover:text-cyan-300 transition-colors underline underline-offset-4">
+              Curated Editorial Guides →
+            </Link>
           </div>
-
-          <div className="bg-black/40 border border-white/5 rounded-2xl p-4">
-            <h3 className="font-bold text-slate-200 mb-1">
-              Who are the creative minds behind {movie.title}?
-            </h3>
-            <p className="text-slate-400 leading-relaxed">
-              The project is spearheaded by {director}, showcasing notable performances from {topCast.slice(0, 3).join(', ')}.
-            </p>
-          </div>
+          <Link href="/methodology" className="text-amber-400 hover:text-amber-300 transition-colors text-[11px]">
+            MovieINT Score Methodology ⓘ
+          </Link>
         </div>
       </section>
     </main>

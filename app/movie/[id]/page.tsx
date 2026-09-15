@@ -146,11 +146,11 @@ async function getUniversalMediaDetails(id: string) {
   const director = directorObj?.name || 'Original Studio / Creators';
   const directorId = directorObj?.id || null;
 
-  const topCastMembers = (credits.cast || []).slice(0, 6).map((c: any) => ({
+  const safeCastMembers = (credits.cast || []).slice(0, 6).map((c: any) => ({
     id: c.id,
     name: c.name
   }));
-  const topCast: string[] = topCastMembers.map((c: any) => c.name);
+  const topCast: string[] = safeCastMembers.map((c: any) => c.name);
 
   const trailer = (videos.results || []).find(
     (v: any) => v.site === 'YouTube' && (v.type === 'Trailer' || v.type === 'Teaser')
@@ -175,6 +175,7 @@ async function getUniversalMediaDetails(id: string) {
     },
     director,
     topCast,
+    safeCastMembers,
     trailerKey: trailer?.key || null,
     similar: verifiedSimilar,
     isTv,
@@ -193,7 +194,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     };
   }
 
-  const { movie, director, isTv } = data;
+  const { movie, director, directorId, topCast, safeCastMembers, isTv } = data as any;
   const year = movie.release_date ? new Date(movie.release_date).getFullYear() : '2026';
   const canonicalUrl = `${baseUrl}/movie/${id}`;
 
@@ -422,22 +423,19 @@ export default async function MovieDetailPage({ params }: PageProps) {
               {movie.overview || 'Comprehensive narrative overview curated by the MovieInt editorial review engine.'}
             </p>
 
-            {topCast.length > 0 && (
-              <div className="text-xs text-slate-400 pt-1">
-                <span className="font-mono text-slate-500">Starring Cast:</span>{' '}
-                <span className="text-slate-300">
-                {topCastMembers.map((member: any, i: number) => (
-                  <span key={member.id}>
-                    <Link href={`/person/${member.id}`} className="hover:text-indigo-300 transition-colors underline underline-offset-2">
-                      {member.name}
-                    </Link>
-                    {i < topCastMembers.length - 1 ? ', ' : ''}
+          {topCast && topCast.length > 0 && (
+            <div className="text-xs text-slate-400 pt-1">
+              <span className="font-mono text-slate-500">Starring Cast:</span>{" "}
+              <span className="text-slate-300">
+                {topCast.map((actor: string, i: number) => (
+                  <span key={i}>
+                    <span className="text-slate-300">{actor}</span>
+                    {i < topCast.length - 1 ? ", " : ""}
                   </span>
                 ))}
               </span>
-              </div>
-            )}
-
+            </div>
+          )}
             {/* Action Bar */}
             <div className="pt-2 flex flex-wrap items-center justify-center md:justify-start gap-3">
               <button

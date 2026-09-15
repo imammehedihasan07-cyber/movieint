@@ -1,6 +1,9 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { EDITORIAL_ARTICLES, EditorialArticle } from '@/lib/editorial-data';
+import Image from 'next/image';
+import { BookOpen } from 'lucide-react';
 import { Star, ArrowLeft, Trophy, Flame, Sparkles, Film, ArrowUpRight } from 'lucide-react';
 import MoviePoster from '@/components/MoviePoster';
 
@@ -139,6 +142,17 @@ export default async function RankingCategoryPage({ params }: PageProps) {
       },
     })),
   };
+
+  
+  // Filter relevant editorial guides for this category silo
+  const allEditorials = EDITORIAL_ARTICLES;
+  const relatedGuides = allEditorials.filter((art: EditorialArticle) => {
+    const catLower = category.toLowerCase();
+    if (catLower.includes('anime')) return art.slug.includes('anime') || art.themeTag.toLowerCase().includes('sci-fi');
+    if (catLower.includes('k-drama')) return art.slug.includes('k-drama') || art.moodTag.toLowerCase().includes('dark');
+    if (catLower.includes('thriller')) return art.moodTag.toLowerCase().includes('mind-bending') || art.themeTag.toLowerCase().includes('crime');
+    return art.featured;
+  }).slice(0, 3);
 
   return (
     <main className="min-h-screen bg-[#05070b] text-slate-100 py-10 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto">

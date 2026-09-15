@@ -1,6 +1,7 @@
 import { MetadataRoute } from "next";
 import { getAllEditorialSlugs } from "@/lib/editorial-data";
 import { INTENT_FILTERS } from "@/config/intentFilters";
+import { POPULAR_PAIRS } from "@/app/compare/[pair]/page";
 
 export const revalidate = 86400; // 24 hours ISR
 
@@ -46,7 +47,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.9,
   }));
 
-  // 3. Programmatic Search Intent Routes (/best/[category])
+  // 3. Programmatic Compare Head-to-Head Routes (/compare/[pair])
+  const compareRoutes: MetadataRoute.Sitemap = Object.keys(POPULAR_PAIRS || {}).map((pair) => ({
+    url: `${baseUrl}/compare/${pair}`,
+    lastModified: now,
+    changeFrequency: "weekly",
+    priority: 0.85,
+  }));
+
+  // 4. Search Intent Routes (/best/[category])
   const intentRoutes: MetadataRoute.Sitemap = Object.keys(INTENT_FILTERS || {}).map((key) => ({
     url: `${baseUrl}/best/${key}`,
     lastModified: now,
@@ -54,7 +63,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.85,
   }));
 
-  // 4. Supported Core Genres
+  // 5. Supported Core Genres
   const genreSlugs = [
     "thriller", "sci-fi", "action", "drama", "horror",
     "mystery", "crime", "animation", "romance", "comedy",
@@ -67,7 +76,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
   }));
 
-  // 5. Curated Editorial Intelligence Dossiers
+  // 6. Curated Editorial Guides
   let editorialRoutes: MetadataRoute.Sitemap = [];
   try {
     const slugs = getAllEditorialSlugs();
@@ -81,7 +90,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     console.error("Editorial slugs extraction fallback:", err);
   }
 
-  // 6. Dynamic TMDB Media & Cast Extraction
+  // 7. Dynamic Media & Cast Extraction
   try {
     const apiKey = process.env.TMDB_API_KEY || "b6b9f5e3a64b6ef32e0b8fade33cfe5a";
 
@@ -152,6 +161,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     return [
       ...staticRoutes,
       ...rankingRoutes,
+      ...compareRoutes,
       ...intentRoutes,
       ...genreRoutes,
       ...editorialRoutes,
@@ -161,6 +171,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ];
   } catch (e) {
     console.error("Sitemap generation fallback triggered:", e);
-    return [...staticRoutes, ...rankingRoutes, ...intentRoutes, ...genreRoutes, ...editorialRoutes];
+    return [...staticRoutes, ...rankingRoutes, ...compareRoutes, ...intentRoutes, ...genreRoutes, ...editorialRoutes];
   }
 }

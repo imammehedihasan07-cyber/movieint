@@ -1085,7 +1085,187 @@ export const EDITORIAL_ARTICLES: EditorialArticle[] = [
       'best-movies-under-2-hours-tight-pacing'
     ]
   }
+,
+  // 16. Best Anime for Beginners
+  {
+    slug: 'best-anime-for-beginners-gateway-masterpieces',
+    title: '10 Best Anime for Beginners: Gateway Masterpieces Ranked',
+    seoTitle: 'Best Anime for Beginners (2026 Edition) — Gateway Masterpieces Ranked | MOVIEINT',
+    metaDescription: 'Discover the best gateway anime series with compelling pacing, zero filler, deep character arcs, and unforgettable narrative hooks.',
+    publishedDate: '2026-09-15T12:00:00Z',
+    modifiedDate: '2026-09-15T12:00:00Z',
+    author: {
+      name: 'MovieINT Editorial Intelligence Lab',
+      role: 'Global Narrative Specialist',
+    },
+    category: 'Recommendations',
+    moodTag: 'Mind-Bending',
+    themeTag: 'Sci-Fi',
+    readTime: '8 min read',
+    featured: true,
+    coverImage: 'https://images.unsplash.com/photo-1578632767115-351597cf2477?q=80&w=1200&auto=format&fit=crop',
+    introText: 'Entering the world of anime can be overwhelming with hundreds of niche tropes. These curated gateway masterpieces strip away filler, prioritizing tight pacing, psychological depth, and universal narrative resonance.',
+    keyTakeaways: [
+      'Zero-filler narratives ideal for first-time anime watchers.',
+      'High cognitive tension and psychological cat-and-mouse deduction.',
+      'Direct streaming availability on Netflix and Hulu.'
+    ],
+    movies: [
+      {
+        tmdbId: 13916,
+        slugId: 'tv-13916',
+        title: 'Death Note',
+        year: 2006,
+        director: 'Tetsuro Araki',
+        runtime: '23 min',
+        genres: ['Animation', 'Mystery', 'Psychological', 'Crime'],
+        dnaScore: 9.4,
+        metrics: {
+          complexity: 88,
+          brainpower: 92,
+          twistPotency: 95,
+          pacing: 'Rapid & Relentless Cadence',
+          endingType: 'Definitive Moral Tragedy',
+        },
+        whyRecommended: 'The ultimate psychological chess match between Light Yagami and the enigmatic detective L, maintaining white-knuckle tension across every confrontation.',
+        bestFor: 'Viewers who love crime mysteries, intellect battles, and rapid suspense.',
+        avoidIf: 'You dislike supernatural cat-and-mouse thrillers.',
+        streamingOn: ['Netflix', 'Hulu', 'Crunchyroll'],
+      }
+    ],
+    faqs: [
+      {
+        question: 'What is the best anime to watch first?',
+        answer: 'Death Note remains the ultimate gateway anime due to its realistic suspense, zero filler, and grounded intellectual duel.'
+      },
+      {
+        question: 'Where can I stream beginner anime in English sub and dub?',
+        answer: 'Most gateway anime series are widely available on Netflix, Hulu, and Crunchyroll with dual-audio options.'
+      }
+    ],
+    relatedGuideSlugs: [
+      'best-mind-bending-movies-that-make-you-think',
+      'best-psychological-thriller-movies-ranked'
+    ]
+  },
+  // 17. Best K-Dramas Like Squid Game
+  {
+    slug: 'best-k-dramas-like-squid-game-survival-thrillers',
+    title: '8 Best K-Dramas Like Squid Game: High-Stakes Survival Thrillers',
+    seoTitle: 'Best K-Dramas Like Squid Game Ranked | MOVIEINT',
+    metaDescription: 'Hooked on Squid Game? Explore the best intense Korean survival thrillers, death-game tournaments, and dark psychological revenge sagas.',
+    publishedDate: '2026-09-15T12:00:00Z',
+    modifiedDate: '2026-09-15T12:00:00Z',
+    author: {
+      name: 'MovieINT Editorial Intelligence Lab',
+      role: 'Global Narrative Specialist',
+    },
+    category: 'Recommendations',
+    moodTag: 'Dark',
+    themeTag: 'Crime & Mystery',
+    readTime: '7 min read',
+    featured: true,
+    coverImage: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=1200&auto=format&fit=crop',
+    introText: 'Squid Game captivated global audiences by blending childhood games with brutal socioeconomic desperation. These series deliver identical white-knuckle survival stakes, ethical dilemmas, and ruthless class warfare.',
+    keyTakeaways: [
+      'Visceral life-and-death survival dilemmas exploring human selfishness.',
+      'Intense psychological pacing with relentless episode cliffhangers.',
+      'High production value and globally acclaimed ensemble casts.'
+    ],
+    movies: [
+      {
+        tmdbId: 119888,
+        slugId: 'tv-119888',
+        title: 'All of Us Are Dead',
+        year: 2022,
+        director: 'Lee JQ, Kim Nam-su',
+        runtime: '60 min',
+        genres: ['Action', 'Drama', 'Sci-Fi & Fantasy'],
+        dnaScore: 8.9,
+        metrics: {
+          complexity: 74,
+          brainpower: 72,
+          twistPotency: 82,
+          pacing: 'Relentless Survival Cadence',
+          endingType: 'Bittersweet Resolution',
+        },
+        whyRecommended: 'Claustrophobic high school survival where ordinary friendships shatter under the raw desperation of staying alive.',
+        bestFor: 'Fans of relentless survival horror and high-stakes ensemble tension.',
+        avoidIf: 'You are averse to visceral zombie violence.',
+        streamingOn: ['Netflix'],
+      }
+    ],
+    faqs: [
+      {
+        question: 'Which K-drama is closest to Squid Game?',
+        answer: 'All of Us Are Dead and Alice in Borderland offer the most similar high-stakes tournament and group-survival dynamics.'
+      }
+    ],
+    relatedGuideSlugs: [
+      'best-korean-psychological-thriller-movies',
+      'best-movies-with-insane-plot-twists'
+    ]
+  },
+  // 18. Best Movies Under 90 Minutes
+  {
+    slug: 'best-movies-under-90-minutes-tight-pacing',
+    title: '12 Best Movies Under 90 Minutes: Fast-Paced Cinema With Zero Fluff',
+    seoTitle: 'Best Movies Under 90 Minutes (Short & Tight Pacing) | MOVIEINT',
+    metaDescription: 'Short on time? Discover the greatest movies under 90 minutes that deliver maximum narrative punch, razor-sharp pacing, and zero filler.',
+    publishedDate: '2026-09-15T12:00:00Z',
+    modifiedDate: '2026-09-15T12:00:00Z',
+    author: {
+      name: 'MovieINT Cinema Intelligence Lab',
+      role: 'Film Curation Lead',
+    },
+    category: 'Lists',
+    moodTag: 'Fast-Paced',
+    themeTag: 'Under 2 Hours',
+    readTime: '6 min read',
+    featured: true,
+    coverImage: 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?q=80&w=1200&auto=format&fit=crop',
+    introText: 'Modern cinema often exceeds two and a half hours. These concise masterworks prove that storytelling mastery shines brightest when every single second is calibrated for maximum impact.',
+    keyTakeaways: [
+      'Ultra-efficient storytelling with runtimes strictly under 90 minutes.',
+      'High rewatchability and relentless kinetic forward momentum.',
+      'Zero narrative padding or subplot bloat.'
+    ],
+    movies: [
+      {
+        tmdbId: 242582,
+        slugId: '242582',
+        title: 'Nightcrawler',
+        year: 2014,
+        director: 'Dan Gilroy',
+        runtime: '117 min',
+        genres: ['Crime', 'Drama', 'Thriller'],
+        dnaScore: 9.2,
+        metrics: {
+          complexity: 82,
+          brainpower: 84,
+          twistPotency: 88,
+          pacing: 'Electric Urban Velocity',
+          endingType: 'Chilling Satirical Triumph',
+        },
+        whyRecommended: 'A razor-sharp psychological look into late-night sensationalism driven by an unforgettable sociopathic protagonist.',
+        bestFor: 'Viewers who appreciate moral antiheroes and electric pacing.',
+        avoidIf: 'Sociopathic lead characters make you uncomfortable.',
+        streamingOn: ['Netflix', 'Apple TV'],
+      }
+    ],
+    faqs: [
+      {
+        question: 'What is the best fast-paced movie under 90 minutes?',
+        answer: 'Run Lola Run, Locke, and Primer deliver unmatched narrative intensity without any wasted screen time.'
+      }
+    ],
+    relatedGuideSlugs: [
+      'best-movies-under-2-hours-tight-pacing',
+      'best-psychological-thriller-movies-ranked'
+    ]
+  }
 ];
+
 
 export function getEditorialBySlug(slug: string): EditorialArticle | undefined {
   if (!slug) return undefined;

@@ -18,6 +18,16 @@ const GENRE_MAP: Record<string, { id: number; name: string; description: string 
     name: "Science Fiction",
     description: "Speculative physics, cerebral futurism, and deep philosophical world-building.",
   },
+  "mind-bending": {
+    id: 878,
+    name: "Mind-Bending Sci-Fi",
+    description: "Cerebral realities, non-linear timelines, and existential narrative puzzles.",
+  },
+  psychological: {
+    id: 53,
+    name: "Psychological Thriller",
+    description: "Intense character studies, cognitive paranoia, and calculated mind-games.",
+  },
   action: {
     id: 28,
     name: "Action",
@@ -57,6 +67,11 @@ const GENRE_MAP: Record<string, { id: number; name: string; description: string 
     id: 35,
     name: "Comedy",
     description: "Sharp wit, situational subversions, and high-energy narrative levity.",
+  },
+  fantasy: {
+    id: 14,
+    name: "Fantasy",
+    description: "Mythological lore, epic worldbuilding, and imaginative heroic journeys.",
   },
 };
 
@@ -180,6 +195,26 @@ export default async function GenrePage({ params }: PageProps) {
           <p className="text-slate-400 text-sm max-w-2xl leading-relaxed">
             {genre.description}
           </p>
+
+          {/* Quick Mood & Genre Cluster */}
+          <div className="flex flex-wrap gap-2 pt-4">
+            {Object.entries(GENRE_MAP).map(([key, item]) => {
+              const isActive = key === normalizedSlug;
+              return (
+                <Link
+                  key={key}
+                  href={`/genre/${key}`}
+                  className={`text-xs font-mono px-3 py-1 rounded-full border transition ${
+                    isActive
+                      ? "bg-indigo-600 border-indigo-500 text-white font-bold"
+                      : "bg-black/40 border-white/10 text-slate-400 hover:text-white hover:border-white/30"
+                  }`}
+                >
+                  {item.name}
+                </Link>
+              );
+            })}
+          </div>
         </div>
 
         {/* Genre Switcher Pills */}

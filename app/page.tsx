@@ -5,7 +5,7 @@ import SearchBar from "@/components/SearchBar";
 import SponsoredSpotlight from "@/components/SponsoredSpotlight";
 import MediaGridSection from "@/components/MediaGridSection";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 3600;
 
 async function getGlobalCatalog() {
   const apiKey = process.env.TMDB_API_KEY || "b6b9f5e3a64b6ef32e0b8fade33cfe5a";
@@ -13,7 +13,7 @@ async function getGlobalCatalog() {
   try {
     const fetchOptions = {
       headers: { accept: "application/json" },
-      cache: "no-store" as RequestCache,
+      next: { revalidate: 3600 },
     };
 
     const [moviesRes, seriesRes, animeRes] = await Promise.all([

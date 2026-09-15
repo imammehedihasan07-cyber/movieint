@@ -113,7 +113,7 @@ export default function EditorialLandingPage() {
                     </Link>
 
                     <span className="text-xs font-mono text-slate-400">
-                      Telemetry: {featuredArticle.movies.length} Analyzed Titles
+                      Telemetry: {featuredArticle.movies.length} Deep-Dive Analysis
                     </span>
                   </div>
                 </div>
@@ -188,7 +188,7 @@ export default function EditorialLandingPage() {
 
                 <div className="border-t border-slate-800/80 pt-4 mt-2 flex items-center justify-between text-xs font-mono">
                   <span className="text-slate-500">
-                    {article.movies.length} Recommended Films
+                    {article.movies.length === 1 ? '1 Curated Deep-Dive' : `${article.movies.length} Recommended Films`}
                   </span>
                   <Link
                     href={`/editorial/${article.slug}`}

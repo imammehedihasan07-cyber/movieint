@@ -51,7 +51,7 @@ export const EDITORIAL_ARTICLES: EditorialArticle[] = [
   // 1. Best Mind-Bending Movies
   {
     slug: 'best-mind-bending-movies-that-make-you-think',
-    title: '15 Best Mind-Bending Movies That Will Break Your Reality (Ranked by Narrative Complexity)',
+    title: 'Essential Mind-Bending Movies That Challenge Reality (Ranked by Narrative Complexity)',
     seoTitle: 'Best Mind-Bending Movies That Make You Think | MovieINT DNA Guide',
     metaDescription: 'Discover the ultimate ranked list of mind-bending movies that challenge logic, memory, and spacetime. Evaluated using MovieINT Narrative DNA & Brainpower metrics.',
     publishedDate: '2026-08-15T09:00:00Z',
@@ -199,7 +199,7 @@ export const EDITORIAL_ARTICLES: EditorialArticle[] = [
   // 2. Movies Like Inception
   {
     slug: 'best-movies-like-inception-cerebral-thrillers',
-    title: '10 Movies Like Inception for When You Crave Layered Realities & Heists',
+    title: 'Definitive Thrillers Like Inception for When You Crave Layered Realities & Heists',
     seoTitle: 'Movies Like Inception: 10 Mind-Bending Cerebral Thrillers | MovieINT',
     metaDescription: 'Obsessed with Inception? Discover 10 cerebral masterpieces featuring dream manipulation, alternate realities, and psychological puzzles matching MovieINT DNA.',
     publishedDate: '2026-08-20T10:30:00Z',
@@ -279,7 +279,7 @@ export const EDITORIAL_ARTICLES: EditorialArticle[] = [
   // 3. Best Psychological Thriller Movies Ranked (Explicitly added!)
   {
     slug: 'best-psychological-thriller-movies-ranked',
-    title: '15 Best Psychological Thrillers of All Time (Ranked by Tension & Twist Potency)',
+    title: 'Essential Psychological Thrillers of Modern Cinema (Ranked by Tension & Twist Potency)',
     seoTitle: 'Best Psychological Thriller Movies of All Time | MovieINT DNA',
     metaDescription: 'Looking for heart-racing psychological thrillers? Explore our data-backed ranking based on MovieINT Tension Index, Pacing Cadence, and Twist Potency.',
     publishedDate: '2026-08-25T11:00:00Z',
@@ -360,7 +360,7 @@ export const EDITORIAL_ARTICLES: EditorialArticle[] = [
   // 4. Movies Like Interstellar
   {
     slug: 'best-movies-like-interstellar-cosmic-sci-fi',
-    title: '8 Movies Like Interstellar for Cosmic Awe and Emotional Sci-Fi',
+    title: 'Cosmic and Philosophical Sci-Fi Like Interstellar for Cosmic Awe and Emotional Sci-Fi',
     seoTitle: 'Best Movies Like Interstellar: Cosmic Awe & Sci-Fi Ranked | MovieINT',
     metaDescription: 'Craving the emotional resonance and grand scale of Interstellar? Here are the best cosmic and theoretical sci-fi films matched by MovieINT Emotional Impact.',
     publishedDate: '2026-08-28T14:00:00Z',
@@ -440,7 +440,7 @@ export const EDITORIAL_ARTICLES: EditorialArticle[] = [
   // 5. Ambiguous Endings Explained
   {
     slug: 'best-movies-with-ambiguous-endings-explained',
-    title: 'Top 10 Movies With Ambiguous Endings That Still Spark Arguments',
+    title: 'Masterpiece Cinema With Ambiguous Endings That Still Spark Arguments',
     seoTitle: 'Best Movies With Ambiguous Endings Explained | MovieINT DNA',
     metaDescription: 'Dissecting cinema’s most famous unresolved conclusions. How MovieINT Narrative DNA decodes deliberate open-ended finales without ruining the mystery.',
     publishedDate: '2026-09-01T15:00:00Z',
@@ -499,7 +499,7 @@ export const EDITORIAL_ARTICLES: EditorialArticle[] = [
   // 6. Korean Psychological Thrillers
   {
     slug: 'best-korean-psychological-thriller-movies',
-    title: '12 Best Korean Psychological Thrillers That Surpass Hollywood Intensity',
+    title: 'Definitive Korean Psychological Thrillers That Surpass Hollywood Intensity',
     seoTitle: 'Best Korean Psychological Thrillers | MovieINT Cinema Intelligence',
     metaDescription: 'From Memories of Murder to The Wailing and Oldboy. Explore the finest South Korean psychological thrillers indexed with MovieINT narrative telemetry.',
     publishedDate: '2026-09-03T16:00:00Z',
@@ -558,7 +558,7 @@ export const EDITORIAL_ARTICLES: EditorialArticle[] = [
   // 7. Insane Plot Twists
   {
     slug: 'best-movies-with-insane-plot-twists',
-    title: 'Top 10 Movies With Insane Plot Twists That Change Everything on Rewatch',
+    title: 'Iconic Movies With Game-Changing Plot Twists That Change Everything on Rewatch',
     seoTitle: 'Best Movies With Insane Plot Twists (Ranked by Twist Potency) | MovieINT',
     metaDescription: 'Plot twists that hold up under forensic scrutiny. Ranked using the MovieINT Twist Potency Index and Narrative Consistency Engine.',
     publishedDate: '2026-09-04T12:00:00Z',
@@ -617,7 +617,7 @@ export const EDITORIAL_ARTICLES: EditorialArticle[] = [
   // 8. Slow-Burn Thrillers
   {
     slug: 'best-slow-burn-thriller-movies',
-    title: 'The 10 Best Slow-Burn Thrillers That Build Unbearable Dread',
+    title: 'Masterclass Slow-Burn Thrillers With Unbearable Dread That Build Unbearable Dread',
     seoTitle: 'Best Slow-Burn Thriller Movies Ranked | MovieINT Atmospheric Telemetry',
     metaDescription: 'Tired of frenetic fast-cut action? Explore masterclass slow-burn thrillers that simmer with methodical tension, analyzed by MovieINT pacing telemetry.',
     publishedDate: '2026-09-05T10:00:00Z',
@@ -676,7 +676,7 @@ export const EDITORIAL_ARTICLES: EditorialArticle[] = [
   // 9. Movies Under 2 Hours
   {
     slug: 'best-movies-under-2-hours-tight-pacing',
-    title: '10 Perfect Movies Under 2 Hours (Zero Fluff, Maximum Velocity)',
+    title: 'High-Velocity Cinematic Masterpieces Under 2 Hours (Zero Fluff, Maximum Velocity)',
     seoTitle: 'Best Movies Under 2 Hours to Watch Tonight | MovieINT Telemetry',
     metaDescription: 'Short on time? Discover masterpieces under 120 minutes with flawless narrative economy and relentless pacing verified by MovieINT telemetry.',
     publishedDate: '2026-09-06T10:00:00Z',

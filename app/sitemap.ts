@@ -2,19 +2,19 @@ import { MetadataRoute } from "next";
 import { getAllEditorialSlugs } from "@/lib/editorial-data";
 import { INTENT_FILTERS } from "@/config/intentFilters";
 
-export const revalidate = 86400; // 24 hours ISR Cache
+export const revalidate = 86400; // 24 hours ISR
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.movieint.com";
   const now = new Date();
 
-  // 1. All Valid Core & Feature Routes (Matching App Directories)
+  // 1. Core Feature Routes
   const staticRoutes: MetadataRoute.Sitemap = [
     { url: `${baseUrl}`, lastModified: now, changeFrequency: "daily", priority: 1.0 },
     { url: `${baseUrl}/advisor`, lastModified: now, changeFrequency: "daily", priority: 0.95 },
     { url: `${baseUrl}/search`, lastModified: now, changeFrequency: "daily", priority: 0.9 },
     { url: `${baseUrl}/editorial`, lastModified: now, changeFrequency: "daily", priority: 0.9 },
-    { url: `${baseUrl}/rankings`, lastModified: now, changeFrequency: "daily", priority: 0.85 },
+    { url: `${baseUrl}/rankings`, lastModified: now, changeFrequency: "daily", priority: 0.9 },
     { url: `${baseUrl}/compare`, lastModified: now, changeFrequency: "weekly", priority: 0.85 },
     { url: `${baseUrl}/couch-mode`, lastModified: now, changeFrequency: "weekly", priority: 0.8 },
     { url: `${baseUrl}/vs`, lastModified: now, changeFrequency: "weekly", priority: 0.8 },
@@ -30,7 +30,23 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${baseUrl}/disclaimer`, lastModified: now, changeFrequency: "monthly", priority: 0.3 },
   ];
 
-  // 2. Programmatic Search Intent Routes (/best/[category])
+  // 2. High-Intent Rankings Hub Routes (/rankings/[category])
+  const rankingCategories = [
+    "best-movies-2026",
+    "best-anime",
+    "best-thrillers",
+    "best-k-dramas",
+    "best-netflix-movies",
+  ];
+
+  const rankingRoutes: MetadataRoute.Sitemap = rankingCategories.map((cat) => ({
+    url: `${baseUrl}/rankings/${cat}`,
+    lastModified: now,
+    changeFrequency: "weekly",
+    priority: 0.9,
+  }));
+
+  // 3. Programmatic Search Intent Routes (/best/[category])
   const intentRoutes: MetadataRoute.Sitemap = Object.keys(INTENT_FILTERS || {}).map((key) => ({
     url: `${baseUrl}/best/${key}`,
     lastModified: now,
@@ -38,18 +54,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.85,
   }));
 
-  // 3. Supported 10 Core Genres
+  // 4. Supported Core Genres
   const genreSlugs = [
-    "thriller",
-    "sci-fi",
-    "action",
-    "drama",
-    "horror",
-    "mystery",
-    "crime",
-    "animation",
-    "romance",
-    "comedy",
+    "thriller", "sci-fi", "action", "drama", "horror",
+    "mystery", "crime", "animation", "romance", "comedy",
   ];
 
   const genreRoutes: MetadataRoute.Sitemap = genreSlugs.map((slug) => ({
@@ -59,7 +67,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
   }));
 
-  // 4. Curated Editorial Intelligence Dossiers (/editorial/[slug])
+  // 5. Curated Editorial Intelligence Dossiers
   let editorialRoutes: MetadataRoute.Sitemap = [];
   try {
     const slugs = getAllEditorialSlugs();
@@ -73,21 +81,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     console.error("Editorial slugs extraction fallback:", err);
   }
 
-  // 5. Dynamic TMDB Media & Cast Extraction
+  // 6. Dynamic TMDB Media & Cast Extraction
   try {
     const apiKey = process.env.TMDB_API_KEY || "b6b9f5e3a64b6ef32e0b8fade33cfe5a";
 
     const endpoints = [
-      // Trending Movies (Page 1 & 2)
       `https://api.themoviedb.org/3/trending/movie/week?api_key=${apiKey}&page=1`,
       `https://api.themoviedb.org/3/trending/movie/week?api_key=${apiKey}&page=2`,
-      // Trending TV & Anime (Page 1 & 2)
       `https://api.themoviedb.org/3/trending/tv/week?api_key=${apiKey}&page=1`,
       `https://api.themoviedb.org/3/trending/tv/week?api_key=${apiKey}&page=2`,
-      // Evergreen Top Rated (Movies & TV)
       `https://api.themoviedb.org/3/movie/top_rated?api_key=${apiKey}&page=1`,
       `https://api.themoviedb.org/3/tv/top_rated?api_key=${apiKey}&page=1`,
-      // Popular Person Profiles
       `https://api.themoviedb.org/3/person/popular?api_key=${apiKey}&page=1`,
     ];
 
@@ -100,34 +104,27 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       )
     );
 
-    const cleanMediaList: { routeId: string; rating: number }[] = [];
+    const cleanMediaList: { routeId: string }[] = [];
     const allPersons: any[] = [];
 
     responses.forEach((res, index) => {
       if (res.status === "fulfilled" && res.value?.results) {
         if (index === 6) {
-          // Person endpoint
           allPersons.push(...res.value.results);
         } else {
-          // Media endpoints (TV series indices: 2, 3, 5)
           const isTvSource = index === 2 || index === 3 || index === 5;
           res.value.results.forEach((item: any) => {
             if (item && item.id && (item.poster_path || item.backdrop_path)) {
               const routeId = isTvSource ? `tv-${item.id}` : String(item.id);
-              cleanMediaList.push({
-                routeId,
-                rating: item.vote_average ?? 7.0,
-              });
+              cleanMediaList.push({ routeId });
             }
           });
         }
       }
     });
 
-    // Deduplicate Media IDs
     const uniqueRouteIds = Array.from(new Set(cleanMediaList.map((m) => m.routeId)));
 
-    // Dynamic Media Routes (/movie/[id])
     const dynamicMediaRoutes: MetadataRoute.Sitemap = uniqueRouteIds.map((routeId) => ({
       url: `${baseUrl}/movie/${routeId}`,
       lastModified: now,
@@ -135,7 +132,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.8,
     }));
 
-    // Dynamic Similar Twin Routes (/movies-like/[id])
     const moviesLikeRoutes: MetadataRoute.Sitemap = uniqueRouteIds.slice(0, 60).map((routeId) => ({
       url: `${baseUrl}/movies-like/${routeId}`,
       lastModified: now,
@@ -143,7 +139,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.75,
     }));
 
-    // Cast Profile Routes (/person/[id])
     const cleanPersons = allPersons.filter((p) => p && p.id && p.profile_path);
     const uniquePersonIds = Array.from(new Set(cleanPersons.map((p) => p.id)));
 
@@ -156,6 +151,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
     return [
       ...staticRoutes,
+      ...rankingRoutes,
       ...intentRoutes,
       ...genreRoutes,
       ...editorialRoutes,
@@ -165,6 +161,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ];
   } catch (e) {
     console.error("Sitemap generation fallback triggered:", e);
-    return [...staticRoutes, ...intentRoutes, ...genreRoutes, ...editorialRoutes];
+    return [...staticRoutes, ...rankingRoutes, ...intentRoutes, ...genreRoutes, ...editorialRoutes];
   }
 }

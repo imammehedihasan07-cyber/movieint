@@ -229,6 +229,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       card: 'summary_large_image',
       title: metaTitle,
       description: metaDescription,
+      images: [
+        movie.backdrop_path
+          ? `https://image.tmdb.org/t/p/w1280${movie.backdrop_path}`
+          : movie.poster_path
+          ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
+          : `/og-image.png`
+      ],
     },
   };
 }

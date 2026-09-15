@@ -1264,6 +1264,243 @@ export const EDITORIAL_ARTICLES: EditorialArticle[] = [
       'best-psychological-thriller-movies-ranked'
     ]
   }
+,
+  // 19. Best Time Travel Movies
+  {
+    slug: 'best-time-travel-movies-paradox-logic',
+    title: '10 Best Time Travel Movies With Airtight Paradox Logic Ranked',
+    seoTitle: 'Best Time Travel Movies With Paradox Logic Ranked | MOVIEINT',
+    metaDescription: 'Explore the greatest time travel films that master grandfather paradoxes, causal loops, and deterministic timelines without plot holes.',
+    publishedDate: '2026-09-15T14:00:00Z',
+    modifiedDate: '2026-09-15T14:00:00Z',
+    author: {
+      name: 'MovieINT Cinema Intelligence Lab',
+      role: 'Algorithmic Film Archival Team',
+    },
+    category: 'Lists',
+    moodTag: 'Mind-Bending',
+    themeTag: 'Sci-Fi',
+    readTime: '9 min read',
+    featured: true,
+    coverImage: 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?q=80&w=1200&auto=format&fit=crop',
+    introText: 'Time travel is cinema’s most treacherous narrative sandbox. While many blockbusters fall back on hand-waved logic, these masterworks treat temporal displacement with rigorous theoretical discipline and intricate causal loops.',
+    keyTakeaways: [
+      'Strict adherence to predestination and Novikov self-consistency principles.',
+      'Complex multi-timeline plotting demanding multiple viewings.',
+      'Calibrated Brainpower indices exceeding 90/100.'
+    ],
+    movies: [
+      {
+        tmdbId: 14337,
+        slugId: '14337',
+        title: 'Primer',
+        year: 2004,
+        director: 'Shane Carruth',
+        runtime: '77 min',
+        genres: ['Sci-Fi', 'Drama', 'Thriller'],
+        dnaScore: 9.5,
+        metrics: {
+          complexity: 99,
+          brainpower: 99,
+          twistPotency: 92,
+          pacing: 'Methodical Forensic Realism',
+          endingType: 'Paranoid Fragmentation',
+        },
+        whyRecommended: 'The undisputed benchmark for hard sci-fi time travel, charting garage mechanics who accidentally build a recursive temporal loop.',
+        bestFor: 'Viewers looking for uncompromising, mathematically plausible engineering cinema.',
+        avoidIf: 'You require simplified exposition or hand-holding dialogue.',
+        streamingOn: ['Prime Video', 'Apple TV'],
+      }
+    ],
+    faqs: [
+      {
+        question: 'Which time travel movie has the most realistic logic?',
+        answer: 'Primer (2004) is universally regarded by physicists and film theorists as having the most airtight recursive temporal physics.'
+      },
+      {
+        question: 'What is a causal loop in time travel cinema?',
+        answer: 'A causal loop occurs when an event causes another event, which in turn causes the first event, creating an origin-less temporal paradox.'
+      }
+    ],
+    relatedGuideSlugs: [
+      'best-mind-bending-movies-that-make-you-think',
+      'best-movies-like-inception-cerebral-thrillers'
+    ]
+  },
+  // 20. Essential Cyberpunk Masterpieces
+  {
+    slug: 'essential-cyberpunk-masterpieces-sci-fi',
+    title: '8 Essential Cyberpunk Masterpieces That Predicted Modern Tech',
+    seoTitle: 'Essential Cyberpunk Movies & Tech Dystopias Ranked | MOVIEINT',
+    metaDescription: 'Dive into high-tech, low-life cinematic worlds featuring neon landscapes, rogue artificial intelligence, and existential transhumanism.',
+    publishedDate: '2026-09-15T14:00:00Z',
+    modifiedDate: '2026-09-15T14:00:00Z',
+    author: {
+      name: 'MovieINT Editorial Intelligence Lab',
+      role: 'Global Narrative Specialist',
+    },
+    category: 'Recommendations',
+    moodTag: 'Dark',
+    themeTag: 'Sci-Fi',
+    readTime: '8 min read',
+    featured: true,
+    coverImage: 'https://images.unsplash.com/photo-1515260268569-9271009adfdb?q=80&w=1200&auto=format&fit=crop',
+    introText: 'Cyberpunk is not merely an aesthetic of rain-soaked neon alleys; it is a profound socio-technological warning about unchecked corporate feudalism and synthetic consciousness.',
+    keyTakeaways: [
+      'Profound explorations of transhumanism and algorithmic identity.',
+      'Iconic neon noir visual design and synth-driven soundscapes.',
+      'Direct relevance to modern generative AI and synthetic reality.'
+    ],
+    movies: [
+      {
+        tmdbId: 335984,
+        slugId: '335984',
+        title: 'Blade Runner 2049',
+        year: 2017,
+        director: 'Denis Villeneuve',
+        runtime: '164 min',
+        genres: ['Sci-Fi', 'Mystery', 'Drama'],
+        dnaScore: 9.6,
+        metrics: {
+          complexity: 91,
+          brainpower: 89,
+          twistPotency: 90,
+          pacing: 'Hypnotic Monumental Cadence',
+          endingType: 'Poetic Melancholy Sacrifice',
+        },
+        whyRecommended: 'A breathtaking audiovisual triumph that deepens Philip K. Dick’s original inquiries into memory, soul, and artificial empathy.',
+        bestFor: 'Fans of immersive visual storytelling, grand scale, and philosophical sci-fi.',
+        avoidIf: 'You want fast-paced, non-stop futuristic action.',
+        streamingOn: ['Max', 'Apple TV'],
+      }
+    ],
+    faqs: [
+      {
+        question: 'What defines a cyberpunk film?',
+        answer: 'Cyberpunk pairs advanced technology like AI and cybernetics with degraded social conditions and corporate dominance.'
+      }
+    ],
+    relatedGuideSlugs: [
+      'best-mind-bending-movies-that-make-you-think',
+      'best-anime-for-beginners-gateway-masterpieces'
+    ]
+  },
+  // 21. Best Murder Mystery & Whodunit Movies
+  {
+    slug: 'best-murder-mystery-whodunit-movies',
+    title: '10 Gripping Murder Mystery & Whodunit Movies That Keep You Guessing',
+    seoTitle: 'Best Murder Mystery & Whodunit Movies Ranked | MOVIEINT',
+    metaDescription: 'Step into parlor-room suspense, brilliant forensic deduction, and labyrinthine detective whodunits ranked by narrative complexity.',
+    publishedDate: '2026-09-15T14:00:00Z',
+    modifiedDate: '2026-09-15T14:00:00Z',
+    author: {
+      name: 'MovieINT Cinema Intelligence Lab',
+      role: 'Film Curation Lead',
+    },
+    category: 'Lists',
+    moodTag: 'Intellectual',
+    themeTag: 'Crime & Mystery',
+    readTime: '7 min read',
+    featured: true,
+    coverImage: 'https://images.unsplash.com/photo-1542204165-65bf26472b9b?q=80&w=1200&auto=format&fit=crop',
+    introText: 'The classical detective mystery is a formal contract between storyteller and audience: lay the clues in plain sight and challenge the intellect to solve the puzzle before the final reveal.',
+    keyTakeaways: [
+      'Fair-play clue placement rewarding attentive forensic observation.',
+      'Ensemble casts rich in ulterior motives and psychological tension.',
+      'Stunning double-twist denouements subverting genre tropes.'
+    ],
+    movies: [
+      {
+        tmdbId: 546554,
+        slugId: '546554',
+        title: 'Knives Out',
+        year: 2019,
+        director: 'Rian Johnson',
+        runtime: '130 min',
+        genres: ['Comedy', 'Mystery', 'Crime'],
+        dnaScore: 9.1,
+        metrics: {
+          complexity: 84,
+          brainpower: 86,
+          twistPotency: 92,
+          pacing: 'Spirited Clockwork Cadence',
+          endingType: 'Satisfying Poetic Justice',
+        },
+        whyRecommended: 'A masterclass in modernizing Agatha Christie tropes, turning traditional whodunit mechanics inside out within the first act.',
+        bestFor: 'Viewers looking for witty, razor-sharp detective deduction.',
+        avoidIf: 'You prefer bleak, gruesome police procedurals.',
+        streamingOn: ['Netflix', 'Prime Video'],
+      }
+    ],
+    faqs: [
+      {
+        question: 'What makes a whodunit a fair-play mystery?',
+        answer: 'A fair-play mystery ensures every essential clue needed to identify the culprit is presented to the viewer prior to the revelation.'
+      }
+    ],
+    relatedGuideSlugs: [
+      'best-psychological-thriller-movies-ranked',
+      'best-k-dramas-like-squid-game-survival-thrillers'
+    ]
+  },
+  // 22. Realistic Space Survival Movies
+  {
+    slug: 'realistic-space-survival-movies-hard-science',
+    title: '7 Realistic Space Survival Movies Grounded in Hard Science',
+    seoTitle: 'Best Realistic Hard Sci-Fi Space Survival Movies Ranked | MOVIEINT',
+    metaDescription: 'Experience the raw terror of orbital isolation, orbital mechanics, and human endurance in scientifically accurate space thrillers.',
+    publishedDate: '2026-09-15T14:00:00Z',
+    modifiedDate: '2026-09-15T14:00:00Z',
+    author: {
+      name: 'MovieINT Editorial Intelligence Lab',
+      role: 'Global Narrative Specialist',
+    },
+    category: 'Lists',
+    moodTag: 'Psychological',
+    themeTag: 'Sci-Fi',
+    readTime: '7 min read',
+    featured: true,
+    coverImage: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=1200&auto=format&fit=crop',
+    introText: 'Space is indifferent, soundless, and lethal. The best hard science-fiction thrillers replace fantasy lasers with orbital physics, oxygen deprivation, and cold human problem-solving against impossible odds.',
+    keyTakeaways: [
+      'Meticulous adherence to orbital mechanics and environmental realities.',
+      'Claustrophobic, life-or-death decision-making under extreme pressure.',
+      'Zero melodramatic fluff—pure human tenacity against the vacuum.'
+    ],
+    movies: [
+      {
+        tmdbId: 157336,
+        slugId: '157336',
+        title: 'Interstellar',
+        year: 2014,
+        director: 'Christopher Nolan',
+        runtime: '169 min',
+        genres: ['Adventure', 'Drama', 'Sci-Fi'],
+        dnaScore: 9.7,
+        metrics: {
+          complexity: 92,
+          brainpower: 94,
+          twistPotency: 91,
+          pacing: 'Epic Gravitational Acceleration',
+          endingType: 'Transcendent Emotional Paradox',
+        },
+        whyRecommended: 'Grounded by Nobel laureate Kip Thorne’s astrophysical equations, delivering an unmatched synthesis of theoretical physics and emotional sacrifice.',
+        bestFor: 'Those who want grand existential scope, gravitational physics, and heart-stopping survival sequences.',
+        avoidIf: 'You struggle with high-concept theoretical physics and non-linear temporal concepts.',
+        streamingOn: ['Paramount+', 'Prime Video'],
+      }
+    ],
+    faqs: [
+      {
+        question: 'Are the black hole physics in Interstellar accurate?',
+        answer: 'Yes, the depiction of Gargantua was calculated using general relativity equations verified by astrophysicist Kip Thorne.'
+      }
+    ],
+    relatedGuideSlugs: [
+      'best-time-travel-movies-paradox-logic',
+      'best-movies-like-inception-cerebral-thrillers'
+    ]
+  }
 ];
 
 

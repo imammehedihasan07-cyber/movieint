@@ -179,13 +179,13 @@ export default function CouchModeClient() {
                   <div className="w-24 aspect-[2/3] relative rounded-xl overflow-hidden bg-slate-900 shrink-0 border border-white/10">
                     {movie.poster_path ? (
                       <Image
-                        src={`https://image.tmdb.org/t/p/w300${movie.poster_path?.startsWith("http") ? `https://image.tmdb.org/t/p/w300${movie.poster_path : `https://image.tmdb.org/t/p/w500${`https://image.tmdb.org/t/p/w300${movie.poster_path}`}`}
-                        alt={movie.title}
-                        fill
-                        sizes="96px"
-                        className="object-cover"
-                      />
-                    ) : (
+                  src={movie.poster_path.startsWith("http") ? movie.poster_path : `https://image.tmdb.org/t/p/w500${movie.poster_path}`}
+                  alt={movie.title}
+                  fill
+                  sizes="96px"
+                  className="object-cover"
+                />
+              ) : (
                       <div className="flex items-center justify-center h-full text-[10px] text-slate-600">No Image</div>
                     )}
                   </div>

@@ -735,6 +735,30 @@ export default async function MovieDetailPage({ params }: PageProps) {
           ))}
         </div>
 
+        
+        {/* Dynamic Direct Comparison Matrix */}
+        {similar && similar.length > 0 && (
+          <div className="pt-6 border-t border-white/[0.08] space-y-3 text-left">
+            <div className="flex items-center justify-between">
+              <span className="font-mono text-slate-400 uppercase tracking-wider text-[11px]">Direct Cinematic Match-ups</span>
+              <Link href="/vs" className="text-amber-400 hover:text-amber-300 font-mono text-[11px]">Compare Matrix →</Link>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {similar.slice(0, 4).map((sim: any) => (
+                <Link
+                  key={sim.id}
+                  href={`/compare/${movie.id}-vs-${sim.id}`}
+                  className="px-3 py-1.5 rounded-lg bg-white/[0.02] border border-white/[0.08] text-slate-300 hover:border-amber-400/40 hover:text-white transition flex items-center gap-1.5 text-xs font-mono"
+                >
+                  <span className="truncate max-w-[120px]">{movie.title}</span>
+                  <span className="text-amber-400 font-bold">vs</span>
+                  <span className="truncate max-w-[120px]">{sim.title}</span>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Intelligent Cross-Linking Bar */}
         <div className="border-t border-white/5 pt-5 flex flex-wrap items-center justify-between gap-3 text-xs font-mono text-slate-400">
           <div className="flex flex-wrap items-center gap-2">

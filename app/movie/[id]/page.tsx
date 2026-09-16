@@ -24,7 +24,6 @@ import {
 } from 'lucide-react';
 import MoviePoster from '@/components/MoviePoster';
 import StreamingAffiliateBox from '@/components/StreamingAffiliateBox';
-import StreamingMatrix from '@/components/StreamingMatrix';
 import SpoilerShield from '@/components/SpoilerShield';
 import { getRelatedEditorialsForMovie } from '@/lib/editorial-data';
 
@@ -498,8 +497,7 @@ export default async function MovieDetailPage({ params }: PageProps) {
         </p>
 
         <StreamingAffiliateBox movieId={String(id)} movieTitle={movie.title} />
-        <StreamingMatrix movieTitle={movie.title} lastChecked="September 16, 2026" />
-      </section>
+              </section>
 
       {/* 3. Unique Editorial Value: Why Watch, Who Should Watch & Flaws */}
       <section className="bg-[#090d15] border border-white/[0.08] rounded-3xl p-6 sm:p-8 mb-10 shadow-2xl">

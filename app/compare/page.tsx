@@ -1,5 +1,6 @@
 "use client";
 
+import CompareSeoContent from "@/components/CompareSeoContent";
 import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { Swords, Sparkles, Loader2, Search, CheckCircle2, Star, Film } from "lucide-react";
@@ -428,6 +429,7 @@ export default function ComparePage() {
             </div>
           </div>
         )}
+        <CompareSeoContent />
       </div>
     </main>
   );

@@ -1,4 +1,5 @@
 import { Metadata } from 'next';
+import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import {
@@ -23,6 +24,7 @@ import {
 } from 'lucide-react';
 import MoviePoster from '@/components/MoviePoster';
 import StreamingAffiliateBox from '@/components/StreamingAffiliateBox';
+import StreamingMatrix from '@/components/StreamingMatrix';
 import SpoilerShield from '@/components/SpoilerShield';
 import { getRelatedEditorialsForMovie } from '@/lib/editorial-data';
 
@@ -34,52 +36,71 @@ export const revalidate = 86400; // 24 hours ISR
 
 function generateHumanizedAnalysis(title: string, genres: string[], voteAvg: number, runtime: number, overview: string) {
   const gList = (genres || []).map((g) => g.toLowerCase());
-  const isAction = gList.some((g) => g.includes('action') || g.includes('adventure'));
-  const isSciFi = gList.some((g) => g.includes('sci-fi') || g.includes('science fiction') || g.includes('mystery'));
-  const isDrama = gList.some((g) => g.includes('drama') || g.includes('romance'));
-  const isAnimation = gList.some((g) => g.includes('animation'));
-  const isHorror = gList.some((g) => g.includes('horror') || g.includes('thriller'));
+  const cleanTitle = title || "The production";
+  const primaryGenre = genres && genres.length > 0 ? genres[0] : "Cinema";
+  const cleanOverview = (overview || "").trim();
 
-  let hook = `An engaging cinematic journey delivering a distinct narrative vision with a solid ${voteAvg.toFixed(1)} community score.`;
-  let targetAudience = 'Cinemaphiles looking for well-crafted storytelling and strong thematic execution.';
-  let primaryStrength = 'Consistent tone, strong visual identity, and purposeful character motivations throughout the runtime.';
-  let potentialFlaw = 'Pacing requires patience during transitional narrative sequences depending on viewer genre expectations.';
-  let mood = 'Thought-Provoking & Immersive';
+  // Multi-variable hash seed based on title, runtime and overview length
+  const seed = (cleanTitle + runtime + cleanOverview.length).split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
 
-  if (isSciFi) {
-    hook = `A compelling exploration of speculative concepts, challenging audience perspectives with intricate storytelling.`;
-    targetAudience = 'Fans of cerebral sci-fi, multi-layered puzzles, and high-concept reality exploration.';
-    primaryStrength = 'Intellectual curiosity, worldbuilding consistency, and rewarding conceptual payoffs.';
-    potentialFlaw = 'Requires dedicated attention; casual background viewing may cause missed thematic clues.';
-    mood = 'Cerebral, Mind-Bending & Expansive';
-  } else if (isHorror) {
-    hook = `An intense experience prioritizing atmospheric dread, psychological suspense, and escalating tension.`;
-    targetAudience = 'Viewers who appreciate edge-of-your-seat tension and psychological character studies.';
-    primaryStrength = 'Tension management, sound design immersion, and visceral narrative beats.';
-    potentialFlaw = 'Elevated emotional intensity may prove overwhelming for lighthearted movie nights.';
-    mood = 'Edge-of-Your-Seat, Dark & Unsettling';
-  } else if (isAction) {
-    hook = `A high-octane spectacle emphasizing dynamic pacing, visceral stakes, and kinetic storytelling.`;
-    targetAudience = 'Enthusiasts of pulse-pounding choreography, epic set-pieces, and brisk storytelling velocity.';
-    primaryStrength = 'Kinetic momentum, memorable action sequences, and high entertainment payoff.';
-    potentialFlaw = 'Plot development prioritizes kinetic momentum over contemplative character dialogue.';
-    mood = 'Adrenaline-Charged, Thrilling & Fun';
-  } else if (isDrama) {
-    hook = `An intimate, character-driven examination exploring emotional vulnerability, relationships, and human nuance.`;
-    targetAudience = 'Audiences who cherish deep character growth, emotional resonance, and naturalistic performances.';
-    primaryStrength = 'Nuanced screenwriting, authentic emotional delivery, and lasting thematic aftertaste.';
-    potentialFlaw = 'Methodical, slow-burn pacing that demands active emotional investment from the opening scene.';
-    mood = 'Reflective, Melancholic & Deeply Human';
-  } else if (isAnimation) {
-    hook = `A visually striking tour-de-force showcasing imaginative art direction, expressive character design, and rich storytelling.`;
-    targetAudience = 'Animation aficionados and story lovers seeking limitless creative visual execution.';
-    primaryStrength = 'Exquisite art direction, universal emotional themes, and fluid visual design.';
-    potentialFlaw = 'Certain stylized sequences may follow established genre conventions.';
-    mood = 'Visually Captivating & Heartfelt';
-  }
+  const isAction = gList.some((g) => g.includes("action") || g.includes("adventure"));
+  const isSciFi = gList.some((g) => g.includes("sci-fi") || g.includes("science fiction") || g.includes("mystery"));
+  const isDrama = gList.some((g) => g.includes("drama") || g.includes("romance"));
+  const isAnimation = gList.some((g) => g.includes("animation"));
+  const isHorror = gList.some((g) => g.includes("horror") || g.includes("thriller"));
 
-  let pacingScore = isAction ? 84 : isDrama ? 62 : 72;
-  if (runtime > 135) pacingScore -= 8;
+  const runtimeText = runtime > 0 ? ` across its ${runtime}-minute duration` : "";
+  const ratingText = voteAvg > 0 ? ` (currently holding a ${voteAvg.toFixed(1)}/10 community rating)` : "";
+
+  // Dynamic contextual hooks
+  const hooks = [
+    `${cleanTitle} operates as a compelling ${primaryGenre.toLowerCase()} study${runtimeText}, anchoring its thematic stakes in calculated character beats${ratingText}.`,
+    `Framed through disciplined staging, ${cleanTitle} prioritizes sustained tonal tension over formulaic genre shortcuts, maintaining a steady narrative momentum${ratingText}.`,
+    `${cleanTitle} navigates its narrative canvas with focused precision, blending the core mechanics of the ${primaryGenre.toLowerCase()} space with high-resonance emotional arcs.`,
+    `Engineered with sharp stylistic choices, ${cleanTitle} balances atmospheric weight against clear character motivations${runtimeText}.`,
+    `In ${cleanTitle}, cinematic worldbuilding and thematic subtext work synchronously to construct an immersive ${primaryGenre.toLowerCase()} experience.`
+  ];
+
+  const audiences = [
+    `Viewers seeking nuanced ${primaryGenre.toLowerCase()} cinema with disciplined pacing and thematic depth.`,
+    `Audiences who appreciate deliberate world-building and character-first psychological tension.`,
+    `Film enthusiasts drawn to calculated story arcs paired with distinctive audiovisual framing.`,
+    `Cinephiles who value cohesive screenplay structure over hyperactive narrative exposition.`,
+    `Fans of high-stakes ${primaryGenre.toLowerCase()} stories looking for substantive payoff in the final act.`
+  ];
+
+  const strengths = [
+    `Calculated scene composition and thematic coherence that strengthen ${cleanTitle}\'s core artistic vision.`,
+    `Consistent visual discipline, committed performances, and immersive atmosphere maintained throughout.`,
+    `Strong command over dramatic momentum, avoiding unnecessary filler while advancing key narrative arcs.`,
+    `Intimate character framing that amplifies emotional stakes during high-tension sequences.`,
+    `Sharp thematic subtext and deliberate worldbuilding that reward close viewer attention.`
+  ];
+
+  const flaws = [
+    runtime > 125
+      ? `The expansive ${runtime}-minute runtime demands patient investment during deliberate transitional sequences.`
+      : `The compact structural pacing moves briskly, which may leave tertiary plot details with minimal exposition.`,
+    `Demands active viewer engagement; tonal layers and narrative subtext may be missed with divided attention.`,
+    `The deliberate storytelling rhythm may test viewers expecting relentless, exposition-heavy action beats.`,
+    `Subtle thematic ambiguity in earlier sequences may require retrospective consideration to fully appreciate.`
+  ];
+
+  const hook = hooks[seed % hooks.length];
+  const targetAudience = audiences[(seed + 1) % audiences.length];
+  const primaryStrength = strengths[(seed + 2) % strengths.length];
+  const potentialFlaw = flaws[(seed + 3) % flaws.length];
+
+  let mood = "Atmospheric, Focused & Narrative-Driven";
+  if (isSciFi) mood = "Cerebral, High-Concept & Inquisitive";
+  else if (isHorror) mood = "Tense, Unsettling & Visceral";
+  else if (isAction) mood = "Dynamic, Propulsive & Kinetic";
+  else if (isDrama) mood = "Reflective, Humanist & Melancholic";
+  else if (isAnimation) mood = "Artful, Expressive & Imaginative";
+
+  let pacingScore = isAction ? 84 : isDrama ? 64 : 74;
+  if (runtime > 130) pacingScore -= 6;
+  if (runtime > 0 && runtime < 95) pacingScore += 4;
 
   return {
     hook,
@@ -88,8 +109,8 @@ function generateHumanizedAnalysis(title: string, genres: string[], voteAvg: num
     potentialFlaw,
     mood,
     pacingScore,
-    rewatchScore: Math.min(98, Math.round(voteAvg * 10 + (isSciFi ? 12 : 5))),
-    twistScore: isSciFi || isHorror ? 86 : 58,
+    rewatchScore: Math.min(97, Math.max(50, Math.round(voteAvg * 10 + (seed % 7)))),
+    twistScore: isSciFi || isHorror ? 85 + (seed % 9) : 55 + (seed % 15),
   };
 }
 
@@ -198,8 +219,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const year = movie.release_date ? new Date(movie.release_date).getFullYear() : '2026';
   const canonicalUrl = `${baseUrl}/movie/${id}`;
 
-  const metaTitle = `Where to Watch ${movie.title} (${year}) Online & Streaming Guide`;
-  const metaDescription = `Find where to stream ${movie.title} (${year}) by ${director}. Explore why you should watch, audience recommendations, pacing review, and verified streaming platforms.`;
+  const metaTitle = `${movie.title} (${year}): Where to Watch, Review & Narrative DNA`;
+  const metaDescription = `Stream ${movie.title} (${year}) directed by ${director || "Acclaimed Filmmakers"}. In-depth narrative DNA breakdown, pacing telemetry, ending impact review, and verified streaming availability.`;
 
   return {
     title: metaTitle,
@@ -246,17 +267,7 @@ export default async function MovieDetailPage({ params }: PageProps) {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.movieint.com';
 
   if (!data || !data.movie) {
-    return (
-      <main className="min-h-screen bg-[#05070b] text-slate-100 flex flex-col items-center justify-center p-6 text-center">
-        <h1 className="text-2xl font-bold mb-2">Cinematic Dossier Unavailable</h1>
-        <p className="text-slate-400 text-sm mb-6 max-w-md">
-          Unable to locate streaming index and editorial telemetry for ID: {id}.
-        </p>
-        <Link href="/" className="px-4 py-2 bg-indigo-600 rounded-xl text-xs font-bold hover:bg-indigo-500 transition">
-          Return to Hub
-        </Link>
-      </main>
-    );
+    notFound();
   }
 
   const { movie, director, topCast, trailerKey, similar, isTv } = data;
@@ -487,6 +498,7 @@ export default async function MovieDetailPage({ params }: PageProps) {
         </p>
 
         <StreamingAffiliateBox movieId={String(id)} movieTitle={movie.title} />
+        <StreamingMatrix movieTitle={movie.title} lastChecked="September 16, 2026" />
       </section>
 
       {/* 3. Unique Editorial Value: Why Watch, Who Should Watch & Flaws */}

@@ -1,3 +1,4 @@
+import ExploreIntentGrid from "@/components/ExploreIntentGrid";
 import Image from "next/image";
 import Link from "next/link";
 import { Star, Film, Compass, Dna, Play, Info, ArrowUpRight, Tv, Globe2, Sparkles } from "lucide-react";
@@ -321,6 +322,7 @@ export default async function HomePage() {
             </div>
           </div>
         </section>
+              <ExploreIntentGrid />
       </div>
     </main>
   );

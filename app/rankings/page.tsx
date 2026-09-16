@@ -1,3 +1,4 @@
+import RankingsMethodology from "@/components/RankingsMethodology";
 import { Metadata } from "next";
 import Link from "next/link";
 import { Sparkles, BarChart3, Brain, Compass, ShieldCheck, Layers, Info } from "lucide-react";
@@ -103,26 +104,35 @@ export default async function RankingsPage() {
         </p>
 
         {/* Real-time Methodology Disclosure Banner */}
-        <div className="mt-6 p-4 rounded-2xl bg-[#090d15] border border-indigo-500/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-indigo-500/10 text-indigo-400 shrink-0">
-              <Info className="w-4 h-4" />
+        <div className="mt-6 p-5 rounded-2xl bg-[#090d15] border border-indigo-500/25 space-y-3">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-xl bg-indigo-500/10 text-indigo-400 shrink-0">
+                <Info className="w-4 h-4" />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-slate-200">
+                  Algorithmic Transparency & Ranking Methodology
+                </p>
+                <p className="text-[11px] text-slate-400 mt-0.5">
+                  Distinct from raw popular vote tallies (such as IMDb/Rotten Tomatoes). Rankings reflect Bayesian weighted scores, narrative structural telemetry, and anti-brigading thresholds.
+                </p>
+              </div>
             </div>
-            <div>
-              <p className="text-xs font-bold text-slate-200">
-                Weighted Bayesian Evaluation Active
-              </p>
-              <p className="text-[11px] text-slate-400 mt-0.5">
-                Ranks filter anomalies by enforcing a minimum baseline (minimum 1,000 votes) to preserve historical integrity.
-              </p>
-            </div>
+            <Link
+              href="/methodology"
+              className="text-xs font-mono text-amber-400 hover:text-amber-300 font-medium shrink-0 transition"
+            >
+              Full Transparency Docs →
+            </Link>
           </div>
-          <Link
-            href="/methodology"
-            className="text-xs font-mono text-indigo-400 hover:text-indigo-300 font-medium shrink-0 transition"
-          >
-            How it works →
-          </Link>
+
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-3 border-t border-white/[0.05] text-[10px] font-mono text-slate-400">
+            <div>Data: <span className="text-slate-200">Verified Global Indices</span></div>
+            <div>Cadence: <span className="text-slate-200">Refreshed Weekly</span></div>
+            <div>Threshold: <span className="text-slate-200">&ge; 1,000 Verified Votes</span></div>
+            <div>Normalization: <span className="text-slate-200">Bayesian Weighted</span></div>
+          </div>
         </div>
       </div>
 
@@ -195,7 +205,8 @@ export default async function RankingsPage() {
             Explore Methodology →
           </Link>
         </div>
-      </section>
-    </main>
+        <RankingsMethodology />
+        </section>
+      </main>
   );
 }

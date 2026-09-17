@@ -29,6 +29,9 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
+  other: {
+    "impact-site-verification": "fd410fee-226c-4e2f-9c21-ac9cc9da4857",
+  },
   metadataBase: new URL(siteUrl),
   title: {
     default: "MOVIEINT — Cinematic Intelligence & Narrative DNA Engine",
@@ -123,7 +126,6 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning className="dark">
       <head>
-        <meta name="impact-site-verification" value="fd410fee-226c-4e2f-9c21-ac9cc9da4857" />
         <link rel="preconnect" href="https://image.tmdb.org" />
         <link rel="preconnect" href="https://images.unsplash.com" />
         <Script

@@ -97,7 +97,6 @@ export default function StreamingMatrix({
                   : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900'
               }`}
             >
-              <span>{region.flag}</span>
               <span>{region.code}</span>
             </button>
           ))}

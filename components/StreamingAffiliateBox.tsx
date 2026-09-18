@@ -208,7 +208,7 @@ export default function StreamingAffiliateBox({ movieTitle }: StreamingAffiliate
         </div>
 
         {(() => {
-          const vpnUrl = "YOUR_SURFSHARK_LINK";
+          const vpnUrl = "https://www.kqzyfj.com/click-101884261-15438560";
           return (
             <a
               href={vpnUrl}

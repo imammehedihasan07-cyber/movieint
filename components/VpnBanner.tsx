@@ -20,7 +20,7 @@ export default function VpnBanner() {
         </div>
 
         <a
-          href="YOUR_SURFSHARK_LINK"
+          href="https://www.kqzyfj.com/click-101884261-15438560"
           target="_blank"
           rel="noopener noreferrer sponsored"
           className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold px-4 py-2.5 text-sm transition-all duration-200 shadow-md hover:shadow-sky-500/20 active:scale-95"

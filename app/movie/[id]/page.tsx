@@ -114,56 +114,41 @@ function generateHumanizedAnalysis(title: string, genres: string[], voteAvg: num
 }
 
 async function getUniversalMediaDetails(id: string) {
-  const apiKey = process.env.TMDB_API_KEY || 'b6b9f5e3a64b6ef32e0b8fade33cfe5a';
-  const rawId = String(id || '').trim();
-  const hasTvPrefix = rawId.startsWith('tv-') || rawId.startsWith('series-');
-  const cleanId = rawId.replace(/^(tv-|series-|movie-)/, '');
-
+  const apiKey = process.env.TMDB_API_KEY || "b6b9f5e3a64b6ef32e0b8fade33cfe5a";
+  const rawId = String(id || "").trim();
+  const hasTvPrefix = rawId.startsWith("tv-") || rawId.startsWith("series-");
+  const cleanId = rawId.replace(/^(tv-|series-|movie-)/, "");
   if (!cleanId) return null;
 
-  let endpoint: 'movie' | 'tv' = hasTvPrefix ? 'tv' : 'movie';
-  let mediaRes = await fetch(`https://api.themoviedb.org/3/${endpoint}/${cleanId}?api_key=${apiKey}&language=en-US`, {
-    next: { revalidate: 86400 },
-  }).catch(() => null);
+  const endpoint = hasTvPrefix ? "tv" : "movie";
+  const url = `https://api.themoviedb.org/3/${endpoint}/${cleanId}?api_key=${apiKey}&language=en-US&append_to_response=${endpoint === "tv" ? "aggregate_credits" : "credits"},videos,recommendations`;
 
-  if ((!mediaRes || !mediaRes.ok) && !hasTvPrefix) {
-    endpoint = 'tv';
-    mediaRes = await fetch(`https://api.themoviedb.org/3/tv/${cleanId}?api_key=${apiKey}&language=en-US`, {
-      next: { revalidate: 86400 },
-    }).catch(() => null);
+  let res = await fetch(url, { next: { revalidate: 86400 } }).catch(() => null);
+
+  // If not found and did not specify tv prefix, fallback to tv
+  let isTv = hasTvPrefix;
+  if ((!res || !res.ok) && !hasTvPrefix) {
+    const tvUrl = `https://api.themoviedb.org/3/tv/${cleanId}?api_key=${apiKey}&language=en-US&append_to_response=aggregate_credits,videos,recommendations`;
+    res = await fetch(tvUrl, { next: { revalidate: 86400 } }).catch(() => null);
+    if (res && res.ok) isTv = true;
   }
 
-  if ((!mediaRes || !mediaRes.ok) && hasTvPrefix) {
-    endpoint = 'movie';
-    mediaRes = await fetch(`https://api.themoviedb.org/3/movie/${cleanId}?api_key=${apiKey}&language=en-US`, {
-      next: { revalidate: 86400 },
-    }).catch(() => null);
-  }
+  if (!res || !res.ok) return null;
+  const media = await res.json();
 
-  if (!mediaRes || !mediaRes.ok) return null;
+  const credits = media.aggregate_credits || media.credits || { cast: [], crew: [] };
+  const videos = media.videos || { results: [] };
+  const similar = media.recommendations || { results: [] };
 
-  const isTv = endpoint === 'tv';
-  const media = await mediaRes.json();
-
-  const [creditsRes, videosRes, similarRes] = await Promise.all([
-    fetch(`https://api.themoviedb.org/3/${endpoint}/${cleanId}/${isTv ? 'aggregate_credits' : 'credits'}?api_key=${apiKey}&language=en-US`, { next: { revalidate: 86400 } }).catch(() => null),
-    fetch(`https://api.themoviedb.org/3/${endpoint}/${cleanId}/videos?api_key=${apiKey}&language=en-US`, { next: { revalidate: 86400 } }).catch(() => null),
-    fetch(`https://api.themoviedb.org/3/${endpoint}/${cleanId}/recommendations?api_key=${apiKey}&language=en-US&page=1`, { next: { revalidate: 86400 } }).catch(() => null),
-  ]);
-
-  const credits = creditsRes && creditsRes.ok ? await creditsRes.json() : { cast: [], crew: [] };
-  const videos = videosRes && videosRes.ok ? await videosRes.json() : { results: [] };
-  const similar = similarRes && similarRes.ok ? await similarRes.json() : { results: [] };
-
-  const title = media.title || media.name || 'Untitled';
-  const releaseDate = media.release_date || media.first_air_date || '';
+  const title = media.title || media.name || "Untitled";
+  const releaseDate = media.release_date || media.first_air_date || "";
   const runtime = media.runtime || (media.episode_run_time && media.episode_run_time[0]) || 45;
 
   const directorObj =
     media.created_by?.[0] ||
-    credits.crew?.find((c: any) => c.job === 'Director' || c.job === 'Series Director');
+    credits.crew?.find((c: any) => c.job === "Director" || c.job === "Series Director");
 
-  const director = directorObj?.name || 'Original Studio / Creators';
+  const director = directorObj?.name || "Original Studio / Creators";
   const directorId = directorObj?.id || null;
 
   const safeCastMembers = (credits.cast || []).slice(0, 6).map((c: any) => ({
@@ -173,7 +158,7 @@ async function getUniversalMediaDetails(id: string) {
   const topCast: string[] = safeCastMembers.map((c: any) => c.name);
 
   const trailer = (videos.results || []).find(
-    (v: any) => v.site === 'YouTube' && (v.type === 'Trailer' || v.type === 'Teaser')
+    (v: any) => v.site === "YouTube" && (v.type === "Trailer" || v.type === "Teaser")
   ) || (videos.results || [])[0];
 
   const verifiedSimilar = (similar.results || [])

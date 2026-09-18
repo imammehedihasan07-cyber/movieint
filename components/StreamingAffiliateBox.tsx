@@ -142,7 +142,6 @@ export default function StreamingAffiliateBox({ movieTitle }: StreamingAffiliate
                   : "text-slate-400 hover:text-white hover:bg-white/[0.05]"
               }`}
             >
-              <span>{reg.flag}</span>
               <span>{reg.code}</span>
             </button>
           ))}

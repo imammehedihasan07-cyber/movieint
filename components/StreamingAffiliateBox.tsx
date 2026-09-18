@@ -209,7 +209,7 @@ export default function StreamingAffiliateBox({ movieTitle }: StreamingAffiliate
         </div>
 
         {(() => {
-          const vpnUrl = AFFILIATE_CONFIG?.NORD_VPN || "https://nordvpn.com";
+          const vpnUrl = "https://www.kqzyfj.com/click-101884261-15438560";
           return (
             <a
               href={vpnUrl}
@@ -218,14 +218,14 @@ export default function StreamingAffiliateBox({ movieTitle }: StreamingAffiliate
               onClick={() =>
                 trackAffiliateClick({
                   movieTitle: safeTitle,
-                  platform: "NordVPN",
+                  platform: "Surfshark",
                   affiliateUrl: vpnUrl,
                   placement: "vpn_partner_banner",
                 })
               }
               className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold px-4 py-2 rounded-xl transition shadow-lg shadow-indigo-600/30 shrink-0"
             >
-              <span>Explore NordVPN</span>
+              <span>Unlock with Surfshark</span>
               <ExternalLink className="w-3 h-3" />
             </a>
           );

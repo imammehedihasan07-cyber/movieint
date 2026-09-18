@@ -12,7 +12,7 @@ export const AFFILIATE_CONFIG = {
   // High-Conversion VPN Partners (40-100% Commission)
   // Update with your official partner dashboard referral link once approved
   NORD_VPN: process.env.NEXT_PUBLIC_NORDVPN_AFFILIATE || "https://nordvpn.com",
-  SURFSHARK: process.env.NEXT_PUBLIC_SURFSHARK_AFFILIATE || "https://surfshark.com",
+  SURFSHARK: process.env.NEXT_PUBLIC_SURFSHARK_AFFILIATE || "https://www.kqzyfj.com/click-101884261-15438560",
 
   // Business / Sponsored Content Contact
   SPONSOR_EMAIL: "partners@movieint.com",
@@ -40,6 +40,6 @@ export function getSmartStreamLink(platform: string, title: string): string {
 
     default:
       // Fallback redirect to VPN partner page if no matching stream provider is found
-      return `${AFFILIATE_CONFIG.NORD_VPN}`;
+      return `${AFFILIATE_CONFIG.SURFSHARK}`;
   }
 }

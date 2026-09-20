@@ -6,14 +6,13 @@ export const revalidate = 86400;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const rawBase = process.env.NEXT_PUBLIC_SITE_URL || "https://www.movieint.com";
-  // 1. Normalize baseUrl to strip trailing slash
   const baseUrl = rawBase.replace(/\/+$/, "");
-  
+
   const staticBuildDate = new Date("2026-03-01T00:00:00.000Z");
   const weeklyUpdateDate = new Date("2026-09-15T00:00:00.000Z");
   const recentEditorialDate = new Date("2026-09-18T00:00:00.000Z");
 
-  // Core Static Hubs
+  // 1. Core Static Hubs (19 URLs)
   const staticRoutes: MetadataRoute.Sitemap = [
     { url: `${baseUrl}`, lastModified: recentEditorialDate, changeFrequency: "daily", priority: 1.0 },
     { url: `${baseUrl}/advisor`, lastModified: weeklyUpdateDate, changeFrequency: "weekly", priority: 0.95 },
@@ -36,7 +35,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${baseUrl}/disclaimer`, lastModified: staticBuildDate, changeFrequency: "yearly", priority: 0.3 },
   ];
 
-  // Curated Ranking Categories
+  // 2. Curated Ranking Categories
   const rankingCategories = [
     "best-movies-2026",
     "best-anime",
@@ -51,7 +50,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.9,
   }));
 
-  // Decoupled Popular Comparison Pairs (Zero circular dependency)
+  // 3. Compare Hub Pairs
   const popularComparePairs = [
     "oppenheimer-vs-interstellar",
     "inception-vs-shutter-island",
@@ -59,7 +58,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "parasite-vs-whiplash",
     "blade-runner-2049-vs-matrix",
     "arrival-vs-interstellar",
-    "se7en-vs-zodiac"
+    "se7en-vs-zodiac",
+    "heat-vs-the-dark-knight",
+    "alien-vs-the-thing",
+    "goodfellas-vs-godfather"
   ];
   const compareRoutes: MetadataRoute.Sitemap = popularComparePairs.map((pair) => ({
     url: `${baseUrl}/compare/${pair}`,
@@ -68,7 +70,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.85,
   }));
 
-  // Intent Silos
+  // 4. Intent Silos
   const intentRoutes: MetadataRoute.Sitemap = Object.keys(INTENT_FILTERS || {}).map((key) => ({
     url: `${baseUrl}/best/${key}`,
     lastModified: weeklyUpdateDate,
@@ -76,7 +78,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.85,
   }));
 
-  // Genre Hubs
+  // 5. Genre Hubs
   const genreSlugs = [
     "thriller", "sci-fi", "action", "drama", "horror",
     "mystery", "crime", "animation", "romance", "comedy",
@@ -89,7 +91,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
   }));
 
-  // Editorial Longform Articles
+  // 6. Editorial Guides
   let editorialRoutes: MetadataRoute.Sitemap = [];
   try {
     const slugs = getAllEditorialSlugs();
@@ -103,96 +105,174 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     console.error("Editorial slugs extraction fallback:", err);
   }
 
-  // Verified High-Value Numeric Movie IDs (Pure Movies, No TV prefixes)
+  // 7. Verified High-Value Numeric Movie IDs (130 Films -> 260 URLs across /movie & /movies-like)
   const verifiedMovieIds = [
-    "27205",   // Inception
-    "157336",  // Interstellar
-    "496243",  // Parasite
-    "77",      // Memento
-    "11324",   // Shutter Island
-    "807",     // Se7en
-    "329865",  // Arrival
-    "550",     // Fight Club
-    "155",     // The Dark Knight
-    "244786",  // Whiplash
-    "603",     // The Matrix
-    "335984",  // Blade Runner 2049
-    "680",     // Pulp Fiction
-    "13",      // Forrest Gump
-    "122",     // The Lord of the Rings: The Return of the King
-    "1891",    // The Empire Strikes Back
-    "278",     // The Shawshank Redemption
-    "238",     // The Godfather
-    "424",     // Schindler's List
-    "120",     // LOTR: Fellowship of the Ring
-    "121",     // LOTR: The Two Towers
-    "299536",  // Avengers: Infinity War
-    "299534",  // Avengers: Endgame
-    "19995",   // Avatar
-    "76600",   // Avatar: The Way of Water
-    "597",     // Titanic
-    "105",     // Back to the Future
-    "671",     // Harry Potter 1
-    "672",     // Harry Potter 2
-    "673",     // Harry Potter 3
-    "1949",    // Zodiac
-    "1124",    // The Prestige
-    "114",     // Pretty Woman
-    "935",     // Dr. Strangelove
-    "593",     // The Silence of the Lambs
-    "475557",  // Joker
-    "37799",   // The Social Network
-    "146233",  // Prisoners
-    "745",     // The Sixth Sense
-    "1422",    // The Departed
-    "399055",  // The Shape of Water
-    "429",     // The Good, the Bad and the Ugly
-    "510",     // One Flew Over the Cuckoo's Nest
-    "497",     // The Green Mile
-    "423",     // The Pianist
-    "280",     // Terminator 2
-    "98",      // Gladiator
-    "629",     // The Usual Suspects
-    "8587",    // The Lion King
-    "4935",    // Howl's Moving Castle
-    "2501",    // Princess Mononoke
-    "101",     // Léon: The Professional
-    "111",     // Scarface
-    "637",     // Life Is Beautiful
-    "872585",  // Oppenheimer
-    "693134",  // Dune: Part Two
-    "569094",  // Spider-Man: Across the Spider-Verse
-    "414906",  // The Batman
-    "385687",  // Fast X
-    "438631"   // Dune (2021)
+    // Modern Sci-Fi & Mind-Benders
+    "27205", "157336", "496243", "77", "11324", "807", "329865", "550", "155", "244786",
+    "603", "335984", "680", "13", "122", "1891", "278", "238", "424", "120",
+    "121", "299536", "299534", "19995", "76600", "597", "105", "671", "672", "673",
+    // Masterclass Thrillers & Dramas
+    "1949", "1124", "114", "935", "593", "475557", "37799", "146233", "745", "1422",
+    "399055", "429", "510", "497", "423", "280", "98", "629", "8587", "4935",
+    "2501", "101", "111", "637", "872585", "693134", "569094", "414906", "385687", "438631",
+    // Expanded Elite Cinema & Cult Favorites
+    "348", // Alien
+    "1091", // The Thing
+    "948", // Halloween
+    "694", // The Shining
+    "812", // Aladdin
+    "12444", // Harry Potter 7.1
+    "12445", // Harry Potter 7.2
+    "490132", // Green Book
+    "372058", // Your Name
+    "493922", // Hereditary
+    "530915", // 1917
+    "635302", // Demon Slayer: Mugen Train
+    "508442", // Soul
+    "508947", // Turning Red
+    "508943", // Luca
+    "337404", // Cruella
+    "181808", // Star Wars: The Last Jedi
+    "284054", // Black Panther
+    "284053", // Thor: Ragnarok
+    "361743", // Top Gun: Maverick
+    "447365", // Guardians of the Galaxy Vol. 3
+    "616037", // Thor: Love and Thunder
+    "76341", // Mad Max: Fury Road
+    "24", // Kill Bill: Vol. 1
+    "393", // Kill Bill: Vol. 2
+    "18", // The Fifth Element
+    "68718", // Django Unchained
+    "46648", // True Grit
+    "82690", // Wreck-It Ralph
+    "10193", // Toy Story 3
+    "862", // Toy Story
+    "12", // Finding Nemo
+    "585", // Monsters, Inc.
+    "920", // Cars
+    "150540", // Inside Out
+    "10681", // WALL·E
+    "14160", // Up
+    "2062", // Ratatouille
+    "9552", // The Exorcist
+    "764", // The Texas Chain Saw Massacre
+    "578", // Jaws
+    "562", // Die Hard
+    "137113", // Edge of Tomorrow
+    "264660", // Ex Machina
+    "135397", // Jurassic World
+    "329", // Jurassic Park
+    "601", // E.T. the Extra-Terrestrial
+    "89", // Indiana Jones: Raiders of the Lost Ark
+    "330", // The Lost World: Jurassic Park
+    "285", // Pirates of the Caribbean: At World's End
+    "22", // Pirates of the Caribbean: The Curse of the Black Pearl
+    "58", // Pirates of the Caribbean: Dead Man's Chest
+    "168259", // Furious 7
+    "245891", // John Wick
+    "341013", // John Wick: Chapter 2
+    "458156", // John Wick: Chapter 3 - Parabellum
+    "603692", // John Wick: Chapter 4
+    "315162", // Puss in Boots: The Last Wish
+    "502356", // The Super Mario Bros. Movie
+    "346698", // Barbie
+    "507089", // Five Nights at Freddy's
+    "792307", // Poor Things
+    "915935", // Anatomy of a Fall
+    "467244", // The Zone of Interest
+    "695721", // The Hunger Games: The Ballad of Songbirds & Snakes
+    "365177", // The Martian
+    "274", // The Silence of the Lambs (archive duplicate fallback key)
+    "185", // A Clockwork Orange
+    "78", // Blade Runner
+    "11216" // Cinema Paradiso
   ];
 
-  // Specific high-intent films that genuinely have ending breakdowns
+  const uniqueMovieIds = Array.from(new Set(verifiedMovieIds));
+
+  // 8. Verified Notable Directors & Actors (50 Legendary Person Profiles)
+  const verifiedPersonIds = [
+    // Iconic Directors
+    "525", // Christopher Nolan
+    "1032", // Martin Scorsese
+    "138", // Quentin Tarantino
+    "488", // Steven Spielberg
+    "7467", // David Fincher
+    "21684", // Denis Villeneuve
+    "240", // Stanley Kubrick
+    "1", // George Lucas
+    "2710", // James Cameron
+    "1776", // Alfred Hitchcock
+    "608", // Ridley Scott
+    "5655", // Wes Anderson
+    "6008", // Guillermo del Toro
+    "11401", // Hayao Miyazaki
+    "2034", // David Lynch
+    "2163", // Bong Joon-ho
+    "578", // Peter Jackson
+    "500", // Tom Cruise
+    // Renowned Actors
+    "6193", // Leonardo DiCaprio
+    "287", // Brad Pitt
+    "31", // Tom Hanks
+    "3895", // Robert De Niro
+    "1158", // Al Pacino
+    "192", // Morgan Freeman
+    "3223", // Robert Downey Jr.
+    "1283", // Christian Bale
+    "2232", // Michael Caine
+    "139", // Uma Thurman
+    "1245", // Scarlett Johansson
+    "1892", // Matt Damon
+    "1204", // Julia Roberts
+    "5064", // Meryl Streep
+    "204", // Kate Winslet
+    "18277", // Sandra Bullock
+    "73421", // Joaquin Phoenix
+    "85", // Johnny Depp
+    "41312", // Mark Ruffalo
+    "74568", // Chris Hemsworth
+    "16828", // Chris Evans
+    "73964", // Cillian Murphy
+    "974169", // Florence Pugh
+    "1373737", // Timothée Chalamet
+    "505710", // Zendaya
+    "10990", // Emma Stone
+    "224513", // Ana de Armas
+    "18918", // Dwayne Johnson
+    "6384", // Keanu Reeves
+    "1327", // Ian McKellen
+    "48", // Sean Connery
+    "3896" // Liam Neeson
+  ];
+
+  // Specific Films with Narrative Climax / Twist Breakdowns (15 URLs)
   const verifiedEndingExplainedIds = [
-    "27205",   // Inception (Spinning top)
-    "77",      // Memento (Timeline reverse)
-    "11324",   // Shutter Island (Lighthouse mystery)
-    "157336",  // Interstellar (Tesseract / 5D)
-    "496243",  // Parasite (Basement fate)
-    "550",     // Fight Club (Tyler Durden revelation)
-    "329865",  // Arrival (Non-linear time weapon)
-    "745",     // The Sixth Sense (Malcolm twist)
-    "629",     // The Usual Suspects (Keyser Söze)
-    "1124",    // The Prestige (Clones vs double)
-    "807",     // Se7en (Box contents / climax)
-    "1949",    // Zodiac (Cipher conclusion)
-    "335984",  // Blade Runner 2049 (K's identity)
-    "603"      // The Matrix (Neo's choice)
+    "27205", // Inception
+    "77", // Memento
+    "11324", // Shutter Island
+    "157336", // Interstellar
+    "496243", // Parasite
+    "550", // Fight Club
+    "329865", // Arrival
+    "745", // The Sixth Sense
+    "629", // The Usual Suspects
+    "1124", // The Prestige
+    "807", // Se7en
+    "1949", // Zodiac
+    "335984", // Blade Runner 2049
+    "603", // The Matrix
+    "264660" // Ex Machina
   ];
 
-  const dynamicMovieRoutes: MetadataRoute.Sitemap = verifiedMovieIds.map((id) => ({
+  const dynamicMovieRoutes: MetadataRoute.Sitemap = uniqueMovieIds.map((id) => ({
     url: `${baseUrl}/movie/${id}`,
     lastModified: weeklyUpdateDate,
     changeFrequency: "weekly",
     priority: 0.8,
   }));
 
-  const moviesLikeRoutes: MetadataRoute.Sitemap = verifiedMovieIds.map((id) => ({
+  const moviesLikeRoutes: MetadataRoute.Sitemap = uniqueMovieIds.map((id) => ({
     url: `${baseUrl}/movies-like/${id}`,
     lastModified: weeklyUpdateDate,
     changeFrequency: "weekly",
@@ -206,6 +286,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.85,
   }));
 
+  const personRoutes: MetadataRoute.Sitemap = verifiedPersonIds.map((id) => ({
+    url: `${baseUrl}/person/${id}`,
+    lastModified: staticBuildDate,
+    changeFrequency: "monthly",
+    priority: 0.7,
+  }));
+
   return [
     ...staticRoutes,
     ...rankingRoutes,
@@ -216,5 +303,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...dynamicMovieRoutes,
     ...moviesLikeRoutes,
     ...endingExplainedRoutes,
+    ...personRoutes,
   ];
 }
